@@ -130,7 +130,7 @@ namespace Corruption
 		{
 			var tplayer = player.TPlayer;
 			return ! tplayer.ZoneBeach && ! tplayer.ZoneCorrupt && ! tplayer.ZoneCrimson && ! tplayer.ZoneDesert &&
-				   ! tplayer.ZoneDungeon && ! tplayer.ZoneGlowshroom && ! tplayer.ZoneHoly && ! tplayer.ZoneSnow &&
+				   ! tplayer.ZoneDungeon && ! tplayer.ZoneGlowshroom && ! tplayer.ZoneHallow && ! tplayer.ZoneSnow &&
 				   ! tplayer.ZoneJungle && ! tplayer.ZoneMeteor && ! tplayer.ZoneOldOneArmy &&
 				   ! tplayer.ZoneTowerSolar && ! tplayer.ZoneTowerVortex && ! tplayer.ZoneTowerNebula &&
 				   ! tplayer.ZoneTowerStardust;
@@ -145,11 +145,11 @@ namespace Corruption
 		// Utility public static bool for spawning in a hallow biome.
 		public static bool InHallow(TSPlayer player)
 		{
-			return player.TPlayer.ZoneHoly;
+			return player.TPlayer.ZoneHallow;
 		}
 
 		// Utility public static bool for spawning in an ice biome.
-		public static bool InIce(TSPlayer player)
+		public static bool InSnow(TSPlayer player)
 		{
 			return player.TPlayer.ZoneSnow;
 		}

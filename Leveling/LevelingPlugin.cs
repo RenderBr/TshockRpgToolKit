@@ -276,7 +276,7 @@ namespace Leveling
 				
 		internal Session TryGetOrCreateSession(string playerName)
 		{
-			var tsPlayer = TShock.Utils.FindPlayer(playerName).FirstOrDefault();
+			var tsPlayer = TSPlayer.FindByNameOrID(playerName).FirstOrDefault();
 
 			if( tsPlayer != null && tsPlayer.Active )
 				return GetOrCreateSession(tsPlayer);
@@ -289,7 +289,7 @@ namespace Leveling
             var session = player.GetData<Session>(SessionKey);
 			if (session == null)
             {
-				var username = player.User?.Name ?? player.Name;
+				var username = player.Account?.Name ?? player.Name;
 				
                 //first try the database
                 SessionDefinition definition = SessionRepository.Load(username);
@@ -387,8 +387,8 @@ namespace Leveling
                     var wasPvP = ((BitsByte)reader.ReadByte())[0];
                     if (wasPvP)
                     {
-                        var otherPlayer = deathReason.SourcePlayerIndex >= 0
-                            ? TShock.Players[deathReason.SourcePlayerIndex]
+                        var otherPlayer = deathReason._sourcePlayerIndex >= 0
+                            ? TShock.Players[deathReason._sourcePlayerIndex]
                             : null;
                         if (otherPlayer == player)
                         {
@@ -431,13 +431,13 @@ namespace Leveling
             }
 
             var session = GetOrCreateSession(player);
-            args.TShockFormattedText = string.Format(TShock.Config.ChatFormat, player.Group.Name,
+            args.TShockFormattedText = string.Format(TShock.Config.Settings.ChatFormat, player.Group.Name,
                                                      player.Group.Prefix + session.Level.Prefix, player.Name,
                                                      player.Group.Suffix,
                                                      args.RawText);
         }
 
-		//mystery method. why is this here? I noticed this on the callstack when debugging permissions in CustomSkillsPlugin...-Tim
+        //mystery method. why is this here? I noticed this on the callstack when debugging permissions in CustomSkillsPlugin...-Tim
         private void OnPlayerPermission(PlayerPermissionEventArgs args)
         {
             var player = args.Player;
@@ -447,7 +447,7 @@ namespace Leveling
             }
 
             var session = GetOrCreateSession(args.Player);
-            args.Handled |= session.PermissionsGranted.Contains(args.Permission);
+            session.PermissionsGranted.Contains(args.Permission); //was args.handled - fixme
         }
 
         //we handle the join event so that we can ensure were creating sessions at this point, and not during runtime.

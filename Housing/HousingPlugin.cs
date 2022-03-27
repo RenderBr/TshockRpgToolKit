@@ -119,9 +119,9 @@ namespace Housing
                 {
                     Debug.WriteLine($"DEBUG: {player.Name} entered {house.OwnerName}'s {house} house");
                     player.SendInfoMessage(
-                        $"You entered {(house.OwnerName == player.User?.Name ? "your house" : house.OwnerName + "'s house")} " +
+                        $"You entered {(house.OwnerName == player.Account?.Name ? "your house" : house.OwnerName + "'s house")} " +
                         $"{Color.MediumPurple.ColorText(house)}.");
-                    if (house.ForSale && house.OwnerName != player.User?.Name)
+                    if (house.ForSale && house.OwnerName != player.Account?.Name)
                     {
                         player.SendInfoMessage(
                             $"This house is on sale for [c/{Color.OrangeRed.Hex3()}:{house.SalePrice}].");
@@ -132,7 +132,7 @@ namespace Housing
                     Debug.WriteLine(
                         $"DEBUG: {player.Name} left {session.CurrentHouse.OwnerName}'s {session.CurrentHouse} house");
                     player.SendInfoMessage(
-                        $"You left {(session.CurrentHouse.OwnerName == player.User?.Name ? "your house" : session.CurrentHouse.OwnerName + "'s house")} " +
+                        $"You left {(session.CurrentHouse.OwnerName == player.Account?.Name ? "your house" : session.CurrentHouse.OwnerName + "'s house")} " +
                         $"{Color.MediumPurple.ColorText(session.CurrentHouse)}.");
                 }
                 session.CurrentHouse = house;
@@ -164,7 +164,7 @@ namespace Housing
                     var payment = Math.Min(totalBalance, taxCost);
 
 					var player = TShock.Players.Where(p => p?.Active == true)
-						.FirstOrDefault(p => p.User?.Name == house.OwnerName);
+						.FirstOrDefault(p => p.Account?.Name == house.OwnerName);
 
 					if(player!=null)
 					{
@@ -229,7 +229,7 @@ namespace Housing
                     }
                     args.Handled = true;
 
-                    if (shop.OwnerName == player.User?.Name)
+                    if (shop.OwnerName == player.Account?.Name)
                     {
                         Debug.WriteLine($"DEBUG: {player.Name} changing shop at {x}, {y}");
                         shop.IsBeingChanged = true;
@@ -247,7 +247,7 @@ namespace Housing
                         player.SendData(PacketTypes.ChestOpen, "", 998);
                         player.SendInfoMessage("Use /itemshop setprice <item-name> <price> to change prices.");
                     }
-                    else if (shop.OwnerName != player.User?.Name)
+                    else if (shop.OwnerName != player.Account?.Name)
                     {
 						Debug.WriteLine($"DEBUG: {player.Name} tried to view shop at {shop.ChestX}, {shop.ChestY}");
 						shop.TryShowStock(player);
@@ -259,7 +259,7 @@ namespace Housing
                 var player = TShock.Players[args.Msg.whoAmI];
                 var session = GetOrCreateSession(player);
                 var shop = session.CurrentlyViewedShop;
-                if (shop == null || shop.OwnerName != player.User?.Name)
+                if (shop == null || shop.OwnerName != player.Account?.Name)
                 {
                     return;
                 }
@@ -293,13 +293,13 @@ namespace Housing
                 var player = TShock.Players[args.Msg.whoAmI];
                 var session = GetOrCreateSession(player);
                 var shop = session.CurrentlyViewedShop;
-                if (shop != null && shop.OwnerName == player.User?.Name)
+                if (shop != null && shop.OwnerName == player.Account?.Name)
                 {
                     Debug.WriteLine($"DEBUG: {player.Name} finished changing shop at {shop.ChestX}, {shop.ChestY}");
                     shop.IsBeingChanged = false;
                 }
             }
-            else if (args.MsgID == PacketTypes.TileKill)
+            else if (args.MsgID == PacketTypes.UpdateTileEntity)
             {
                 var player = TShock.Players[args.Msg.whoAmI];
                 using (var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length)))
@@ -340,7 +340,7 @@ namespace Housing
                                 Main.chest[chestId] = null;
                             }
                             // We don't send a chest creation packet, as the players have to "discover" the chest themselves.
-                            TSPlayer.All.SendTileSquare(x, y, 4);
+                            TSPlayer.All.SendTileSquareCentered(x, y, 4);
                         }
                         return;
                     }
@@ -365,7 +365,7 @@ namespace Housing
                     {
                         player.SendErrorMessage("You can't remove shop chests.");
                         args.Handled = true;
-                        player.SendTileSquare(x, y, 3);
+                        player.SendTileSquareCentered(x, y, 3);
                     }
                 }
             }
@@ -382,7 +382,7 @@ namespace Housing
 			var config = Config.Instance.GetGroupConfig(player!=null ? player.Group.Name : ">");//force default if no group.. we can never have a group named ">" ...right?
 			if (player != null && config?.AllowOfflineShops==false)//!Config.Instance.AllowOfflineShops)
             {
-                foreach (var shop in database.GetShops().Where(s => s.OwnerName == player.User?.Name))
+                foreach (var shop in database.GetShops().Where(s => s.OwnerName == player.Account?.Name))
                 {
                     shop.IsOpen = false;
                 }

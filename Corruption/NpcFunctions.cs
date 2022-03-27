@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
 using TShockAPI.Localization;
+using Terraria.DataStructures;
+using System.Linq;
+using Terraria.Utilities;
 
 namespace Corruption
 {
@@ -65,7 +68,7 @@ namespace Corruption
 			for (var i = 0; i < amount; ++i)
 			{
 				TShock.Utils.GetRandomClearTileWithInRange(x, y, radius, radius, out var spawnX, out var spawnY);
-				var npcIndex = NPC.NewNPC(16 * spawnX, 16 * spawnY, type);
+				var npcIndex = NPC.NewNPC(new EntitySource_DebugCommand(), 16 * spawnX, 16 * spawnY, type);
 				if (npcIndex != Main.maxNPCs)
 				{
 					npcs.Add(Main.npc[npcIndex]);

@@ -9,6 +9,7 @@ using TShockAPI;
 using TShockAPI.DB;
 using TShockAPI.Localization;
 using System.Collections.ObjectModel;
+using Terraria.DataStructures;
 
 namespace CustomNpcs
 {
@@ -156,7 +157,7 @@ namespace CustomNpcs
 				throw new FormatException($"Invalid NPC name or ID '{nameOrType}'.");
 			}
 
-			var npcId = NPC.NewNPC((int)position.X, (int)position.Y, (int)npcType);
+			var npcId = NPC.NewNPC(new EntitySource_DebugCommand(),(int)position.X, (int)position.Y, (int)npcType);
 			return npcId != Main.maxNPCs ? Main.npc[npcId] : null;
 		}
 

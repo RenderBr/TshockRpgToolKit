@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Terraria;
+using Terraria.DataStructures;
 using TShockAPI;
 
 namespace Corruption
@@ -31,7 +32,7 @@ namespace Corruption
 
 			for (var i = 0; i < projectiles.Length; i++)
 			{
-				var projectileId = Projectile.NewProjectile(x, y, speedX, speedY, type, damage, knockBack, owner, ai0, ai1);
+				var projectileId = Projectile.NewProjectile(new EntitySource_DebugCommand(), x, y, speedX, speedY, type, damage, knockBack, owner, ai0, ai1);
 				TSPlayer.All.SendData(PacketTypes.ProjectileNew, "", projectileId);
 				projectiles[i] = Main.projectile[projectileId];
 			}

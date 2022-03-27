@@ -9,6 +9,7 @@ using TShockAPI;
 using System.Diagnostics;
 using TerrariaApi.Server;
 using Corruption.PluginSupport;
+using Terraria.DataStructures;
 
 namespace CustomNpcs
 {
@@ -109,7 +110,7 @@ namespace CustomNpcs
                 spawnRate *= 0.4;
             }
 
-            var activeNpcs = tplayer.activeNPCs;
+            var activeNpcs = tplayer.nearbyActiveNPCs;
             if (activeNpcs < 0.2 * maxSpawns)
             {
                 spawnRate *= 0.6;
@@ -190,7 +191,7 @@ namespace CustomNpcs
         {
             if (int.TryParse(npcNameOrType, out var npcType))
             {
-                NPC.NewNPC(16 * tileX + 8, 16 * tileY, npcType);
+                NPC.NewNPC(new EntitySource_DebugCommand(), 16 * tileX + 8, 16 * tileY, npcType);
                 return;
             }
 

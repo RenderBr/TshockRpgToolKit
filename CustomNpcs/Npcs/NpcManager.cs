@@ -18,6 +18,7 @@ using Boo.Lang.Compiler.IO;
 using Boo.Lang.Compiler;
 using Corruption.PluginSupport;
 using Banking;
+using Terraria.DataStructures;
 
 namespace CustomNpcs.Npcs
 {
@@ -126,7 +127,7 @@ namespace CustomNpcs.Npcs
             // erroneously checked for replacement.
             //lock (_checkNpcLock)
             {
-                var npcId = NPC.NewNPC(x, y, definition.BaseType);
+                var npcId = NPC.NewNPC(new EntitySource_DebugCommand(), x, y, definition.BaseType);
                 return npcId != Main.maxNPCs ? AttachCustomNpc(Main.npc[npcId], definition) : null;
             }
         }
@@ -377,7 +378,7 @@ namespace CustomNpcs.Npcs
                 var items = TShock.Utils.GetItemByIdOrName(lootEntry.Name);
                 if (items.Count == 1)
                 {
-                    Item.NewItem(npc.position, npc.Size, items[0].type, stackSize, false, lootEntry.Prefix);
+                    Item.NewItem(new EntitySource_DebugCommand(), npc.position, npc.Size, items[0].type, stackSize, false, lootEntry.Prefix);
                 }
             }
 
@@ -522,7 +523,7 @@ namespace CustomNpcs.Npcs
 		private void TrySpawnCustomNpc(TSPlayer player, int tileX, int tileY)
 		{
 			Utils.GetSpawnData(player, out var maxSpawns, out var spawnRate);
-			if( player.TPlayer.activeNPCs >= maxSpawns )
+			if( player.TPlayer.nearbyActiveNPCs >= maxSpawns )
 				return;
 			
 			var spawnViaGlobalRate = _random.Next((int)spawnRate) == 0;

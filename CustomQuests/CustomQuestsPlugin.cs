@@ -617,14 +617,14 @@ namespace CustomQuests
             player.SendInfoMessage($"Type: {tile.type}, FrameX: {tile.frameX}, FrameY: {tile.frameY}");
             player.AwaitingTempPoint = 0;
             args.Handled = true;
-            player.SendTileSquare(x, y, 5);
+            player.SendTileSquareCentered(x, y, 5);
         }
 
         private void OnGameUpdate(EventArgs args)
         {
 			QuestRunner.Update();
 
-			foreach( var player in TShock.Players.Where(p => p?.User != null) )
+			foreach( var player in TShock.Players.Where(p => p?.Account != null) )
 			{
 				var session = GetSession(player);
 					

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using Terraria.GameContent.UI;
 using Terraria.Localization;
 using Corruption;
+using Terraria.DataStructures;
 
 namespace CustomNpcs.Npcs
 {
@@ -147,7 +148,7 @@ namespace CustomNpcs.Npcs
 		/// <param name="knockback">The knockback.</param>
 		public void ShootProjectileAt(Vector2 position, int type, int damage, float speed, float knockback)
 		{
-			var projectileId = Projectile.NewProjectile(Position,
+			var projectileId = Projectile.NewProjectile(new EntitySource_DebugCommand(), Position,
 				( position - Position ) * speed / Vector2.Distance(Position, position), type, damage, knockback);
 			TSPlayer.All.SendData(PacketTypes.ProjectileNew, "", projectileId);
 		}
