@@ -67,7 +67,13 @@ namespace Banking
 			ServerApi.Hooks.ServerJoin.Register(this, OnServerJoin);
 			ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
 			ServerApi.Hooks.WorldSave.Register(this, OnWorldSave);
-									
+
+
+			Commands.ChatCommands.Add(new Command("banking.bank", BankCommands.Bank, "bank"));
+			Commands.ChatCommands.Add(new Command("banking.admin", BankCommands.BankAdmin, "bankadmin"));
+			Commands.ChatCommands.Add(new Command("banking.multiplier", BankCommands.Multiplier, "multiplier"));
+			Commands.ChatCommands.Add(new Command("banking.reward", BankCommands.Reward, "reward"));
+			/*
 			Commands.ChatCommands.Add(new Command("banking.bank", BankCommands.Bank, "bank")
 			{
 				HelpText = $"Syntax: {Commands.Specifier}bank bal <currency>\n" +
@@ -92,7 +98,8 @@ namespace Banking
 				HelpText = $"Syntax: {Commands.Specifier}reward\n" +
 						   "Reward players if they vote for the server."
 			});
-			
+			*/
+
 		}
 		
 		protected override void Dispose(bool disposing)

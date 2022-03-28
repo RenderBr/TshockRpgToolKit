@@ -51,11 +51,14 @@ namespace BooTS
 			ServerApi.Hooks.GameUpdate.Register(this, OnGameUpdate);
 			ServerApi.Hooks.ServerJoin.Register(this, OnServerJoin);
 			ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
-			
+
+			Commands.ChatCommands.Add(new Command("boots.control", CommandLoad, "boo"));
+			/*
 			Commands.ChatCommands.Add(new Command("boots.control", CommandLoad, "boo")
 			{
 				HelpText = $"Syntax: {Commands.Specifier}boo run <script>"
 			});
+			*/
 		}
 		
 		protected override void Dispose(bool disposing)

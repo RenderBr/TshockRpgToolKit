@@ -61,7 +61,23 @@ namespace Leveling
             //ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
             ServerApi.Hooks.ServerJoin.Register(this,OnServerJoin);
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
-			
+
+            Commands.ChatCommands.Add(new Command("leveling.addhp", AddHp, "addhp"));
+            Commands.ChatCommands.Add(new Command("leveling.addmp", AddMp, "addmp"));
+            Commands.ChatCommands.Add(new Command("leveling.class", ClassCmd, "class"));
+            Commands.ChatCommands.Add(new Command("leveling.exp", Exp, "exp"));
+            Commands.ChatCommands.Add(new Command("leveling.giveexp", GiveExp, "giveexp"));
+            Commands.ChatCommands.Add(new Command("leveling.giveonce", GiveOnce, "giveonce"));
+            Commands.ChatCommands.Add(new Command("leveling.leveldown", LevelDown, "leveldown"));
+            Commands.ChatCommands.Add(new Command("leveling.levelup", LevelUp, "levelup"));
+            Commands.ChatCommands.Add(new Command("leveling.levelreset", LevelReset, "levelreset"));
+            Commands.ChatCommands.Add(new Command("leveling.sendto", SendTo, "sendto"));
+            Commands.ChatCommands.Add(new Command("leveling.setclass", SetClass, "setclass"));
+            Commands.ChatCommands.Add(new Command("leveling.dump", LevelDump, "leveldump"));
+
+
+            /* This causes null refence cause of the help text area, Don't know how to fix so, this is the work around.
+
             Commands.ChatCommands.Add(new Command("leveling.addhp", AddHp, "addhp")
             {
                 HelpText = $"Syntax: {Commands.Specifier}addhp <player-name> <hp-amount>\n" +
@@ -124,6 +140,7 @@ namespace Leveling
 				HelpText = $"Syntax: {Commands.Specifier}leveldump\n" +
 						   "Dumps debug information about the players level to a file."
 			});
+            */
 		}
 
         protected override void Dispose(bool disposing)

@@ -223,8 +223,8 @@ namespace CustomNpcs.Projectiles
 			[JsonProperty]
 			public float? Light { get; set; }
 			
-			[JsonProperty]
-			public bool? Thrown { get; set; }
+			//[JsonProperty]
+			//public bool? Thrown { get; set; }
 
 			[JsonProperty]
 			public bool? Melee { get; set; }
