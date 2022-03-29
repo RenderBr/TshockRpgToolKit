@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TerrariaApi.Server;
 
 namespace CustomNpcs
 {
@@ -61,21 +62,44 @@ namespace CustomNpcs
 			var rootResult = new ValidationResult(ConfigPath);
 			rootResult.Source = ConfigPath;
 
+			//Console.WriteLine(ConfigPath);
+			CustomNpcsPlugin.Instance.LogPrint("**************************");
+			var usedNames = new HashSet<string>();
 			foreach(var def in Definitions)
 			{
 				var name = "";
 				var result = def.Validate();
-
+				
 				if (!string.IsNullOrWhiteSpace(def.Name))
 					name = $" - '{def.Name}'";
 
+				
+				if( !usedNames.Contains(def.Name) )
+				{
+					//CustomNpcsPlugin.Instance.LogPrint("*************\n" + def.Name + "\n**************");//now we can see that
+					//TShockAPI.Utils.Instance.Broadcast(def.Name);
+					Debug.WriteLine(def.Name);
+					rootResult.Children.Add(result);
+					usedNames.Add(def.Name);
+				}
+				else 
+				{
+					continue;
+				}
 				//result.Source = $"{def.FilePath}[{def.LineNumber},{def.LinePosition}]{name}";
 				
 				//CustomNpcsPlugin.Instance.LogPrint(result);
-				rootResult.Children.Add(result);
+				
 			}
+			Debug.WriteLine("**************************");
 
+            CustomNpcsPlugin.Instance.LogPrint("**************************");
+
+
+            Debug.WriteLine(rootResult);
 			CustomNpcsPlugin.Instance.LogPrint(rootResult);
+
+			CustomNpcsPlugin.Instance.LogPrint("**************************");
 
 			//Definitions = DefinitionLoader.LoadFromFile<TCustomType>(ConfigPath);
 

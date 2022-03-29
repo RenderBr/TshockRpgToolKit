@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 
 namespace CustomNpcs
 {
+
 	public class DefinitionInclude : List<DefinitionBase>, IValidator
 	{
 		public string FilePath { get; private set; }

@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 
 namespace CustomNpcs
 {
-	internal static class DefinitionLoader
-	{
+	internal static class DefinitionLoader 
+
 		internal static List<TDefinition> LoadFromFile<TDefinition>(string filePath) where TDefinition : DefinitionBase
 		{
 			List<TDefinition> result = null;
@@ -31,7 +31,7 @@ namespace CustomNpcs
 					{
 						ValidationResult validationResult = null;
 
-						if( usedNames.Contains(definition.Name) )
+						if( usedNames.Contains(definition.Name) )// this returns false
 						{
 							//throw new Exception($"A definition with the name '{definition.Name}' already exists.");
 							validationResult = new ValidationResult();
@@ -103,26 +103,59 @@ namespace CustomNpcs
 
 				//var rawDefinitions = (List<DefinitionBase>)JsonConvert.DeserializeObject(json, typeof(List<DefinitionBase>), settings);
 
+				var usedNames = new HashSet<string>();
+				var failedDefinitions = new List<TDefinition>();
+
 				foreach ( var rawDef in rawDefinitions )
 				{
-					if( rawDef is TDefinition )
+					try 
 					{
-						//this is a real definition
-						rawDef.FilePosition = new FilePosition(filePath);
-						expandedDefinitions.Add(rawDef as TDefinition);
-					}
-					else if( rawDef is CategoryDefinition )
-					{
-						//this is a placeholder definition, which points to included definitions.
-						var placeholder = rawDef as CategoryDefinition;
-						var includedDefinitions = placeholder.TryLoadIncludes<TDefinition>(filePath);
+						ValidationResult validationResult = null;
+						if( usedNames.Contains(rawDef.Name) )
+						{
+							validationResult = new ValidationResult();
+							validationResult.Errors.Add(new ValidationError($"A definition with the name '{definition.Name}' already exists."));
+						}
+						else
+						{
+							//definition.ThrowIfInvalid();
+							validationResult = definition.Validate();
+						}
 
-						expandedDefinitions.AddRange(includedDefinitions);
+						if(validationResult.HasErrors)
+						{
+							foreach(var err in validationResult.Errors)
+								CustomNpcsPlugin.Instance.LogPrint(err.ToString(), TraceLevel.Error);
+
+							failedDefinitions.Add(definition); 
+							continue;
+						}
+						else if( validationResult.HasWarnings )
+						{
+							foreach( var war in validationResult.Warnings )
+								CustomNpcsPlugin.Instance.LogPrint(war.ToString(), TraceLevel.Warning);
+						}
+						if( rawDef is TDefinition )
+						{
+							//this is a real definition
+							rawDef.FilePosition = new FilePosition(filePath);
+							expandedDefinitions.Add(rawDef as TDefinition);
+						}
+						else if( rawDef is CategoryDefinition )
+						{
+							//this is a placeholder definition, which points to included definitions.
+							var placeholder = rawDef as CategoryDefinition;
+							var includedDefinitions = placeholder.TryLoadIncludes<TDefinition>(filePath);
+
+							expandedDefinitions.AddRange(includedDefinitions);
+						}
+						usedNames.Add(rawDef.Name);
 					}
-					//else
-					//{
-					//	//throw?
-					//}
+					catch( Exception ex )
+					{
+						CustomNpcsPlugin.Instance.LogPrint($"{definition.FilePosition.FilePath}: An error occurred while trying to load {typeName} '{definition.Name}': {ex.Message}", TraceLevel.Error);
+						failedDefinitions.Add(definition);
+					}
 				}
 			}
 
