@@ -63,7 +63,6 @@ namespace CustomNpcs
 			rootResult.Source = ConfigPath;
 
 			//Console.WriteLine(ConfigPath);
-			CustomNpcsPlugin.Instance.LogPrint("**************************");
 			var usedNames = new HashSet<string>();
 			foreach(var def in Definitions)
 			{
@@ -91,10 +90,6 @@ namespace CustomNpcs
 				//CustomNpcsPlugin.Instance.LogPrint(result);
 				
 			}
-			Debug.WriteLine("**************************");
-
-            CustomNpcsPlugin.Instance.LogPrint("**************************");
-
 
             Debug.WriteLine(rootResult);
 			CustomNpcsPlugin.Instance.LogPrint(rootResult);
@@ -164,9 +159,16 @@ namespace CustomNpcs
 
 			definitionMap = new Dictionary<string, TCustomType>();
 
-			foreach(var def in Definitions)
-				definitionMap.Add(def.Name.ToLowerInvariant(), def);
-			
+            var usedNames1 = new HashSet<string>();
+            foreach (var def in Definitions)
+            {
+                var defName = def.Name.ToLowerInvariant();
+                if (!usedNames1.Contains(defName))
+                {
+                    definitionMap.Add(defName, def);
+                    usedNames1.Add(defName);
+                }
+            }			
 		}
 
 		public void ClearDefinitions()

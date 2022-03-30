@@ -43,9 +43,11 @@ namespace CustomNpcs
 				else
 				{
 					var def = child.ToObject<TDefinition>();
-					//do TDefinition specific things...
-					baseDef = def;
-				}
+                    
+                    //do TDefinition specific things...
+                    baseDef = def;
+                    baseDef.Name = child["CustomID"].ToString();
+                }
 
 				//set file and line info
 				var filePos = baseDef.FilePosition = new FilePosition(filePath);
