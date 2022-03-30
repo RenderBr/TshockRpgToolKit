@@ -46,7 +46,10 @@ namespace CustomNpcs
                     
                     //do TDefinition specific things...
                     baseDef = def;
-                    baseDef.Name = child["CustomID"].ToString();
+                    if(child["CustomID"] != null)
+                    {
+                        baseDef.Name = child["CustomID"].ToString();
+                    }                    
                 }
 
 				//set file and line info
