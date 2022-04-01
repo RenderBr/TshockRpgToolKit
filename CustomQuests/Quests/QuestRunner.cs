@@ -89,13 +89,27 @@ namespace CustomQuests.Quests
 						break;
 
 					case TaskStatus.Canceled:
-						RemoveQuest(quest.party.Name);
+                        try
+                        {
+                            RemoveQuest(quest.party.Name);
+                        }
+                        catch(TaskCanceledException e)
+                        {
+                            Console.WriteLine($"Task cancled unexpectedly'{e}'");
+                        }                        
 						break;
 
 					case TaskStatus.Faulted:
-						RemoveQuest(quest.party.Name);
-											
-						if(quest.MainQuestTask?.Exception!=null)
+                        try
+                        {
+                            RemoveQuest(quest.party.Name);
+                        }
+                        catch (TaskCanceledException e)
+                        {
+                            Console.WriteLine($"Task cancled unexpectedly'{e}'");
+                        }
+
+                        /*if(quest.MainQuestTask?.Exception!=null)
 						{
 							CustomQuestsPlugin.Instance.LogPrint($"'{quest.QuestInfo.Name}' MainQuestTask terminated due to errors or cancellation.", TraceLevel.Warning);
 
@@ -103,11 +117,11 @@ namespace CustomQuests.Quests
 								CustomQuestsPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Warning );
 
 							//quest.OnAbort("Quest aborted due to error. Please let the server admin know.");
-						}
+						}*/
 						
 						quest.OnAbort();
-						
-						break;
+
+                        break;
 				}
 			}
 		}
