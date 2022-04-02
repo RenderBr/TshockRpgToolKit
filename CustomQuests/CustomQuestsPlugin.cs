@@ -131,7 +131,7 @@ namespace CustomQuests
 			QuestLoader = new QuestLoader();
 			QuestRunner = new QuestRunner(QuestLoader);
 
-			ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
 			ServerApi.Hooks.GameUpdate.Register(this, OnGameUpdate);
 			ServerApi.Hooks.ServerJoin.Register(this, OnJoin);
 			ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
@@ -145,13 +145,16 @@ namespace CustomQuests
 												
 			Commands.ChatCommands.RemoveAll(c => c.Names.Contains("p"));
 			Commands.ChatCommands.RemoveAll(c => c.Names.Contains("party"));
-			Commands.ChatCommands.Add(new Command("customquests.party", P, "p"));
+            Commands.ChatCommands.RemoveAll(c => c.Names.Contains("logout"));
+            Commands.ChatCommands.Add(new Command("customquests.party", P, "p"));
 			Commands.ChatCommands.Add(new Command("customquests.party", Party, "party"));
 			Commands.ChatCommands.Add(new Command("customquests.quest", Quest, "quest"));
 			Commands.ChatCommands.Add(new Command("customquests.tileinfo", TileInfo, "tileinfo"));
-		}
-				
-		private void OnPostInitialize(EventArgs args)
+            Commands.ChatCommands.Add(new Command("customquests.logout", LogOut, "logout"));
+
+        }
+
+        private void OnPostInitialize(EventArgs args)
 		{
 			load();
 		}

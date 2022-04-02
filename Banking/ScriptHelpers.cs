@@ -23,7 +23,7 @@ namespace Banking
 				"System",
 				"System.Collections.Generic",
 				"Microsoft.Xna.Framework",
-				"TShockAPI",
+				//"TShockAPI",
 				"Corruption.AreaFunctions",
 				"Corruption.EmoteFunctions",
 				"Corruption.TimeFunctions",

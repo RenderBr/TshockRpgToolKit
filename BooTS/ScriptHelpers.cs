@@ -21,7 +21,7 @@ namespace BooTS
 				"System",
 				"System.Collections.Generic",
 				"Microsoft.Xna.Framework",
-				"TShockAPI",
+				//"TShockAPI",
 				"Terraria",
 				"Corruption",
 				"Corruption.AreaFunctions",

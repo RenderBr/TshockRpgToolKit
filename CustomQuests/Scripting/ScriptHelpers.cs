@@ -25,7 +25,7 @@ namespace CustomQuests.Scripting
 				"System.Collections.Generic",
 				"System.Threading.Tasks",
 				"Microsoft.Xna.Framework",
-				"TShockAPI",
+				//"TShockAPI",
 				"Corruption",
 				"Corruption.AreaFunctions",
 				"Corruption.EmoteFunctions",
