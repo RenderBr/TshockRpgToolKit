@@ -424,7 +424,7 @@ namespace Banking
 				try
 				{
 					var filePath = Path.Combine(currencyDirectoryPath, currency.InternalName + ".currency");
-					var json = JsonConvert.SerializeObject(currency);
+					var json = JsonConvert.SerializeObject(currency, Formatting.Indented);
 					File.WriteAllText(filePath, json);
 				}
 				catch(Exception ex)

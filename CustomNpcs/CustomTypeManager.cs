@@ -205,9 +205,136 @@ namespace CustomNpcs
 		internal virtual void SaveDefaultFile(string filePath)
 		{
 			var array = new TCustomType[0];
-			var json = JsonConvert.SerializeObject(array);
+            var json = JsonConvert.SerializeObject(array);
+            var defaultNpcs = @"
+            [
+                {
+                    ""CustomID"": ""Example"",
+                    ""BaseType"": 352,
+                    ""ScriptPath"": null,
+                    ""BaseOverride"": {
+                                ""AiStyle"": null,
+                      ""BuffImmunities"": [],
+                      ""Defense"": 50,
+                      ""HasNoCollision"": true,
+                      ""HasNoGravity"": true,
+                      ""IsBoss"": false,
+                      ""IsImmortal"": false,
+                      ""IsImmuneToLava"": false,
+                      ""IsTrapImmune"": false,
+                      ""KnockbackMultiplier"": 1.0,
+                      ""MaxHp"": 300,
+                      ""Name"": ""Lovely Example"",
+                      ""NpcSlots"": null,
+                      ""Value"": null,
+                      ""BehindTiles"": null,
+                      ""DontTakeDamageFromHostiles"": null
+                    },
+                    ""Loot"": {
+                      ""TallyKills"": false,
+                      ""IsOverride"": true,
+                      ""Entries"": [
+                        {
+                          ""Name"": ""Dirt Block"",
+                          ""MinStackSize"": 0,
+                          ""MaxStackSize"": 0,
+                          ""Prefix"": 0,
+                          ""Chance"": 0.0
+                        }
+                      ]
+                    },
+                    ""Spawning"": {
+                      ""ShouldSpawn"": true,
+                      ""ShouldReplace"": false,
+                      ""SpawnRateOverride"": 1900
+                    }
+                }
+            ]";
+            var defaultProj = @"
+            [
+                {
+                ""CustomID"": ""ExampleProj"",
+                ""Name"": ""Example"",
+                ""ScriptPath"": null,
+                ""BaseType"": 0,
+                ""BaseOverride"": {
+                                ""AiStyle"": 0,
+                    ""Ai"": null,
+                    ""Damage"": 6,
+                    ""KnockBack"": 300,
+                    ""Friendly"": false,
+                    ""Hostile"": false,
+                    ""MaxPenetrate"": 8,
+                    ""TimeLeft"": 800,
+                    ""Magic"": true,
+                    ""Light"": 20.0,
+                    ""Melee"": false,
+                    ""ColdDamage"": true,
+                    ""TileCollide"": true,
+                    ""IgnoreWater"": true
+                    }
+                }
+            ]";
+            var defaultInvasions = @"
+            [
+                {
+                ""Name"": ""New Invasion"",
+                ""ScriptPath"": null,
+                ""NpcPointValues"": { },
+                ""CompletedMessage"": ""The invasion has ended!"",
+                ""AtSpawnOnly"": false,
+                ""ScaleByPlayers"": false,
+                ""Waves"": [
+                      {
+                        ""Name"": ""New Wave 1"",
+                        ""NpcWeights"": {
+                          ""example"": 6
+                        },
+                        ""PointsRequired"": 20,
+                        ""MaxSpawns"": 10,
+                        ""SpawnRate"": 20,
+                        ""StartMessage"": ""The wave has started!"",
+                        ""Miniboss"": null
+                      },
+                      {
+                        ""Name"": ""MidBoss"",
+                        ""NpcWeights"": {
+                          ""example"": 8
+                        },
+                        ""PointsRequired"": 40,
+                        ""MaxSpawns"": 1,
+                        ""SpawnRate"": 20,
+                        ""StartMessage"": ""The wave has started!"",
+                        ""Miniboss"": null
+                      },
+                      {
+                        ""Name"": ""Boss"",
+                        ""NpcWeights"": {
+                          ""example"": 5
+                        },
+                        ""PointsRequired"": 60,
+                        ""MaxSpawns"": 10,
+                        ""SpawnRate"": 20,
+                        ""StartMessage"": ""The wave has started!"",
+                        ""Miniboss"": null
+                      }
+                    ]
+                }
+            ]";
+            if (filePath.Contains("npcs.json"))
+            {
+                json = defaultNpcs;
+            }
+            else if (filePath.Contains("projectiles.json"))
+            {
+                json = defaultProj;
+            }
+            else if (filePath.Contains("invasions.json"))
+            {
+                json = defaultInvasions;
+            }
 
-			File.WriteAllText(filePath,json);
+            File.WriteAllText(filePath, json);
 		}
 	}
 }

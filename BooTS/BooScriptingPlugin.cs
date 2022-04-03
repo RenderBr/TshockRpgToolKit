@@ -270,6 +270,7 @@ namespace BooTS
 			{
 				player.SendErrorMessage($"Not enough parameters.");
 				player.SendErrorMessage($"Format is: {Commands.Specifier}boo run <script>");
+                return;
 			}
 
 			var sub = args.Parameters[0];
