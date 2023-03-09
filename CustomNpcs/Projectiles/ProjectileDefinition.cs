@@ -166,8 +166,8 @@ namespace CustomNpcs.Projectiles
 			//{
 			//	throw new FormatException($"{nameof(BaseType)} is too small.");
 			//}
-			if (BaseType >= Main.maxProjectileTypes)
-				result.Errors.Add(new ValidationError($"{nameof(BaseType)} is greater than {Main.maxProjectileTypes}."));
+			if (BaseType >= Main.maxProjectiles)
+				result.Errors.Add(new ValidationError($"{nameof(BaseType)} is greater than {Main.maxProjectiles}.")); //was max projectile types
 
 			if (ScriptPath != null && !File.Exists(Path.Combine("npcs", ScriptPath)))
 				result.Errors.Add(new ValidationError($"{nameof(ScriptPath)} points to invalid script file, '{ScriptPath}'."));

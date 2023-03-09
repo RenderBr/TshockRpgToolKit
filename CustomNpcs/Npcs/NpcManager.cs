@@ -68,7 +68,7 @@ namespace CustomNpcs.Npcs
             ServerApi.Hooks.NpcSpawn.Register(_plugin, OnNpcSpawn);
             ServerApi.Hooks.NpcStrike.Register(_plugin, OnNpcStrike);
 			//ServerApi.Hooks.NpcTransform.Register(_plugin, OnNpcTransform);
-			OTAPI.Hooks.Npc.PostTransform = OnNpcTransform;
+			//OTAPI.Hooks.NPC.InvokeTransforming(_plugin, OnNpcTransform);
 		}
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace CustomNpcs.Npcs
             ServerApi.Hooks.NpcSpawn.Deregister(_plugin, OnNpcSpawn);
             ServerApi.Hooks.NpcStrike.Deregister(_plugin, OnNpcStrike);
 			//ServerApi.Hooks.NpcTransform.Deregister(_plugin, OnNpcTransform);
-			OTAPI.Hooks.Npc.PostTransform = null;
+			//OTAPI.Hooks.NPC.Transforming
 		}
 		
         /// <summary>

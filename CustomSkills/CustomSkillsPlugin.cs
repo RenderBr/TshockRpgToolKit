@@ -8,7 +8,6 @@ using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using Terraria;
 using TerrariaApi.Server;
-using OTAPI.Tile;
 using TShockAPI;
 using TShockAPI.Hooks;
 using System.Diagnostics;

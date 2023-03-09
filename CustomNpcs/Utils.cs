@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using CustomNpcs.Npcs;
 using Microsoft.Xna.Framework;
-using OTAPI.Tile;
 using Terraria;
 using TShockAPI;
 using System.Diagnostics;
 using TerrariaApi.Server;
 using Corruption.PluginSupport;
 using Terraria.DataStructures;
+using Terraria.ID;
 
 namespace CustomNpcs
 {
@@ -243,13 +243,13 @@ namespace CustomNpcs
                 {
                     tileX = Random.Next(minX, maxX);
                     tileY = Random.Next(minY, maxY);
-                    var tile = Main.tile[tileX, tileY];
+                    var tile = Framing.GetTileSafely(tileX, tileY);
                     if (tile.IsSolid() || Main.wallHouse[tile.wall])
                     {
                         continue;
                     }
 
-                    while (++tileY < Main.maxTilesY && !Main.tile[tileX, tileY].IsSolid())
+                    while (++tileY < Main.maxTilesY && !Framing.GetTileSafely(tileX, tileY).IsSolid())
                     {
                     }
 
@@ -326,6 +326,6 @@ namespace CustomNpcs
         }
 
         private static bool IsSolid(this ITile tile) =>
-            tile.active() && tile.type < Main.maxTileSets && Main.tileSolid[tile.type];
+            tile.active() && tile.type < TileID.Count && Main.tileSolid[tile.type] && Main.tileLighted[tile.type];
     }
 }

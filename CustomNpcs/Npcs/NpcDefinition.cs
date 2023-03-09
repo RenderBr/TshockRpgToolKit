@@ -175,7 +175,7 @@ namespace CustomNpcs.Npcs
             npc.aiStyle = _baseOverride.AiStyle ?? npc.aiStyle;
             if (_baseOverride.BuffImmunities != null)
             {
-                for (var i = 0; i < Main.maxBuffTypes; ++i)
+                for (var i = 0; i < Terraria.ID.BuffID.Count; ++i)
                 {
                     npc.buffImmune[i] = false;
                 }
@@ -244,8 +244,8 @@ namespace CustomNpcs.Npcs
 			if( BaseType < -65 )
 				result.Errors.Add( new ValidationError($"{nameof(BaseType)} is too small. Value must be greater than -65."));
 			
-			if( BaseType >= Main.maxNPCTypes )
-				result.Errors.Add( new ValidationError($"{nameof(BaseType)} is too large. Value must be less than {Main.maxNPCTypes}."));
+			if( BaseType >= Main.maxNPCs) //Was MaxNpcTypes (1.4)
+				result.Errors.Add( new ValidationError($"{nameof(BaseType)} is too large. Value must be less than {Main.maxNPCs}."));
 			
 			if( ScriptPath != null && !File.Exists(Path.Combine("npcs", ScriptPath)) )
 				result.Errors.Add(new ValidationError($"{nameof(ScriptPath)} points to invalid script file, '{ScriptPath}'."));
@@ -350,10 +350,10 @@ namespace CustomNpcs.Npcs
 			{
 				var result = new ValidationResult(this);
 
-				if( BuffImmunities != null && BuffImmunities.Any(i => i <= 0 || i >= Main.maxBuffTypes) )
-					result.Errors.Add( new ValidationError($"{nameof(BuffImmunities)} must contain valid buff types."));
-				
-				if( KnockbackMultiplier < 0 )
+                if (BuffImmunities != null && BuffImmunities.Any(i => i <= 0 || i >= Terraria.ID.BuffID.Count))
+                    result.Errors.Add(new ValidationError($"{nameof(BuffImmunities)} must contain valid buff types."));
+
+                if ( KnockbackMultiplier < 0 )
 					result.Errors.Add( new ValidationError($"{nameof(KnockbackMultiplier)} must be non-negative."));
 				
 				if( MaxHp < 0 )

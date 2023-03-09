@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using Terraria;
+using Terraria.ID;
 using TShockAPI;
 using TShockAPI.Localization;
 using Terraria.DataStructures;
@@ -115,16 +116,16 @@ namespace Corruption
 		//id should really be called type -- ugh @ terraria
 		static int? getNpcTypeFromNameImpl(string name)
 		{
-			for( var i = -65; i < Main.maxNPCTypes; ++i )
-			{
-				var npcName = EnglishLanguage.GetNpcNameById(i);
-				if( npcName?.Equals(name, StringComparison.OrdinalIgnoreCase) ?? false )
-				{
-					return i;
-				}
-			}
+            for (int i = 0; i < Main.npc.Length; i++) // This might not be right!
+            {
+                var npcName = Lang.GetNPCNameValue(i);
+                if (npcName?.Equals(name, StringComparison.OrdinalIgnoreCase) ?? false && Main.npcCatchable[i] == false)
+                {
+                    return i;
+                }
+            }
 
-			return null;
+            return null;
 		}
 
 #endif
@@ -141,11 +142,13 @@ namespace Corruption
 		{
 			if( string.IsNullOrWhiteSpace(nameOrType) )
 				return null;
-						
-			if( int.TryParse(nameOrType, out var id) && -65 <= id && id < Main.maxNPCTypes )
-				return id;
 
-			return getNpcTypeFromNameImpl(nameOrType);
+            if (int.TryParse(nameOrType, out int id) && -65 <= id && id < Terraria.ID.NPCID.Count)
+            {
+                return id;
+            }
+
+            return getNpcTypeFromNameImpl(nameOrType);
 		}
 		
 		/// <summary>

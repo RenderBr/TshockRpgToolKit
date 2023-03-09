@@ -13,7 +13,7 @@ namespace Corruption.TEdit
 		/// </summary>
 		/// <param name="dst"></param>
 		/// <param name="src"></param>
-		public static void CopyFrom(this OTAPI.Tile.ITile dst, Tile src)
+		public static void CopyFrom(this Terraria.ITile dst, Tile src)
 		{
 			//still needs support for wires.
 
@@ -56,7 +56,7 @@ namespace Corruption.TEdit
 		/// </summary>
 		/// <param name="dst"></param>
 		/// <param name="src"></param>
-		public static void CopyFrom(this Tile dst, OTAPI.Tile.ITile src )
+		public static void CopyFrom(this Tile dst, Terraria.ITile src )
 		{
 			//still needs support for wires.
 			dst.Type = src.type;

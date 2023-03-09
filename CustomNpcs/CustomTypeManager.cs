@@ -62,34 +62,36 @@ namespace CustomNpcs
 			var rootResult = new ValidationResult(ConfigPath);
 			rootResult.Source = ConfigPath;
 
-			//Console.WriteLine(ConfigPath);
-			var usedNames = new HashSet<string>();
-			foreach(var def in Definitions)
-			{
-				var name = "";
-				var result = def.Validate();
-				
-				if (!string.IsNullOrWhiteSpace(def.Name))
-					name = $" - '{def.Name}'";
+            var usedNames = new HashSet<string>();
+            foreach (var def in Definitions)
+            {
+                var name = "";
+                var result = def.Validate();
 
-				
-				if( !usedNames.Contains(def.Name) )
-				{
-					//CustomNpcsPlugin.Instance.LogPrint("*************\n" + def.Name + "\n**************");//now we can see that
-					//TShockAPI.Utils.Instance.Broadcast(def.Name);
-					Debug.WriteLine(def.Name);
-					rootResult.Children.Add(result);
-					usedNames.Add(def.Name);
-				}
-				else 
-				{
-					continue;
-				}
-				//result.Source = $"{def.FilePath}[{def.LineNumber},{def.LinePosition}]{name}";
-				
-				//CustomNpcsPlugin.Instance.LogPrint(result);
-				
-			}
+                if (!string.IsNullOrWhiteSpace(def.Name))
+                    name = $" - '{def.Name}'";
+
+
+                if (!usedNames.Contains(def.Name))
+                {
+                    Debug.WriteLine(def.Name);
+                    rootResult.Children.Add(result);
+                    usedNames.Add(def.Name);
+                }
+                else
+                {
+                    // Log or handle the duplicate name as needed.
+                    CustomNpcsPlugin.Instance.LogPrint($"Duplicate name found for definition {def.Name}. Skipping this definition.", TraceLevel.Warning);
+                    continue;
+                }
+
+                // Log or handle the missing name as needed.
+                if (string.IsNullOrWhiteSpace(def.Name))
+                {
+                    CustomNpcsPlugin.Instance.LogPrint($"A definition with no name was found. Skipping this definition.", TraceLevel.Warning);
+                }
+
+        }
 
             Debug.WriteLine(rootResult);
 			CustomNpcsPlugin.Instance.LogPrint(rootResult);

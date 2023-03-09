@@ -4,7 +4,6 @@ using Banking.TileTracking;
 using Corruption.PluginSupport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using OTAPI.Tile;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

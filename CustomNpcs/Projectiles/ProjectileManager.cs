@@ -51,24 +51,27 @@ namespace CustomNpcs.Projectiles
 			//ServerApi.Hooks.ProjectileSetDefaults.Register(plugin, onProjectileSetDefaults);
 			//ServerApi.Hooks.ProjectileAIUpdate.Register(plugin, onProjectileAiUpdate);
 
-			OTAPI.Hooks.Projectile.PreUpdate = OnProjectilePreUpdate;
-			OTAPI.Hooks.Projectile.PreAI = OnProjectilePreAi;
-			OTAPI.Hooks.Projectile.PreKill = OnProjectilePreKill;
-		}
+			//OTAPI.Hooks.Projectile.PreUpdate = OnProjectilePreUpdate;
+           // On.Terraria.Projectile.hook_AI onProjectilePreAi = OnProjectilePreAi;
+           // OTAPI.Hooks.Projectile.PreAI = onProjectilePreAi;
+			//OTAPI.Hooks.Projectile.PreKill = OnProjectilePreKill;
+           // On.Terraria.Projectile.AI += onProjectilePreAi;
+
+        }
 
 		public void Dispose()
 		{
 			ClearDefinitions();
 
 			GeneralHooks.ReloadEvent -= OnReload;
-			//ServerApi.Hooks.GameUpdate.Deregister(plugin, onGameUpdate);
-			//ServerApi.Hooks.ProjectileSetDefaults.Deregister(plugin, onProjectileSetDefaults);
-			//ServerApi.Hooks.ProjectileAIUpdate.Deregister(plugin, onProjectileAiUpdate);
+            //ServerApi.Hooks.GameUpdate.Deregister(plugin, onGameUpdate);
+            //ServerApi.Hooks.ProjectileSetDefaults.Deregister(plugin, onProjectileSetDefaults);
+            //ServerApi.Hooks.ProjectileAIUpdate.Deregister(plugin, onProjectileAiUpdate);
 
-			OTAPI.Hooks.Projectile.PreUpdate = null;
-			OTAPI.Hooks.Projectile.PreAI = null;
-			OTAPI.Hooks.Projectile.PreKill = null;
-		}
+            //Terraria.ModLoader.ModHooks.Projectile.PreUpdate -= null;
+           // Terraria.ModLoader.ModHooks.Projectile.PreAI -= null;
+		//	TShock..prekill -= null;
+        }
 
 		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
 		{
