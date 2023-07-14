@@ -1,4 +1,5 @@
 ﻿using CustomQuests.Sessions;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -65,7 +66,23 @@ namespace CustomQuests.Quests
 			}
 		}
 
-		public bool Contains(TSPlayer player)
+		public void SendMessage(string message, int r, int g, int b)
+		{
+			foreach(var p in this)
+			{
+                p.Player.SendMessage(message, new Color(r,g,b));
+            }
+		}
+
+        public void SendMessage(string message)
+        {
+            foreach (var p in this)
+            {
+                p.Player.SendInfoMessage(message);
+            }
+        }
+
+        public bool Contains(TSPlayer player)
 		{
 			var result = IndexOf(player) > -1;
 			return result;

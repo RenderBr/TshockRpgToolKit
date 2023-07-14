@@ -198,7 +198,7 @@ namespace CustomNpcs
             var definition = NpcManager.Instance?.FindDefinition(npcNameOrType);
             if (definition != null)
             {
-                NpcManager.Instance.SpawnCustomNpc(definition, 16 * tileX + 8, 16 * tileY);
+                NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, 16 * tileX + 8, 16 * tileY);
             }
         }
 		

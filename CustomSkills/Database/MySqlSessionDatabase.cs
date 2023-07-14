@@ -28,7 +28,7 @@ namespace CustomSkills.Database
 			{
 				ConnectionString = EnsureDatabase(connectionString);
 
-				using(var connection = new SqlConnection(ConnectionString))
+				using(var connection = new MySqlConnection(ConnectionString))
 				{
 					using(var cmd = connection.CreateCommand())
 					{

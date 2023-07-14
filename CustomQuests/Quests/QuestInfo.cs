@@ -1,5 +1,7 @@
 ﻿using Corruption.PluginSupport;
+using PythonTS;
 using System;
+using System.Text.Json.Serialization;
 using TShockAPI;
 
 namespace CustomQuests.Quests
@@ -9,10 +11,13 @@ namespace CustomQuests.Quests
     /// </summary>
 	public sealed class QuestInfo : IValidator
     {
-		/// <summary>
-		///     Gets or sets the name.
-		/// </summary>
-		public string Name { get; set; } = "New Quest";
+        [JsonIgnore]
+        public Script LinkedScript { get; set; }
+
+        /// <summary>
+        ///     Gets or sets the name.
+        /// </summary>
+        public string Name { get; set; } = "New Quest";
 
 		/// <summary>
 		///     Gets or sets the friendly name.
@@ -28,6 +33,8 @@ namespace CustomQuests.Quests
         ///     Gets or sets the script path.
         /// </summary>
         public string ScriptPath { get; set; }
+
+		public string PrimaryMethodName { get; set; }
 
         /// <summary>
         ///     Gets or sets the maximum number of parties that can concurrently do the quest.

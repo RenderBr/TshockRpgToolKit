@@ -4,7 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Terraria;
 using TShockAPI.DB;
 
@@ -82,42 +82,43 @@ namespace Banking.Database
 				Update(acc);
 		}
 
-		public IEnumerable<BankAccount> Load()
-		{
-			var results = new List<BankAccount>();
+        public IEnumerable<BankAccount> Load()
+        {
+            var results = new List<BankAccount>();
 
-			using( var con = new SqliteConnection(ConnectionString))
-			{
-				using( var cmd = new SqliteCommand(con) )
-				{
-					cmd.CommandText = "SELECT * FROM BankAccounts WHERE WorldId=@ID";
-					cmd.Parameters.Add("@ID", DbType.Int32);
-					cmd.Parameters["@ID"].Value = Main.worldID;
+            using (var con = new SqliteConnection(ConnectionString))
+            {
+                con.Open(); // Open the connection here
 
-					con.Open();
+                using (var cmd = new SqliteCommand("SELECT * FROM BankAccounts WHERE WorldId=@ID", con))
+                {
+                    cmd.Parameters.Add("@ID", SqliteType.Integer);
+                    cmd.Parameters["@ID"].Value = Main.worldID;
 
-					using( var reader = cmd.ExecuteReader() )
-					{
-						if(reader.HasRows)
-						{
-							while(reader.Read())
-							{
-								var ownerName = reader.GetString(1);
-								var name = reader.GetString(2);
-								var balance = reader.GetDecimal(3);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            while (reader.Read())
+                            {
+                                var ownerName = reader.GetString(1);
+                                var name = reader.GetString(2);
+                                var balance = reader.GetDecimal(3);
 
-								var account = new BankAccount(ownerName, name, balance);
-								results.Add(account);
-							}
-						}
-					}
-				}
-			}
-			
-			return results;
-		}
+                                var account = new BankAccount(ownerName, name, balance);
+                                results.Add(account);
+                            }
+                        }
+                    }
+                }
+            }
 
-		public void Save(IEnumerable<BankAccount> accounts)
+            return results;
+        }
+
+
+
+        public void Save(IEnumerable<BankAccount> accounts)
 		{
 			Update(accounts);
 		}

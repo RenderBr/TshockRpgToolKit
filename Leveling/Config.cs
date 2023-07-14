@@ -20,19 +20,21 @@ namespace Leveling
 		public static Config Instance { get; internal set; } = new Config();
 
 		[JsonProperty(Order = 0)]
-		public DatabaseConfig DatabaseConfig { get; private set; } = new DatabaseConfig("sqlite",$"uri=file://leveling/db.sqlite,Version=3");
+        public DatabaseConfig DatabaseConfig { get; set; } = new DatabaseConfig("sqlite", "Data Source=leveling/db.sqlite");
 
-		/// <summary>
-		///     Gets the default class name.
-		/// </summary>
-		[JsonProperty("DefaultClass", Order = 1)]
-		public string DefaultClassName { get; private set; } // = "ranger";
+        public string ClassPath { get; set; } = "classes";
+
+        /// <summary>
+        ///     Gets the default class name.
+        /// </summary>
+        [JsonProperty("DefaultClass", Order = 2)]
+		public string DefaultClassName { get; private set; } = "ranger";
 
 		//TODO should this use generic units or use currency strings? This needs an overhaul.
 		/// <summary>
 		///     Gets the mapping of NPC names to EXP rewards.
 		/// </summary>
-		[JsonProperty("NpcToExpReward", Order = 2)]
+		[JsonProperty("NpcToExpReward", Order = 3)]
         public IDictionary<string, long> NpcNameToExpReward = new Dictionary<string, long>();
 		
         /// <summary>

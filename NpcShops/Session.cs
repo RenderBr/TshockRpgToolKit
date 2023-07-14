@@ -123,7 +123,7 @@ namespace NpcShops
 					var customNpc = NpcManager.Instance?.GetCustomNpc(shopKeeper);
 					if( customNpc != null )
 					{
-						npcType = customNpc.Definition.Name;
+						npcType = customNpc.Definition.Identifier;
 					}
 				}
 

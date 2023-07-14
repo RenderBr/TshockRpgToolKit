@@ -303,7 +303,7 @@ namespace CustomQuests.Quests
 
 		private static int? GetItemIdFromName(string name)
 		{
-			for( var i = 0; i < Main.maxItemTypes; ++i )
+			for( var i = 0; i < ItemID.Count; ++i )
 			{
 				var itemName = EnglishLanguage.GetItemNameById(i);
 				if( itemName?.Equals(name, StringComparison.OrdinalIgnoreCase) ?? false )

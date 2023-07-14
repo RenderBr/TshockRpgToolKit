@@ -15,18 +15,21 @@ namespace CustomSkills
 		public static Config Instance { get; internal set; } = new Config();
 
 		[JsonProperty(Order = 0)]
-		public DatabaseConfig DatabaseConfig { get; private set; } = new DatabaseConfig("sqlite", $"uri=file://skills/db.sqlite,Version=3");
+        public DatabaseConfig DatabaseConfig { get; set; } = new DatabaseConfig("sqlite", "Data Source=skills/db.sqlite");
 
-		/// <summary>
-		/// Gets or sets the file path to the json file containing skill definitions. Relative to 'skills' folder.
-		/// </summary>
-		[JsonProperty(Order = 1)]
+        /// <summary>
+        /// Gets or sets the file path to the json file containing skill definitions. Relative to 'skills' folder.
+        /// </summary>
+        [JsonProperty(Order = 1)]
 		public string DefinitionFilepath { get; set; } = "skills.json";
 
-		/// <summary>
-		/// Gets or sets whether to create a new Definition file, if DefinitionFilepath does not exist.
-		/// </summary>
-		[JsonProperty(Order = 2)]
+        [JsonProperty(Order = 2)]
+        public string ScriptPath { get; set; } = "scripts";
+
+        /// <summary>
+        /// Gets or sets whether to create a new Definition file, if DefinitionFilepath does not exist.
+        /// </summary>
+        [JsonProperty(Order = 3)]
 		public bool AutoCreateDefinitionFile { get; set; } = true;
 
 		public override ValidationResult Validate()

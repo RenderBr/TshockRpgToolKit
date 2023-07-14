@@ -34,7 +34,7 @@ namespace CustomNpcs
 					player.SendErrorMessage("There is currently no custom invasion.");
 					return;
 				}
-
+				
 				//InvasionManager.Instance.StartInvasion(null);
 				InvasionManager.Instance.EndInvasion();
 				TSPlayer.All.SendInfoMessage($"{player.Name} stopped the current custom invasion.");
@@ -47,14 +47,14 @@ namespace CustomNpcs
 				return;
 			}
 
-			var definition = InvasionManager.Instance?.FindDefinition(inputName);
+			var definition = InvasionDefinition.Find(inputName);
 			if (definition == null)
 			{
 				player.SendErrorMessage($"Invalid invasion '{inputName}'.");
 				return;
 			}
 
-			InvasionManager.Instance.StartInvasion(definition);
+			InvasionManager.Instance.StartInvasion(definition.InvasionDefinition);
 		}
 
 		private void CustomMaxSpawns(CommandArgs args)
@@ -96,7 +96,7 @@ namespace CustomNpcs
 			}
 
 			var inputName = parameters[0];
-			var definition = NpcManager.Instance?.FindDefinition(inputName);
+			var definition = NpcDefinition.Find(inputName);
 			if (definition == null)
 			{
 				player.SendErrorMessage($"Invalid custom NPC name '{inputName}'.");
@@ -127,9 +127,9 @@ namespace CustomNpcs
 			for (var i = 0; i < amount; ++i)
 			{
 				TShock.Utils.GetRandomClearTileWithInRange(x, y, 50, 50, out var spawnX, out var spawnY);
-				NpcManager.Instance.SpawnCustomNpc(definition, 16 * spawnX, 16 * spawnY);
+				NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, 16 * spawnX, 16 * spawnY);
 			}
-			player.SendSuccessMessage($"Spawned {amount} {definition.Name}(s).");
+			player.SendSuccessMessage($"Spawned {amount} {definition.Identifier}(s).");
 		}
 
 		private void CustomSpawnProjectile(CommandArgs args)
@@ -143,7 +143,7 @@ namespace CustomNpcs
 			}
 
 			var inputName = parameters[0];
-			var definition = ProjectileManager.Instance?.FindDefinition(inputName);
+			var definition = ProjectileDefinition.Find(inputName);
 			if (definition == null)
 			{
 				player.SendErrorMessage($"Invalid custom projectile name '{inputName}'.");
@@ -202,9 +202,9 @@ namespace CustomNpcs
 			delta.Normalize();
 			delta *= speed;
 
-			ProjectileManager.Instance.SpawnCustomProjectile(definition, playerX * 16, playerY * 16, delta.X, delta.Y, player.Index);
+			ProjectileManager.Instance.SpawnCustomProjectile(definition.ProjDefinition, playerX * 16, playerY * 16, delta.X, delta.Y, player.Index);
 
-			player.SendSuccessMessage($"Spawned {definition.Name}.");
+			player.SendSuccessMessage($"Spawned {definition.Identifier}.");
 		}
 
 		private void CustomSpawnRate(CommandArgs args)
@@ -252,11 +252,11 @@ namespace CustomNpcs
 
 			if (subCommand == "list")
 			{
-				var definitions = NpcManager.Instance?.Definitions;
+				var definitions = NpcManager.Definitions;
 				if (definitions != null)
 				{
 					var defs = from def in definitions
-							   select $"{def.Name}: \"{def._baseOverride.Name}\", {def.BaseType}";
+							   select $"{def.Identifier}:";
 
 					sendPagedInfoMessage(player, defs.ToList(), page, 5);
 					return;
@@ -286,11 +286,11 @@ namespace CustomNpcs
 
 			if (subCommand == "list")
 			{
-				var definitions = ProjectileManager.Instance?.Definitions;
+				var definitions = ProjectileManager.Definitions;
 				if (definitions != null)
 				{
-					var defs = from def in definitions
-							   select $"{def.Name}: \"{Lang.GetProjectileName(def.BaseType).Value}\", {def.BaseType}";
+					var defs = definitions.Select(def=>def.NpcDefinition).Select
+                                (def=> $"{def.Identifier}: \"{Lang.GetProjectileName(def.BaseType).Value}\", {def.BaseType}");
 
 					sendPagedInfoMessage(player, defs.ToList(), page, 5);
 					return;

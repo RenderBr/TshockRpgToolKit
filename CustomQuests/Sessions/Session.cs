@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Xna.Framework;
 using System.Reflection;
-using CustomQuests.Scripting;
 using Corruption.PluginSupport;
 using Newtonsoft.Json;
 

@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B96B0AD7-6FF5-4ECC-AD22-00CE7FDC3177}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CustomNpcs</RootNamespace>
+    <AssemblyName>CustomNpcs</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <RpgToolsPropsPath>..\RpgTools.props</RpgToolsPropsPath>
+    <RpgToolsTargetsPath>..\RpgTools.targets</RpgToolsTargetsPath>
+  </PropertyGroup>
+  <Import Project="$(RpgToolsPropsPath)" Condition="Exists('$(RpgToolsPropsPath)')" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <!-- <OutputPath>$(TShockPluginsPath)\</OutputPath> -->
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <DocumentationFile>
+    </DocumentationFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <!-- <OutputPath>$(TShockPluginsPath)\</OutputPath> -->
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DocumentationFile>bin\Release\CustomNpcs.xml</DocumentationFile>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="CustomEntity.cs" />
+    <Compile Include="CustomIDFunctions.cs" />
+    <Compile Include="CustomNpcsPlugin.Commands.cs" />
+    <Compile Include="DefinitionLoading\CategoryDefinition.cs" />
+    <Compile Include="DefinitionBase.cs" />
+    <None Include="app.config" />
+    <None Include="DefinitionLoading\DefinitionLoader.cs" />
+    <Compile Include="DefinitionLoading\DefinitionInclude.cs" />
+    <Compile Include="DefinitionLoading\DefinitionOrCategoryJsonConverter.cs" />
+    <Compile Include="Npcs\NpcDelegates.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Invasions\InvasionDelegates.cs" />
+    <Compile Include="Invasions\InvasionManager.cs" />
+    <Compile Include="Npcs\CustomNpc.cs" />
+    <Compile Include="Npcs\NpcManager.cs" />
+    <Compile Include="Npcs\NpcDefinition.cs" />
+    <Compile Include="CustomNpcsPlugin.cs" />
+    <Compile Include="Invasions\InvasionDefinition.cs" />
+    <Compile Include="Npcs\LootEntryDefinition.cs" />
+    <Compile Include="Invasions\WaveDefinition.cs" />
+    <Compile Include="Npcs\NpcFunctions.cs" />
+    <Compile Include="Projectiles\ProjectileDelegates.cs" />
+    <Compile Include="Projectiles\ProjectileFunctions.cs" />
+    <Compile Include="Projectiles\CustomProjectile.cs" />
+    <Compile Include="Projectiles\Offset.cs" />
+    <Compile Include="Projectiles\ProjectileDefinition.cs" />
+    <Compile Include="Projectiles\ProjectileManager.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="CustomTypeManager.cs" />
+    <Compile Include="ScriptHelpers.cs" />
+    <Compile Include="Utils.cs" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HttpServer.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Banking\Banking.csproj">
+      <Project>{89faffb0-5bfd-4548-876e-e863d2be3e82}</Project>
+      <Name>Banking</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PythonTS\PythonTS.csproj">
+      <Project>{acdbee74-083b-49cc-b347-12b1425388cc}</Project>
+      <Name>PythonTS</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <Import Project="..\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets" Condition="Exists('..\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.Extension.Pack.1.9.1\build\net40\MSBuild.Extension.Pack.targets'))" />
+  </Target>
+</Project>

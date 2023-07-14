@@ -27,7 +27,7 @@ namespace Banking
 		{
 		}
 				
-		internal CurrencyManager(string currencyDirectory) : this( CurrencyDefinition.LoadCurrencys(currencyDirectory))
+		internal CurrencyManager(string currencyDirectory) : this( CurrencyDefinition.LoadCurrencys())
 		{
 		}
 
@@ -81,7 +81,17 @@ namespace Banking
 			return result;
 		}
 
-		public CurrencyDefinition GetCurrencyByQuadName(string quadName)
+        public bool GetCurrencyByName(string name, out CurrencyDefinition currency)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                currency = null;
+                return false;
+            }
+
+            return CurrencyByName.TryGetValue(name, out currency);
+        }
+        public CurrencyDefinition GetCurrencyByQuadName(string quadName)
 		{
 			if(string.IsNullOrWhiteSpace(quadName))
 				return null;

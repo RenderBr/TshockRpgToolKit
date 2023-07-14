@@ -1,4 +1,5 @@
 ﻿using Corruption.PluginSupport;
+using PythonTS.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -97,11 +98,17 @@ namespace Banking.Rewards
 		{
 			try
 			{
-				var scriptHookOnPreReward = BankingPlugin.Instance.Bank.ScriptOnPreReward;
+				var scriptHookOnPreReward = BankingPlugin.Instance.Bank.OnPreReward;
 				if(scriptHookOnPreReward!=null)
 				{
-					var result = scriptHookOnPreReward(playerName, reward, currency,value);
-					value = result;
+					ScriptArguments[] args = new ScriptArguments[]
+					{
+						new ScriptArguments("playerName", playerName),
+						new ScriptArguments("reward", reward),
+						new ScriptArguments("currency", currency),
+						new ScriptArguments("value", value)
+					};
+					scriptHookOnPreReward.Execute(args);
 				}
 			}
 			catch(Exception ex)

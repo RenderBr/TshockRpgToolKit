@@ -1,6 +1,7 @@
 ﻿using Corruption;
 using Corruption.PluginSupport;
 using Microsoft.Xna.Framework;
+using PythonTS.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -181,7 +182,11 @@ namespace CustomSkills
 				//try to run the first OnLevelUp
 				try
 				{
-					definition.Levels?[0]?.OnLevelUp?.Invoke(player);
+                    ScriptArguments[] plr = new ScriptArguments[]
+					{
+                        new ScriptArguments("Player", player),
+					};
+                    definition.Levels?[0]?.OnLevelUp?.Execute(plr);
 				}
 				catch(Exception ex)
 				{

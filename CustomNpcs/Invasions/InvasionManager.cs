@@ -11,8 +11,8 @@ using TShockAPI;
 using TShockAPI.Hooks;
 using System.Diagnostics;
 using System.Reflection;
-using BooTS;
 using Corruption.PluginSupport;
+using PythonTS.Models;
 
 namespace CustomNpcs.Invasions
 {
@@ -31,13 +31,26 @@ namespace CustomNpcs.Invasions
         private int _currentWaveIndex;
         private DateTime _lastProgressUpdate;
         private int _requiredPoints;
-					
+
+        public static new List<InvasionDefinition> Definitions { get; set; }
+
+
         internal InvasionManager(CustomNpcsPlugin plugin)
         {
             _plugin = plugin;
 
 			BasePath = "npcs";
 			ConfigPath = Path.Combine(BasePath, "invasions.json");
+
+			if (!File.Exists(ConfigPath))
+			{
+                List<InvasionDefinition> obj = new()
+                {
+                    new InvasionDefinition()
+                };
+                var text = JsonConvert.SerializeObject(obj);
+				File.WriteAllText(ConfigPath, text);
+			}
 			AssemblyNamePrefix = "Invasion_";
 
 			LoadDefinitions();
@@ -46,6 +59,16 @@ namespace CustomNpcs.Invasions
             // Register OnGameUpdate with priority 1 to guarantee that InvasionManager runs before NpcManager.
             ServerApi.Hooks.GameUpdate.Register(_plugin, OnGameUpdate, 1);
             ServerApi.Hooks.NpcKilled.Register(_plugin, OnNpcKilled);
+        }
+
+        public override void LoadDefinitions()
+        {
+            CustomNpcsPlugin.Instance.LogPrint($"Loading Invasions...", TraceLevel.Info);
+            Definitions = InvasionDefinition.LoadAll(ConfigPath);
+            foreach (var def in Definitions)
+            {
+                def.CreateModules();
+            }
         }
 
         /// <summary>
@@ -85,7 +108,7 @@ namespace CustomNpcs.Invasions
             {
 				try
 				{
-					invasion.OnInvasionStart?.Invoke();
+					invasion.OnInvasionStart.Execute();
 				}
 				catch(Exception ex)
 				{
@@ -107,7 +130,7 @@ namespace CustomNpcs.Invasions
 								
 				try
 				{
-					CurrentInvasion.OnInvasionEnd?.Invoke();
+					CurrentInvasion.OnInvasionEnd.Execute();
 				}
 				catch( Exception ex )
 				{
@@ -121,7 +144,7 @@ namespace CustomNpcs.Invasions
 			}
 		}
 		
-		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
+/*		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
 		{
 			var sigs = new List<EnsuredMethodSignature>()
 			{
@@ -140,13 +163,13 @@ namespace CustomNpcs.Invasions
 			};
 
 			return sigs;
-		}
+		}*/
 
-		protected override void LoadDefinitions()
+/*		protected override void LoadDefinitions()
 		{
 			CustomNpcsPlugin.Instance.LogPrint($"Loading CustomInvasions...", TraceLevel.Info);
 			base.LoadDefinitions();
-		}
+		}*/
 		
 		private void NotifyRelevantPlayers()
         {
@@ -204,8 +227,8 @@ namespace CustomNpcs.Invasions
 
 			try
 			{
-				CurrentInvasion?.OnUpdate?.Invoke();
-			}
+                CurrentInvasion?.OnUpdate?.Execute();
+            }
 			catch( Exception ex )
 			{
 				Utils.LogScriptRuntimeError(ex);
@@ -220,13 +243,13 @@ namespace CustomNpcs.Invasions
             
             var npc = args.npc;
             var customNpc = NpcManager.Instance?.GetCustomNpc(npc);
-            var npcNameOrType = customNpc?.Definition.Name ?? npc.netID.ToString();
+            var npcNameOrType = customNpc?.Definition.Identifier ?? npc.netID.ToString();
             if (npcNameOrType.Equals(_currentMiniboss, StringComparison.OrdinalIgnoreCase))
             {
 				try
 				{
-					CurrentInvasion.OnBossDefeated?.Invoke();
-				}
+                    CurrentInvasion.OnBossDefeated?.Execute();
+                }
 				catch(Exception ex)
 				{
 					Utils.LogScriptRuntimeError(ex);
@@ -249,7 +272,13 @@ namespace CustomNpcs.Invasions
 					{
 						try
 						{
-							CurrentInvasion.OnWaveUpdate?.Invoke(_currentWaveIndex, wave, _currentPoints);
+							ScriptArguments[] Args = new ScriptArguments[]
+							{
+                                new ScriptArguments("waveIndex", _currentWaveIndex),
+                                new ScriptArguments("waveDefinition", wave),
+                                new ScriptArguments("currentPoints", _currentPoints),
+                            };
+							CurrentInvasion.OnWaveUpdate?.Execute(Args);
 						}
 						catch( Exception ex )
 						{
@@ -264,9 +293,6 @@ namespace CustomNpcs.Invasions
         private void OnReload(ReloadEventArgs args)
         {
             CurrentInvasion = null;
-            
-			foreach( var definition in Definitions )
-				definition.Dispose();
 			
 			Definitions.Clear();
 
@@ -296,7 +322,12 @@ namespace CustomNpcs.Invasions
 			{
 				try
 				{
-					CurrentInvasion.OnWaveStart?.Invoke(_currentWaveIndex, wave);
+					ScriptArguments[] args = new ScriptArguments[]
+					{
+						new ScriptArguments("waveIndex", _currentWaveIndex),
+						new ScriptArguments("wave", wave)
+					};
+					CurrentInvasion.OnWaveStart?.Execute(args);
 				}
 				catch( Exception ex )
 				{
@@ -316,7 +347,12 @@ namespace CustomNpcs.Invasions
 
 				try
 				{
-					CurrentInvasion.OnWaveEnd?.Invoke(previousWaveIndex, previousWave);
+					ScriptArguments[] args = new ScriptArguments[]
+					{
+						new ScriptArguments("previousWaveIndex", previousWaveIndex),
+						new ScriptArguments("previousWave", previousWave)
+					};
+					CurrentInvasion.OnWaveEnd?.Execute(args);
 				}
 				catch( Exception ex )
 				{
@@ -341,7 +377,7 @@ namespace CustomNpcs.Invasions
                 foreach (var npc in Main.npc.Where(n => n?.active == true))
                 {
                     var customNpc = NpcManager.Instance?.GetCustomNpc(npc);
-                    var npcNameOrType = customNpc?.Definition.Name ?? npc.netID.ToString();
+                    var npcNameOrType = customNpc?.Definition.Identifier ?? npc.netID.ToString();
                     if (npcNameOrType.Equals(_currentMiniboss, StringComparison.OrdinalIgnoreCase))
                     {
                         return;

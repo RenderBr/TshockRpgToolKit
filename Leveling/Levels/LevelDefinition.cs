@@ -4,6 +4,15 @@ using Newtonsoft.Json;
 
 namespace Leveling.Levels
 {
+	public sealed class CurrencyDefefinition
+	{
+		[JsonProperty("CurrencyType")]
+		public string Type { get; set; } = "TerrariaCoin";
+
+        [JsonProperty("Cost")]
+        public string Cost { get; set; } = "5s";
+	}
+
     /// <summary>
     ///     Represents a level definition.
     /// </summary>
@@ -26,13 +35,14 @@ namespace Leveling.Levels
 		///     Gets the EXP required to level up.
 		/// </summary>
 		[JsonProperty("ExpRequired", Order = 2)]
-		public long ExpRequired { get; internal set; }
+		public long ExpRequired { get; internal set; } = 1;
 
 		/// <summary>
 		/// Gets or sets a Currency string that will be parsed into ExpRequired.
 		/// </summary>
-		[JsonProperty("CurrencyRequired", Order = 3)]
-		public string CurrencyRequired { get; set; }
+		[JsonProperty("Currency", Order = 3)]
+		public CurrencyDefefinition Currency { get; set; } = new();
+
 
         /// <summary>
         ///     Gets the prefix for the level.

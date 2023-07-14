@@ -13,11 +13,13 @@ namespace CustomQuests.Configuration
     public sealed class Config : JsonConfig
     {
 		[JsonProperty(Order = 0)]
-		public DatabaseConfig Database { get; private set; } = new DatabaseConfig("sqlite", $"uri=file://quests/db.sqlite,Version=3");
-		
-		[JsonProperty("DefaultQuests",Order = 1)]
+        public DatabaseConfig Database { get; set; } = new DatabaseConfig("sqlite", "Data Source=quests/db.sqlite");
+
+        [JsonProperty("DefaultQuests",Order = 1)]
         private readonly List<string> _defaultQuestNames = new List<string>();
 
+        [JsonProperty("ScriptPath", Order = 2)]
+        public string ScriptPath { get; set; } = "quests";
         /// <summary>
         ///     Gets a read-only view of the default quest names.
         /// </summary>

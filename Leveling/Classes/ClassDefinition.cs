@@ -5,12 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Banking;
-using Boo.Lang.Compiler;
-using BooTS;
 using Corruption.PluginSupport;
 using Leveling.Levels;
 using Leveling.Sessions;
 using Newtonsoft.Json;
+using PythonTS;
 using TerrariaApi.Server;
 using TShockAPI;
 
@@ -35,12 +34,6 @@ namespace Leveling.Classes
 		/// </summary>
 		[JsonProperty("DisplayName", Order = 1)]
 		public string DisplayName { get; internal set; }
-		
-		/// <summary>
-		/// Gets or sets the ScriptPath.
-		/// </summary>
-		[JsonProperty("ScriptPath", Order = 2)]
-		public string ScriptPath { get; set; }
 
 		/// <summary>
 		///     Gets the list of prerequisite levels.
@@ -58,7 +51,7 @@ namespace Leveling.Classes
 		///		Gets or sets the Currency cost to enter this class.
 		/// </summary>
 		[JsonProperty(Order = 6, PropertyName = "Cost")]
-		public string CostString { get; set; } = "";
+		public string CostString { get; set; } = "1s";
 
 		/// <summary>
 		/// The parsed equivalent of CostString.
@@ -104,7 +97,15 @@ namespace Leveling.Classes
 		///     Gets the list of level definitions.
 		/// </summary>
 		[JsonProperty("Levels", Order = 12)]
-		public IList<LevelDefinition> LevelDefinitions { get; internal set; } = new List<LevelDefinition>();
+		public IList<LevelDefinition> LevelDefinitions { get; internal set; } = new List<LevelDefinition>()
+		{
+			new LevelDefinition()
+			{
+                Name = "Level 1",
+                DisplayName = "Level 1",
+                ExpRequired = 10,
+            }
+		};
 
 		/// <summary>
 		/// Gets or sets the Currency used for Leveling purposes.
@@ -130,19 +131,17 @@ namespace Leveling.Classes
 		//public Action<object> OnNegativeCurrency;
 		
 		//player, currentclass, currentLevelIndex
-		public Action<TSPlayer,Class,int> OnLevelUp;
+		public Script OnLevelUp;
 
 		//player, currentclass, currentLevelIndex
-		public Action<TSPlayer,Class,int> OnLevelDown;
+		public Script OnLevelDown;
 
 		//player, currentclass, oldclass
-		public Action<TSPlayer,Class, Class> OnClassChange;
+		public Script OnClassChange;
 		
 		//player, currentclass
-		public Action<TSPlayer,Class> OnClassMastered;
-
-		public static BooModuleManager ModuleManager { get; set; }
-
+		public Script OnClassMastered;
+		
 		public override string ToString()
 		{
 			return $"[ClassDefinition '{Name}']";
@@ -154,7 +153,7 @@ namespace Leveling.Classes
 
 			var results = new List<ClassDefinition>();
 			var filesAndDefs = new List<Tuple<string, ClassDefinition>>();//needed by LoadScripts.
-			var classFiles = Directory.EnumerateFiles(directoryPath, "*.class", SearchOption.AllDirectories);
+			var classFiles = Directory.EnumerateFiles(directoryPath, "*.json", SearchOption.AllDirectories);
 			
 			foreach( var file in classFiles )
 			{
@@ -187,8 +186,6 @@ namespace Leveling.Classes
 				}
 			}
 			
-			LoadScripts(filesAndDefs);
-			
 			//additional checks...
 
 			//if default class file does not exist, we're in an error state
@@ -201,14 +198,15 @@ namespace Leveling.Classes
 			return results;
 		}
 		
-		internal bool Initialize()
+		public bool Initialize()
 		{
 			ValidateAndFix();
 			ResolveClassCurrency();
 			ResolveLevelingCurrency();
 			PreParseRewardValues();
+			GenerateScripts();
 
-			return true;//in future, we can check whether the class is actually valid, or needs to be rejected.
+            return true;//in future, we can check whether the class is actually valid, or needs to be rejected.
 		}
 
 		/// <summary>
@@ -261,12 +259,12 @@ namespace Leveling.Classes
 			
 			foreach( var lvl in LevelDefinitions )
 			{
-				if( string.IsNullOrWhiteSpace(lvl.CurrencyRequired) )
+				if( string.IsNullOrWhiteSpace(lvl.Currency.Type) )
 					continue;//no currency value was set
 
-				if( currencyMgr.TryFindCurrencyFromString(lvl.CurrencyRequired, out var lvlCurrency) )
+				if( currencyMgr.GetCurrencyByName(lvl.Currency.Type, out var lvlCurrency) )
 				{
-					if( lvlCurrency.GetCurrencyConverter().TryParse(lvl.CurrencyRequired, out var requiredValue) )
+					if( lvlCurrency.GetCurrencyConverter().TryParse(lvl.Currency.Cost, out var requiredValue) )
 					{
 						if( LevelingCurrency == null )
 						{
@@ -347,15 +345,8 @@ namespace Leveling.Classes
 				LevelDefinitions.Remove(dupDef);
 		}
 
-		private bool LinkToScriptAssembly(Assembly assembly)
+		private bool GenerateScripts()
 		{
-			if( assembly == null )
-				return false;
-
-			if( string.IsNullOrWhiteSpace(ScriptPath) )
-				return false;
-
-			var linker = new BooModuleLinker(assembly, ScriptPath, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
 			//try to link to callbacks...
 
@@ -363,104 +354,17 @@ namespace Leveling.Classes
 			//def.OnMaximumCurrency = linker["OnMaximumCurrency"]?.TryCreateDelegate<Action<object>>();
 			//def.OnNegativeCurrency = linker["OnNegativeCurrency"]?.TryCreateDelegate<Action<object>>();
 
-			OnLevelUp			= linker["OnLevelUp"]?.TryCreateDelegate<Action<TSPlayer,Class,int>>();
-			OnLevelDown			= linker["OnLevelDown"]?.TryCreateDelegate<Action<TSPlayer,Class,int>>();
-			OnClassChange		= linker["OnClassChange"]?.TryCreateDelegate<Action<TSPlayer,Class,Class>>();
-			OnClassMastered		= linker["OnClassMastered"]?.TryCreateDelegate<Action<TSPlayer,Class>>();
+			var path = Path.Combine(LevelingPlugin.ClassPath, Name);
+			if (!Directory.Exists(path))
+				Directory.CreateDirectory(path);
 
-			return true;
-		}
+            var prefix = $"{path}/{Name}_";
+			OnLevelUp = Script.AddModuleDefault(prefix+"OnLevelUp.py");
+            OnLevelDown = Script.AddModuleDefault(prefix + "OnLevelDown.py");
+            OnClassChange = Script.AddModuleDefault(prefix + "OnClassChange.py");
+            OnClassMastered = Script.AddModuleDefault(prefix + "OnClassMastered.py");
 
-		//private static void LoadScripts(string basePath, List<ClassDefinition> classDefs)
-		private static void LoadScripts(List<Tuple<string,ClassDefinition>> filesAndDefs)
-		{
-			const string AssemblyNamePrefix = "ClassDef_";
-
-			LevelingPlugin.Instance.LogPrint("Compiling Class scripts...",TraceLevel.Info);
-
-			//get script files paths
-			var scriptedDefs = filesAndDefs.Where(d => !string.IsNullOrWhiteSpace(d.Item2.ScriptPath));
-			var booScripts = scriptedDefs.Select(d => Path.Combine(Path.GetDirectoryName(d.Item1), d.Item2.ScriptPath))
-											.ToList();
-
-			var newModuleManager = new BooModuleManager(LevelingPlugin.Instance,
-													ScriptHelpers.GetReferences(),
-													ScriptHelpers.GetDefaultImports(),
-													GetEnsuredMethodSignatures());
-
-			newModuleManager.AssemblyNamePrefix = AssemblyNamePrefix;
-
-			foreach( var f in booScripts )
-				newModuleManager.Add(f);
-
-			Dictionary<string, CompilerContext> results = null;
-
-			if( ModuleManager != null )
-				results = newModuleManager.IncrementalCompile(ModuleManager);
-			else
-				results = newModuleManager.Compile();
-
-			ModuleManager = newModuleManager;
-
-			//link!
-			foreach( var def in scriptedDefs )
-			{
-				//var fileName = Path.Combine(basePath, def.ScriptPath);
-				var fileName = Path.Combine(Path.GetDirectoryName(def.Item1), def.Item2.ScriptPath);
-
-				//if newly compile assembly, examine the context, and try to link to the new assembly
-				if( results.TryGetValue(fileName, out var context) )
-				{
-					var scriptAssembly = context.GeneratedAssembly;
-
-					if( scriptAssembly != null )
-					{
-						var result = def.Item2.LinkToScriptAssembly(scriptAssembly);
-
-						//if(!result)
-						//	//	CustomNpcsPlugin.Instance.LogPrint($"Failed to link {kvp.Key}.", TraceLevel.Info);
-					}
-				}
-				else
-				{
-					var scriptAssembly = ModuleManager[fileName];
-
-					if( scriptAssembly != null )
-					{
-						var result = def.Item2.LinkToScriptAssembly(scriptAssembly);
-
-						//if(!result)
-						//	//	CustomNpcsPlugin.Instance.LogPrint($"Failed to link {kvp.Key}.", TraceLevel.Info);
-					}
-				}
-			}
-		}
-
-		internal static IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
-		{
-			var sigs = new List<EnsuredMethodSignature>()
-			{
-				new EnsuredMethodSignature("OnLevelDown")
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("klass",typeof(Class))
-					.AddParameter("levelIndex",typeof(int)),
-
-				new EnsuredMethodSignature("OnLevelUp")
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("klass",typeof(Class))
-					.AddParameter("levelIndex",typeof(int)),
-
-				new EnsuredMethodSignature("OnClassChange")
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("newClass",typeof(Class))
-					.AddParameter("oldClass",typeof(Class)),
-
-				new EnsuredMethodSignature("OnClassMastered")
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("klass",typeof(Class))
-			};
-
-			return sigs;
+            return true;
 		}
 
 		public ValidationResult Validate()

@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using IL.Terraria;
+using Microsoft.Xna.Framework;
+using PythonTS.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -109,8 +111,13 @@ namespace CustomSkills
 
 				SkillState.Progress = completed;
 				SkillState.ElapsedTime = elapsed;
-				
-				if(levelDef.OnCast?.Invoke(Player,SkillState)==false)
+
+				ScriptArguments[] Args = new ScriptArguments[]
+				{
+					new ScriptArguments("Player", Player),
+					new ScriptArguments("SkillState", SkillState)
+				};
+				if((bool)levelDef.OnCast?.Execute(Args).GetVariable("casted")==false)
 				{
 					Phase = SkillPhase.Cancelled;
 					return;
@@ -173,10 +180,17 @@ namespace CustomSkills
 
 				SkillState.Progress = completed;
 				SkillState.ElapsedTime = elapsed;
-				
-				if(levelDef.IsLongRunning)
+
+                ScriptArguments[] Args = new ScriptArguments[]
+{
+                        new ScriptArguments("Player", Player),
+                        new ScriptArguments("SkillState", SkillState)
+				};
+                if (levelDef.IsLongRunning)
 				{
-					if(levelDef.OnCharge?.Invoke(Player, SkillState) == false)
+
+
+                    if ((bool)levelDef.OnCharge?.Execute(Args).GetVariable("casted") == false)
 					{
 						Phase = SkillPhase.Firing;
 						return;
@@ -184,7 +198,7 @@ namespace CustomSkills
 				}
 				else
 				{
-					if(levelDef.OnCharge?.Invoke(Player, SkillState) == false)
+                    if ((bool)levelDef.OnCharge?.Execute(Args).GetVariable("casted") == false)
 					{
 						Phase = SkillPhase.Cancelled;
 						return;
@@ -218,7 +232,12 @@ namespace CustomSkills
 				SkillState.Progress = 100f;
 				SkillState.ElapsedTime = new TimeSpan(0);
 
-				levelDef.OnFire?.Invoke(Player,SkillState);
+                ScriptArguments[] Args = new ScriptArguments[]
+{
+                        new ScriptArguments("Player", Player),
+                        new ScriptArguments("SkillState", SkillState)
+};
+                levelDef.OnFire?.Execute(Args);
 				//only fires once, but should spark something that can continue for some time afterwards.
 				//check if we moved up a level..
 
@@ -237,7 +256,11 @@ namespace CustomSkills
 							playerSkillInfo.CurrentUses = 0;
 
 							var nextLevelDef = Definition.Levels[playerSkillInfo.CurrentLevel];
-							nextLevelDef.OnLevelUp?.Invoke(Player);
+                            ScriptArguments[] plr = new ScriptArguments[]
+							{
+								new ScriptArguments("Player", Player),
+							};
+                            nextLevelDef.OnLevelUp?.Execute(plr);
 						}
 					}
 
@@ -265,8 +288,12 @@ namespace CustomSkills
 			{
 				var session = Session.GetOrCreateSession(Player);
 				var levelDef = LevelDefinition;
-				
-				levelDef.OnCancelled?.Invoke(Player, SkillState);
+                ScriptArguments[] Args = new ScriptArguments[]
+				{
+                        new ScriptArguments("Player", Player),
+                        new ScriptArguments("SkillState", SkillState)
+				};
+                levelDef.OnCancelled?.Execute(Args);
 
 				SkillState.Emitters.Destroy();
 				

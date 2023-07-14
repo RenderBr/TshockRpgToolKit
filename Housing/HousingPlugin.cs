@@ -10,7 +10,7 @@ using Housing.Database;
 using Housing.Models;
 using Housing.Extensions;
 using Microsoft.Xna.Framework;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
 using Terraria;
 using Terraria.ID;
@@ -298,6 +298,38 @@ namespace Housing
                     Debug.WriteLine($"DEBUG: {player.Name} finished changing shop at {shop.ChestX}, {shop.ChestY}");
                     shop.IsBeingChanged = false;
                 }
+            }
+            else if (args.MsgID == PacketTypes.Tile)
+            {
+                var player = TShock.Players[args.Msg.whoAmI];
+                if (args.Handled || player.AwaitingTempPoint == -1)
+                {
+                    return;
+                }
+                using (var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length)))
+                {
+                    var action = reader.ReadByte();
+                    var x = reader.ReadInt16();
+                    var y = reader.ReadInt16();
+                    if(action == 0)
+                    {
+                        if (player.AwaitingTempPoint == 1)
+                        {
+                            player.TempPoints[0] = new Point(x, y);
+                        }
+                        else if (player.AwaitingTempPoint == 2)
+                        {
+                            player.TempPoints[1] = new Point(x, y);
+                        }
+                        else return;
+                        player.SendInfoMessage($"Set point {player.AwaitingTempPoint}");
+                        player.AwaitingTempPoint = -1;
+                        args.Handled = true;
+                        return;
+                    }
+                        
+                }
+
             }
             else if (args.MsgID == PacketTypes.UpdateTileEntity)
             {

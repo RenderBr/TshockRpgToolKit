@@ -1,6 +1,6 @@
-﻿using BooTS;
-using Corruption.PluginSupport;
+﻿using Corruption.PluginSupport;
 using Newtonsoft.Json;
+using PythonTS;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -17,8 +17,6 @@ namespace CustomSkills
 	internal class CustomSkillDefinitionLoader
 	{
 		internal const string DefaultCategoryName = "uncategorized";
-
-		BooModuleManager booModuleManager = null;
 
 		internal Dictionary<string, CustomSkillCategory> Categories { get; private set; }
 		internal Dictionary<string, CustomSkillDefinition> TriggeredDefinitions { get; private set; }
@@ -162,13 +160,7 @@ namespace CustomSkills
 		
 		private void LoadScripts()
 		{
-			var moduleManager = GetModuleManager();
 			var scriptPaths = GetScriptPaths();
-
-			foreach(var path in scriptPaths)
-				moduleManager.Add(path);
-
-			var results = moduleManager.Compile();
 
 			foreach(var cat in Categories.Values)
 			{
@@ -176,50 +168,30 @@ namespace CustomSkills
 				{
 					foreach(var level in skill.Levels)
 					{
-						if(results.TryGetValue(CustomSkillsPlugin.Instance.PluginRelativePath(level.ScriptPath),out var compilerContext))
-						{
-							CustomSkillsPlugin.Instance.LogPrintBooErrors(compilerContext);
-							CustomSkillsPlugin.Instance.LogPrintBooWarnings(compilerContext);
+                        var path = CustomSkillsPlugin.ScriptsDirectory + "/" + skill.Name + "/" + skill.Levels.IndexOf(level) + "/";
+                        if (!Directory.Exists(path))
+                            Directory.CreateDirectory(path);
+						
+                        var prefix = $"{path}{skill.Name}_{skill.Levels.IndexOf(level)}_";
+                        if (level.OnCancelled == null)
+							level.OnCancelled = Script.AddModuleDefault(prefix+"OnCancelled.py");
 
-							if(compilerContext.Errors.Count<1)
-							{
-								var linker = new BooModuleLinker(compilerContext.GeneratedAssembly, level.ScriptPath);
+						if(level.OnLevelUp==null)
+							level.OnLevelUp = Script.AddModuleDefault(prefix+"OnLevelUp.py");
 
-								if(level.OnCancelled == null)
-									level.OnCancelled = linker.TryCreateDelegate<Action<TSPlayer,SkillState>>("OnCancelled");
+						if(level.OnCast == null)
+							level.OnCast = Script.AddModuleDefault(prefix+"OnCast.py");
+						
+						if(level.OnCharge == null)
+							level.OnCharge = Script.AddModuleDefault(prefix+"OnCharge.py");
 
-								if(level.OnLevelUp==null)
-									level.OnLevelUp = linker.TryCreateDelegate<Action<TSPlayer>>("OnLevelUp");
-
-								if(level.OnCast == null)
-									level.OnCast = linker.TryCreateDelegate<Func<TSPlayer,SkillState,bool>>("OnCast");
-
-								if(level.OnCharge == null)
-									level.OnCharge = linker.TryCreateDelegate<Func<TSPlayer,SkillState,bool>>("OnCharge");
-
-								if(level.OnFire == null)
-									level.OnFire = linker.TryCreateDelegate<Action<TSPlayer,SkillState>>("OnFire");
-							}
-						}
+						if(level.OnFire == null)
+							level.OnFire = Script.AddModuleDefault(prefix+"OnFire.py");
+							
+						
 					}
 				}
 			}
-		}
-				
-		private BooModuleManager GetModuleManager()
-		{
-			//if(booModuleManager == null)
-			{
-				var mgr = booModuleManager = new BooModuleManager(CustomSkillsPlugin.Instance,
-																	ScriptHelpers.GetReferences(),
-																	ScriptHelpers.GetDefaultImports(),
-																	ScriptHelpers.GetEnsuredMethodSignatures());
-
-				mgr.AssemblyNamePrefix = "skill_";
-
-			}
-			
-			return booModuleManager;
 		}
 
 		private static DefinitionFile<List<CustomSkillCategory>> CreateDefaultDataDefinition()
@@ -245,7 +217,7 @@ namespace CustomSkills
 								{
 									new CustomSkillLevelDefinition()
 									{
-										ScriptPath = "script.boo",
+										ScriptPath = "script.py",
 										CanInterrupt = true,
 										CanCasterMove = true,
 										UsesToLevelUp = 0

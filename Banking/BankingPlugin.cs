@@ -30,7 +30,9 @@ namespace Banking
 		public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 		
 		internal static string DataDirectory { get; set; } = "banking";
-		internal static string ConfigPath => Path.Combine(DataDirectory, "config.json");
+        public static string ScriptDirectory => Path.Combine(DataDirectory, Config.Instance.ScriptPath);
+        public static string CurrencyDirectory => Path.Combine(DataDirectory, Config.Instance.CurrencyPath);
+        internal static string ConfigPath => Path.Combine(DataDirectory, "config.json");
 
 		public static BankingPlugin Instance { get; private set; }
 		internal PlayerRewardNotificationDistributor PlayerRewardNotificationDistributor;
@@ -292,10 +294,8 @@ namespace Banking
 						reader.ReadSingle();
 						reader.ReadSingle();
 						reader.ReadSingle();
-						reader.ReadSingle();
-						reader.ReadSingle();
-						reader.ReadInt16();
-						var playerId = reader.ReadByte();
+                        reader.ReadSingle();
+                        var playerId = reader.ReadByte();
 						var type = reader.ReadInt16();
 						//var aiFlags = reader.ReadByte();
 						//var ai0 = reader.ReadSingle();

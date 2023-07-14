@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using Banking.Currency;
 using Housing.Models;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;

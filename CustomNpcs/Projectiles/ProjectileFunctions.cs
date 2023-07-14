@@ -28,7 +28,7 @@ namespace CustomNpcs
 			if (definition == null)
 				throw new FormatException($"Invalid CustomProjectile name '{name}'.");
 						
-			return ProjectileManager.Instance.SpawnCustomProjectile(definition, x, y, xSpeed, ySpeed, owner);
+			return ProjectileManager.Instance.SpawnCustomProjectile(definition.ProjDefinition, x, y, xSpeed, ySpeed, owner);
 		}
 
 		/// <summary>

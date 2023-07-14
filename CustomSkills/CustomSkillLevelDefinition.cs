@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using PythonTS;
 using System;
 using TShockAPI;
 
@@ -88,14 +89,14 @@ namespace CustomSkills
 		//callbacks
 		
 		//hook for notifying player about gaining new level, or learning a skill
-		internal Action<TSPlayer> OnLevelUp { get; set; }
+		internal Script OnLevelUp { get; set; }
 		
-		internal Action<TSPlayer,SkillState> OnCancelled { get; set; }
+		internal Script OnCancelled { get; set; }
 		
-		internal Func<TSPlayer,SkillState,bool> OnCast { get; set; }
+		internal Script OnCast { get; set; }
 
-		internal Func<TSPlayer,SkillState,bool> OnCharge { get; set; }
+		internal Script OnCharge { get; set; }
 
-		internal Action<TSPlayer,SkillState> OnFire { get; set; }
+		internal Script OnFire { get; set; }
 	}
 }

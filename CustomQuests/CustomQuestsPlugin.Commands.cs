@@ -622,7 +622,8 @@ namespace CustomQuests
                 return;
             }
 
-            var path = Path.Combine("quests", questInfo.ScriptPath ?? $"{questInfo.Name}.boo");
+            var path = Path.Combine(CustomQuestsPlugin.QuestsPath, questInfo.ScriptPath ?? $"{questInfo.Name}.py");
+            Console.WriteLine(path);
             if (!File.Exists(path))
             {
                 player.SendErrorMessage($"Quest '{questInfo.FriendlyName}' is corrupted.");

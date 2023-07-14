@@ -1,7 +1,8 @@
-﻿using BooTS;
-using Corruption.PluginSupport;
+﻿using Corruption.PluginSupport;
+using CustomNpcs.Npcs;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using PythonTS;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +14,12 @@ using Terraria;
 
 namespace CustomNpcs.Projectiles
 {
-	[JsonObject(MemberSerialization.OptIn)]
-	public class ProjectileDefinition : DefinitionBase, IDisposable
+    [JsonObject(MemberSerialization.OptIn)]
+	public class ProjectileDefinition : Definition, IDisposable
 	{
-		[JsonProperty(Order = 0)]
-		public override string Name { get; set; } = "NewProjectileDefinition";
+
+        [JsonProperty("CustomID", Order = 0)]
+        public override string Identifier { get; set; } = "NewProjectileDefinition";
 		
 		[JsonProperty(Order = 1)]
 		public override string ScriptPath { get; set; }
@@ -31,34 +33,44 @@ namespace CustomNpcs.Projectiles
 		/// <summary>
 		///     Gets a function that is invoked when the projectile AI is spawned.
 		/// </summary>
-		public ProjectileSpawnHandler OnSpawn { get; internal set; }
+		public Script OnSpawn { get; internal set; }
 
 		/// <summary>
 		/// Gets a function that is invoked when the projectile becomes inactive.
 		/// </summary>
-		public ProjectileKilledHandler OnKilled { get; internal set; }
+		public Script OnKilled { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked for the projectile on each game update.
 		/// </summary>
-		public ProjectileGameUpdateHandler OnGameUpdate { get; internal set; }
+		public Script OnGameUpdate { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the projectile AI is updated.
 		/// </summary>
-		public ProjectileAiUpdateHandler OnAiUpdate { get; internal set; }
+		public Script OnAiUpdate { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the projectile collides with a player.
 		/// </summary>
-		public ProjectileCollisionHandler OnCollision { get; internal set; }
+		public Script OnCollision { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the projectile collides with a tile.
 		/// </summary>
-		public ProjectileTileCollisionHandler OnTileCollision { get; internal set; }
+		public Script OnTileCollision { get; internal set; }
 
-		public void Dispose()
+        public static List<ProjectileDefinition> LoadAll(string filepath)
+        {
+            var json = File.ReadAllText(filepath);
+            var list = JsonConvert.DeserializeObject<List<ProjectileDefinition>>(json);
+            return list;
+        }
+
+        public static ProjectileDefinition Find(string name) => ProjectileManager.Definitions.FirstOrDefault(x => x.Identifier == name);
+
+
+        public void Dispose()
 		{
 			OnSpawn = null;
 			OnKilled = null;
@@ -132,27 +144,30 @@ namespace CustomNpcs.Projectiles
 		}
 
 		//internal bool LinkToScript(Assembly assembly)
-		protected override bool OnLinkToScriptAssembly(Assembly assembly)
+		public override void CreateModules()
 		{
-			if( assembly == null )
-				return false;
-
 			if( string.IsNullOrWhiteSpace(ScriptPath) )
-				return false;
+				return;
 
-			var linker = new BooModuleLinker(assembly, ScriptPath);
 
-			OnSpawn = linker.TryCreateDelegate<ProjectileSpawnHandler>("OnSpawn");
-			OnKilled = linker.TryCreateDelegate<ProjectileKilledHandler>("OnKilled");
-			OnAiUpdate = linker.TryCreateDelegate<ProjectileAiUpdateHandler>("OnAiUpdate");
-			OnGameUpdate = linker.TryCreateDelegate<ProjectileGameUpdateHandler>("OnGameUpdate");
-			OnCollision = linker.TryCreateDelegate<ProjectileCollisionHandler>("OnCollision");
-			OnTileCollision = linker.TryCreateDelegate<ProjectileTileCollisionHandler>("OnTileCollision");
+            Console.WriteLine($"Loading Projectile scripts for {Identifier}...");
+            var path = $"{NpcManager.BasePath}/{Identifier}/";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+
+            var prefix = $"{path}{Identifier}_";
+
+            OnSpawn = Script.AddModuleDefault(prefix+"OnSpawn.py");
+			OnKilled = Script.AddModuleDefault(prefix + "OnKilled.py");
+			OnAiUpdate = Script.AddModuleDefault(prefix + "OnAiUpdate.py");
+			OnGameUpdate = Script.AddModuleDefault(prefix + "OnGameUpdate.py");
+			OnCollision = Script.AddModuleDefault(prefix + "OnCollision.py");
+			OnTileCollision = Script.AddModuleDefault(prefix + "OnTileCollision.py");
 			
-			return true;
+			return;
 		}
 				
-		public override ValidationResult Validate()
+/*		public override ValidationResult Validate()
 		{
 			var result = new ValidationResult(DefinitionBase.CreateValidationSourceString(this));
 
@@ -182,7 +197,7 @@ namespace CustomNpcs.Projectiles
 				result.Errors.Add( new ValidationError($"{nameof(BaseOverride)} is null."));
 
 			return result;
-		}
+		}*/
 
 		[JsonObject(MemberSerialization.OptIn)]
 		public sealed class BaseOverrideDefinition : IValidator

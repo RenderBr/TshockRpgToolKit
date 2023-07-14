@@ -3,7 +3,7 @@
 	
 	<!-- Basic Properties -->
 	<PropertyGroup>
-		<TShockVersion>4.3.24</TShockVersion>
+		<TShockVersion>5.2</TShockVersion>
 		<TShockFolderName>tshock_$(TShockVersion)</TShockFolderName>
 		<TShockServerPath>$(SolutionDir)\Servers\$(TShockFolderName)</TShockServerPath>
 		<TShockPluginsPath>$(TShockServerPath)\ServerPlugins</TShockPluginsPath>

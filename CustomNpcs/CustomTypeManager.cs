@@ -1,32 +1,31 @@
-﻿using Boo.Lang.Compiler;
-using Boo.Lang.Compiler.IO;
-using BooTS;
-using Corruption.PluginSupport;
+﻿using Corruption.PluginSupport;
+using Microsoft.Scripting.Runtime;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TerrariaApi.Server;
+using PythonTS;
+using TShockAPI.Modules;
+using CustomNpcs;
+using Org.BouncyCastle.Tls;
 
 namespace CustomNpcs
 {
-	/// <summary>
-	/// Base implementation for types that will manage custom type overrides of Terraria types.
-	/// </summary>
-	/// <typeparam name="TCustomType"></typeparam>
-	public abstract class CustomTypeManager<TCustomType> where TCustomType : DefinitionBase
+    /// <summary>
+    /// Base implementation for types that will manage custom type overrides of Terraria types.
+    /// </summary>
+    /// <typeparam name="TCustomType"></typeparam>
+    public abstract class CustomTypeManager<TCustomType> where TCustomType : Definition
 	{
-		public string BasePath { get; protected set; }
+		public static string BasePath { get; protected set; }
 		public string ConfigPath { get; protected set; }
 
-		/// <summary>
-		/// Gets the IList of custom definitions managed by this instance.
-		/// </summary>
-		public IList<TCustomType> Definitions { get; protected set; }
+        /// <summary>
+        /// Gets the IList of custom definitions managed by this instance.
+        /// </summary>
+        public virtual List<IDefinition> Definitions { get; protected set; }
 
 		//for fast access, instead of always doing a linear search through our definitions...
 		private Dictionary<string, TCustomType> definitionMap { get; set; }
@@ -36,16 +35,8 @@ namespace CustomNpcs
 		/// </summary>
 		/// <remarks> This is cached and applied to each ModuleManager right before compilation.</remarks>
 		public string AssemblyNamePrefix { get; protected set; } = "";
-
-		protected BooModuleManager ModuleManager { get; set; }
-
-		/// <summary>
-		/// Allows a CustomTypeManager, to return a number of EnsuredMethodSignatures, used during script linking. 
-		/// </summary>
-		/// <returns>IEnumerable of EnsuredMethodSignature.</returns>
-		protected abstract IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures();
 		
-		/// <summary>
+		/*/// <summary>
 		/// Loads in json definition files, and attempts to compile and link to any related scripts.
 		/// </summary>
 		protected virtual void LoadDefinitions()
@@ -171,33 +162,54 @@ namespace CustomNpcs
                     usedNames1.Add(defName);
                 }
             }			
-		}
+		}*/
 
 		public void ClearDefinitions()
-		{
-			foreach (var def in Definitions)
-				def.OnDispose();
-
+        {
 			Definitions.Clear();
 			definitionMap.Clear();
 		}
 
-		/// <summary>
-		///     Finds the definition with the specified name.
+        /// <summary>
+		/// Loads in json definition files, and attempts to compile and link to any related scripts.
 		/// </summary>
-		/// <param name="name">The name, which must not be <c>null</c>.</param>
-		/// <returns>The definition, or <c>null</c> if it does not exist.</returns>
-		/// <exception cref="ArgumentNullException"><paramref name="name" /> is <c>null</c>.</exception>
-		public virtual TCustomType FindDefinition(string name)
+		public virtual void LoadDefinitions()
+        {
+            if (!File.Exists(ConfigPath))
+            {
+                CustomNpcsPlugin.Instance.LogPrint($"Unable to find definition file, creating default file at {ConfigPath}.", TraceLevel.Warning);
+                SaveDefaultFile(ConfigPath);
+                
+            }
+
+            var rootResult = new ValidationResult(ConfigPath);
+            rootResult.Source = ConfigPath;
+
+            CustomNpcsPlugin.Instance.LogPrint(rootResult);
+
+            List<IScript> defs = Script.Modules.Where(x => x.FilePath.Contains(BasePath)).ToList();
+/*            foreach (var def in defs)
+                Definitions.Add(new CustomDefinition(def.FilePath));
+
+            foreach (var f in Definitions)
+                Script.AddModuleDefault(f.FilePath);*/
+
+        }
+
+        /// <summary>
+        ///     Finds the definition with the specified name.
+        /// </summary>
+        /// <param name="name">The name, which must not be <c>null</c>.</param>
+        /// <returns>The definition, or <c>null</c> if it does not exist.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="name" /> is <c>null</c>.</exception>
+        public virtual IDefinition FindDefinition(string name)
 		{
 			if (name == null)
 				throw new ArgumentNullException(nameof(name));
 
 			var lowerName = name.ToLowerInvariant();
 
-			definitionMap.TryGetValue(lowerName, out var result);
-
-			return result;
+            return Definitions.FirstOrDefault(d => d.Identifier.ToLowerInvariant() == lowerName, null);
 		}
 
 		/// <summary>

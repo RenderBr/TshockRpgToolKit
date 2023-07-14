@@ -89,7 +89,7 @@ namespace CustomNpcs
 				NpcManager.Instance = null;
 				ProjectileManager.Instance?.Dispose();
 				ProjectileManager.Instance = null;
-
+				
 				GeneralHooks.ReloadEvent -= OnReload;
 				ServerApi.Hooks.GamePostInitialize.Deregister(this, OnGamePostInitialize);
 			}

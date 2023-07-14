@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace CustomNpcs
 {
-	internal static class DefinitionLoader { 
+	public class DefinitionLoader {
 
-		internal static List<TDefinition> LoadFromFile<TDefinition>(string filePath) where TDefinition : DefinitionBase
+        public static List<TDefinition> LoadFromFile<TDefinition>(string filePath) where TDefinition : Definition
 		{
 			List<TDefinition> result = null;
 			var definitionType = typeof(TDefinition);

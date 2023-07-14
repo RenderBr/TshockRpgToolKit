@@ -14,7 +14,6 @@ using System.Diagnostics;
 using Corruption.PluginSupport;
 using Microsoft.Xna.Framework;
 using System.Threading.Tasks;
-using CustomQuests.Scripting;
 using CustomQuests.Configuration;
 
 namespace CustomQuests
@@ -29,8 +28,9 @@ namespace CustomQuests
 
 		private static readonly string ConfigPath = Path.Combine("quests", "config.json");
 		private static readonly string QuestInfosPath = Path.Combine("quests", "quests.json");
+        public static readonly string QuestsPath = Path.Combine("quests", "quests");
 
-		internal Config _config = new Config();
+        internal Config _config = new Config();
 		private readonly Dictionary<string, Party> _parties = new Dictionary<string, Party>(StringComparer.OrdinalIgnoreCase);
 		private DateTime _lastSave;
 		internal QuestLoader QuestLoader;

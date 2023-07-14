@@ -9,14 +9,14 @@ using TShockAPI;
 
 namespace CustomNpcs
 {
-	/// <summary>
-	/// Common base class for custom Terraria.Entity wrappers.
-	/// </summary>
-	/// <typeparam name="TEntity"></typeparam>
-	/// <typeparam name="TCustomDefinition"></typeparam>
-	public abstract class CustomEntity<TEntity,TCustomDefinition> 
+    /// <summary>
+    /// Common base class for custom Terraria.Entity wrappers.
+    /// </summary>
+    /// <typeparam name="TEntity"></typeparam>
+    /// <typeparam name="TCustomDefinition"></typeparam>
+    public abstract class CustomEntity<TEntity,TCustomDefinition> 
 												where TEntity : Entity
-												where TCustomDefinition : DefinitionBase
+												where TCustomDefinition : Definition
 	{
 		protected internal TEntity Entity { get; set; }
 		private Dictionary<string, object> _variables = new Dictionary<string, object>();

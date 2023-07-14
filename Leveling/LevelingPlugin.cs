@@ -32,10 +32,12 @@ namespace Leveling
 		public override string Author => "MarioE, Timothy Barela";
 
         private static readonly string ConfigPath = Path.Combine("leveling", "config.json");
-		/// <summary>
-		/// The prefix used for BankAccounts created by this plugin.
-		/// </summary>
-		public const string BankAccountNamePrefix = "Exp_";
+        public static readonly string ClassPath = Path.Combine("leveling", "classes");
+
+        /// <summary>
+        /// The prefix used for BankAccounts created by this plugin.
+        /// </summary>
+        public const string BankAccountNamePrefix = "Exp_";
 		internal const string SessionKey = "Leveling_Session";
 
 		public static LevelingPlugin Instance { get; private set; }
@@ -238,18 +240,31 @@ namespace Leveling
 		
 		private void OnLoad()
 		{
-			const string classDirectory = "leveling";
-						
-			Config.Instance = JsonConfig.LoadOrCreate<Config>(this, ConfigPath);
-			
+            if (!Directory.Exists(ClassPath))
+            {
+                Directory.CreateDirectory(ClassPath);
+            }
+            Config.Instance = JsonConfig.LoadOrCreate<Config>(this, ConfigPath);
+            if (Config.Instance.DefaultClassName != string.Empty)
+            {
+                var classPath = @ClassPath + "/" + Config.Instance.DefaultClassName + ".json";
+                if (!File.Exists(classPath))
+                {
+
+                    Console.WriteLine("[Leveling] Default class does not exist, creating a default class.");
+                    var defaultClass = new ClassDefinition() { Name=Config.Instance.DefaultClassName, DisplayName=Config.Instance.DefaultClassName };
+                    defaultClass.Initialize();
+                    File.WriteAllText(classPath, JsonConvert.SerializeObject(defaultClass));
+                }
+            }
 			var dbConfig = Config.Instance.DatabaseConfig;
-			SessionRepository = SessionDatabaseFactory.LoadOrCreateDatabase(dbConfig.DatabaseType, dbConfig.ConnectionString);
+            SessionRepository = SessionDatabaseFactory.LoadOrCreateDatabase(dbConfig.DatabaseType, dbConfig.ConnectionString);
 
 			InitializeBanking();
 
-			Directory.CreateDirectory(classDirectory);
+			Directory.CreateDirectory(ClassPath);
 						
-			var classDefs = ClassDefinition.Load(classDirectory);
+			var classDefs = ClassDefinition.Load(ClassPath);
 									
 			_classDefinitions = classDefs;
 			_classes = _classDefinitions.Select(cd => new Class(cd)).ToList();

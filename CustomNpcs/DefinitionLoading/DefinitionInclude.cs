@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 namespace CustomNpcs
 {
 
-	public class DefinitionInclude : List<DefinitionBase>, IValidator
+    public class DefinitionInclude : List<Definition>, IValidator
 	{
 		public string FilePath { get; private set; }
 
-		public static DefinitionInclude Load<TDefinition>(string filePath) where TDefinition : DefinitionBase
+		public static DefinitionInclude Load<TDefinition>(string filePath) where TDefinition : Definition
 		{
 			if (!File.Exists(filePath))
 				throw new FileNotFoundException($"Unable to find file '{filePath}'.", filePath);
@@ -30,7 +30,7 @@ namespace CustomNpcs
 			var array = JArray.Parse(json);
 			var children = array.Children().Where(jt => jt.Type == JTokenType.Object);
 
-			DefinitionBase baseDef = null;
+			Definition baseDef = null;
 
 			foreach (var child in children)
 			{
@@ -48,7 +48,7 @@ namespace CustomNpcs
                     baseDef = def;
                     if(child["CustomID"] != null)
                     {
-                        baseDef.Name = child["CustomID"].ToString();
+                        baseDef.Identifier = child["CustomID"].ToString();
                     }                    
                 }
 
@@ -62,7 +62,7 @@ namespace CustomNpcs
 					filePos.Column = lineInfo.LinePosition;
 
 					//Debug.Print($"{filePath} [{baseDef.LineNumber},{baseDef.LinePosition}] {baseDef.Name}");
-					Debug.Print($"{filePos} {baseDef.Name}");
+					Debug.Print($"{filePos} {baseDef.Identifier}");
 				}
 
 				result.Add(baseDef);
@@ -91,7 +91,7 @@ namespace CustomNpcs
 		/// <typeparam name="TDefinition"></typeparam>
 		/// <param name="sourceDefinitions"></param>
 		/// <returns></returns>
-		public static List<TDefinition> Flatten<TDefinition>(List<DefinitionBase> sourceDefinitions) where TDefinition : DefinitionBase
+		public static List<TDefinition> Flatten<TDefinition>(List<Definition> sourceDefinitions) where TDefinition : Definition
 		{
 			var result = new List<TDefinition>(sourceDefinitions.Count);
 
@@ -119,12 +119,12 @@ namespace CustomNpcs
 		{
 			var result = new ValidationResult();
 
-			foreach(var def in this)
+		/*	foreach(var def in this)
 			{
 				var childResult = def.Validate();
 
 				result.Children.Add(childResult);
-			}
+			}*/
 			
 			return result;
 		}

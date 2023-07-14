@@ -34,7 +34,7 @@ namespace CustomNpcs
 			foreach( var npc in Main.npc.Where(n => n?.active == true) )
 			{
 				var customNpc = NpcManager.Instance?.GetCustomNpc(npc);
-				if( name.Equals(customNpc?.Definition.Name, StringComparison.OrdinalIgnoreCase) )
+				if( name.Equals(customNpc?.Definition.Identifier, StringComparison.OrdinalIgnoreCase) )
 				{
 					customNpcs.Add(customNpc);
 				}
@@ -88,7 +88,7 @@ namespace CustomNpcs
 				throw new FormatException($"Invalid custom NPC name '{name}'.");
 			}
 
-			return NpcManager.Instance.SpawnCustomNpc(definition, (int)position.X, (int)position.Y);
+			return NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, (int)position.X, (int)position.Y);
 		}
 
 		/// <summary>
@@ -124,7 +124,7 @@ namespace CustomNpcs
 			for (var i = 0; i < amount; ++i)
 			{
 				TShock.Utils.GetRandomClearTileWithInRange(x, y, radius, radius, out var spawnX, out var spawnY);
-				var customNpc = NpcManager.Instance.SpawnCustomNpc(definition, 16 * spawnX, 16 * spawnY);
+				var customNpc = NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, 16 * spawnX, 16 * spawnY);
 				if (customNpc != null)
 					customNpcs.Add(customNpc);
 			}

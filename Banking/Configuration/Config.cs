@@ -16,12 +16,15 @@ namespace Banking.Configuration
 		public static Config Instance { get; internal set; }
 		
 		[JsonProperty(Order = 0)]
-		public DatabaseConfig Database { get; set; } = new DatabaseConfig("sqlite", $"uri=file://banking/db.sqlite,Version=3");
+		public DatabaseConfig Database { get; set; } = new DatabaseConfig("sqlite", "Data Source=banking/db.sqlite");
 
 		[JsonProperty(Order = 1)]
-		public string ScriptPath { get; set; }
-				
+		public string ScriptPath { get; set; } = "scripts";
+
 		[JsonProperty(Order = 2)]
+		public string CurrencyPath { get; set; } = "currencies";
+
+        [JsonProperty(Order = 3)]
 		public VotingConfig Voting { get; set; } = new VotingConfig();
 
 		public override ValidationResult Validate()

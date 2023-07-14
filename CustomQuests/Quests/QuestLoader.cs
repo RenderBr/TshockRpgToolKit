@@ -1,6 +1,6 @@
 ﻿using Corruption.PluginSupport;
-using CustomQuests.Scripting;
 using Newtonsoft.Json;
+using PythonTS;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +16,6 @@ namespace CustomQuests.Quests
 	{
 		List<QuestInfo> questInfoList;//maintains ordering, enables correct serialization/deserialization to json...
 		Dictionary<string, QuestInfo> questInfos;
-		ScriptAssemblyManager scriptAssemblyManager;
 
 		public HashSet<string> InvalidQuests { get; private set; } //records quests that are broken in someway, and should not be ran/listed.
 
@@ -35,12 +34,10 @@ namespace CustomQuests.Quests
 		{
 			questInfos = new Dictionary<string, QuestInfo>();
 			InvalidQuests = new HashSet<string>();
-			scriptAssemblyManager = new ScriptAssemblyManager();
 		}
 
 		public void Clear()
 		{
-			scriptAssemblyManager.Clear();
 			InvalidQuests.Clear();
 			questInfos.Clear();
 		}
@@ -49,7 +46,10 @@ namespace CustomQuests.Quests
 		{
 			CustomQuestsPlugin.Instance.LogPrint($"Loading quest info from {fileName}...", TraceLevel.Info);
 
-			try
+			if(!Directory.Exists(CustomQuestsPlugin.QuestsPath))
+                Directory.CreateDirectory(CustomQuestsPlugin.QuestsPath);
+
+            try
 			{
 				if( File.Exists(fileName) )
 				{
@@ -79,16 +79,19 @@ namespace CustomQuests.Quests
 				var result = qi.Validate();
 				rootResult.Children.Add(result);
 
-				//only add quest info if its valid
-				if(result.Errors.Count==0)
+                qi.LinkedScript = Script.AddModuleDefault(Path.Combine($"{CustomQuestsPlugin.QuestsPath}/", qi.ScriptPath ?? $"{qi.Name}.py"));
+
+                //only add quest info if its valid
+                if (result.Errors.Count==0)
 					questInfos.Add(qi.Name, qi);
+				
 			}
 
 			CustomQuestsPlugin.Instance.LogPrint(rootResult);
 			
-			//Debug.Print("Found the following quest infos:");
-			//foreach( var qi in questInfoList )
-			//	Debug.Print($"Quest: {qi.Name},  {qi.FriendlyName} - {qi.Description}");
+			Debug.Print("Found the following quest infos:");
+			foreach( var qi in questInfoList )
+				Debug.Print($"Quest: {qi.Name},  {qi.FriendlyName} - {qi.Description}");
 		}
 		
 		public Quest CreateInstance(QuestInfo questInfo, Party party)
@@ -110,19 +113,17 @@ namespace CustomQuests.Quests
 
 			if( !string.IsNullOrWhiteSpace(questInfo.ScriptPath) )
 			{
-				var scriptPath = Path.Combine("quests", questInfo.ScriptPath ?? $"{questInfo.Name}.boo");
-				var scriptAssembly = scriptAssemblyManager.GetOrCompile(scriptPath);
+				var scriptPath = Path.Combine("quests", questInfo.ScriptPath ?? $"{questInfo.Name}.py");
+                var scriptAssembly = questInfoList.FirstOrDefault(qi => qi.Name == questInfo.Name)?.LinkedScript;
 
-				if( scriptAssembly != null )
+                if ( scriptAssembly != null )
 				{
-					var questType = scriptAssembly.DefinedTypes.Where(dt => dt.BaseType == typeof(Quest))
-															.Select(dt => dt.AsType())
-															.FirstOrDefault();
 
-					var quest = (Quest)Activator.CreateInstance(questType);
+					Quest quest = new();
+                    quest.Script = scriptAssembly;
 
-					//set these before, or various quest specific functions will get null ref's from within the quest.
-					quest.QuestInfo = questInfo;
+                    //set these before, or various quest specific functions will get null ref's from within the quest.
+                    quest.QuestInfo = questInfo;
 					quest.party = party;
 
 					return quest;

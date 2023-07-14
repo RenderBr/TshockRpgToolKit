@@ -23,17 +23,17 @@ namespace Housing
 		///  Gets the <see cref="DatabaseConfig"/>. 
 		/// </summary>
 		[JsonProperty(Order = 0)]
-		public DatabaseConfig Database { get; private set; } = new DatabaseConfig("sqlite", $"uri=file://housing/db.sqlite,Version=3");
+        public DatabaseConfig Database { get; set; } = new DatabaseConfig("sqlite", "Data Source=housing/db.sqlite");
 
-		/// <summary>
-		///     Gets a value indicating whether houses require an admin region to build on.
-		/// </summary>
-		[JsonProperty(Order = 1)]
+        /// <summary>
+        ///     Gets a value indicating whether houses require an admin region to build on.
+        /// </summary>
+        [JsonProperty(Order = 1)]
 		public bool RequireAdminRegions { get; private set; }
 
 		[Obsolete]
 		[JsonProperty(Order = 2)]
-		public string CurrencyType { get; private set; }
+		public string CurrencyType { get; private set; } = "TerrariaCoin";
 
 		/// <summary>
 		///     Gets the purchase rate.

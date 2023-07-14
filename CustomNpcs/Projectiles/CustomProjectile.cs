@@ -84,7 +84,7 @@ namespace CustomNpcs.Projectiles
 
 		public bool CustomIDContains(string text)
 		{
-			return this.Definition?.Name.Contains(text)==true;
+			return this.Definition?.Identifier.Contains(text)==true;
 		}
 	}
 }

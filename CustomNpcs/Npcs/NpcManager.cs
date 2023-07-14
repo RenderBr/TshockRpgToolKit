@@ -13,12 +13,12 @@ using System.Diagnostics;
 using System.Reflection;
 using Microsoft.Xna.Framework;
 using Corruption;
-using BooTS;
-using Boo.Lang.Compiler.IO;
-using Boo.Lang.Compiler;
 using Corruption.PluginSupport;
 using Banking;
 using Terraria.DataStructures;
+using PythonTS.Models;
+using PythonTS;
+using CustomNpcs.Invasions;
 
 namespace CustomNpcs.Npcs
 {
@@ -48,14 +48,26 @@ namespace CustomNpcs.Npcs
         private readonly ConditionalWeakTable<NPC, CustomNpc> _customNpcs = new ConditionalWeakTable<NPC, CustomNpc>();
         private readonly CustomNpcsPlugin _plugin;
         private readonly Random _random = new Random();
-				
+
+        public static new List<NpcDefinition> Definitions { get; set; }
+
         internal NpcManager(CustomNpcsPlugin plugin)
         {
             _plugin = plugin;
 
 			BasePath = "npcs";
 			ConfigPath = Path.Combine(BasePath, "npcs.json");
-			AssemblyNamePrefix = "Npc_";
+
+            if (!File.Exists(ConfigPath))
+            {
+                List<NpcDefinition> obj = new()
+                {
+                    new NpcDefinition()
+                };
+                var text = JsonConvert.SerializeObject(obj);
+                File.WriteAllText(ConfigPath, text);
+            }
+            AssemblyNamePrefix = "Npc_";
 						
 			LoadDefinitions();
 
@@ -94,7 +106,18 @@ namespace CustomNpcs.Npcs
 			//ServerApi.Hooks.NpcTransform.Deregister(_plugin, OnNpcTransform);
 			//OTAPI.Hooks.NPC.Transforming
 		}
+
 		
+        public override void LoadDefinitions()
+        {
+            CustomNpcsPlugin.Instance.LogPrint($"Loading CustomNpcs...", TraceLevel.Info);
+			Definitions = NpcDefinition.LoadAll(ConfigPath);
+			foreach(var def in Definitions)
+			{
+				def.CreateModules();
+			}
+        }
+
         /// <summary>
         ///     Gets the custom NPC associated with the specified NPC.
         /// </summary>
@@ -151,8 +174,9 @@ namespace CustomNpcs.Npcs
 
 			try
 			{
-				CustomIDFunctions.CurrentID = definition.Name;
-				definition.OnSpawn?.Invoke(customNpc);
+				CustomIDFunctions.CurrentID = definition.Identifier;
+				ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+				definition.OnSpawn?.Execute(Arg);
 			}
 			catch(Exception ex)
 			{
@@ -168,7 +192,7 @@ namespace CustomNpcs.Npcs
             return customNpc;
         }
 
-		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
+/*		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
 		{
 			var sigs = new List<EnsuredMethodSignature>()
 			{
@@ -209,13 +233,13 @@ namespace CustomNpcs.Npcs
 			};
 			
 			return sigs;
-		}
+		}*/
 		
-		protected override void LoadDefinitions()
+/*		protected override void LoadDefinitions()
 		{
 			CustomNpcsPlugin.Instance.LogPrint($"Loading CustomNpcs...", TraceLevel.Info);
 			base.LoadDefinitions();		
-		}
+		}*/
 
 		private void OnGameUpdate(EventArgs args)
         {
@@ -241,8 +265,9 @@ namespace CustomNpcs.Npcs
 					{
 						try
 						{
-							CustomIDFunctions.CurrentID = definition.Name;
-							definition.OnTransformed(customNpc);
+							CustomIDFunctions.CurrentID = definition.Identifier;
+                            ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+                            definition.OnTransformed.Execute(Arg);
 						}
 						catch(Exception ex)
 						{
@@ -284,8 +309,11 @@ namespace CustomNpcs.Npcs
 							{
 								try
 								{
-									CustomIDFunctions.CurrentID = definition.Name;
-									definition.OnCollision(customNpc, player);
+									CustomIDFunctions.CurrentID = definition.Identifier;
+                                    ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), 
+										new("player", player) };
+
+                                    definition.OnCollision.Execute(Args);
 								}
 								catch(Exception ex)
 								{
@@ -321,8 +349,10 @@ namespace CustomNpcs.Npcs
 						{
 							try
 							{
-								CustomIDFunctions.CurrentID = definition.Name;
-								definition.OnTileCollision(customNpc, tileCollisions);
+								CustomIDFunctions.CurrentID = definition.Identifier;
+                                ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), new("tileCollisions", tileCollisions) };
+
+                                definition.OnTileCollision.Execute(Args);
 							}
 							catch(Exception ex)
 							{
@@ -348,9 +378,20 @@ namespace CustomNpcs.Npcs
 
 			try
 			{
-				CustomIDFunctions.CurrentID = definition.Name;
-				var result = definition.OnAiUpdate?.Invoke(customNpc);
-				args.Handled = result==true;
+				CustomIDFunctions.CurrentID = definition.Identifier;
+                ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+
+				var result = true;
+				try
+				{
+                    definition.OnAiUpdate?.Execute(Arg);
+				}
+				catch
+				{
+					result = false;
+				}
+
+                args.Handled = result==true;
 			}
 			catch(Exception ex)
 			{
@@ -384,8 +425,10 @@ namespace CustomNpcs.Npcs
 
 			try
 			{
-				CustomIDFunctions.CurrentID = definition.Name;
-				definition.OnKilled?.Invoke(customNpc);
+				CustomIDFunctions.CurrentID = definition.Identifier;
+                ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+
+                definition.OnKilled.Execute(Arg);
 			}
 			catch(Exception ex)
 			{
@@ -460,9 +503,19 @@ namespace CustomNpcs.Npcs
 
 			try
 			{
-				CustomIDFunctions.CurrentID = definition.Name;
-				var result = definition.OnStrike?.Invoke(customNpc, player, args.Damage, args.KnockBack, args.Critical);
-				args.Handled = result == true;
+				CustomIDFunctions.CurrentID = definition.Identifier;
+				ScriptArguments[] Args = new ScriptArguments[]
+				{
+					new ScriptArguments("customNpc", customNpc),
+					new ScriptArguments("player", player),
+					new ScriptArguments("damage", args.Damage),
+					new ScriptArguments("knockback", args.KnockBack),
+					new ScriptArguments("critical", args.Critical)
+				};
+
+                    definition.OnStrike?.Execute(Args);
+
+
 			}
 			catch(Exception ex)
 			{
@@ -491,17 +544,20 @@ namespace CustomNpcs.Npcs
         private void TryReplaceNpc(NPC npc)
         {
             var chances = new Dictionary<NpcDefinition, double>();
-           
-			foreach( var definition in Definitions.Where(d => d.ShouldReplace) )
-			{
+
+            foreach (var definition in Definitions.Where(d => d.NpcDefinition.ShouldReplace).Select(d => d.NpcDefinition))
+
+            {
 				var chance = 0.0;
 
 				if( definition.OnCheckReplace != null )
 				{
 					try
 					{
-						CustomIDFunctions.CurrentID = definition.Name;
-						chance = definition.OnCheckReplace(npc);
+						CustomIDFunctions.CurrentID = definition.Identifier;
+                        ScriptArguments[] Args = new ScriptArguments[] { new("npc", npc) };
+
+                        definition.OnCheckReplace.Execute(Args);
 					}
 					catch(Exception ex)
 					{
@@ -528,9 +584,10 @@ namespace CustomNpcs.Npcs
 			
 			var spawnViaGlobalRate = _random.Next((int)spawnRate) == 0;
 			var weights = new Dictionary<NpcDefinition, int>(Definitions.Count);
-			
-			foreach( var definition in Definitions )
-			{
+
+            foreach (var definition in Definitions.Select(d => d.NpcDefinition))
+
+            {
 				if( !definition.ShouldSpawn )
 					continue;
 
@@ -549,8 +606,10 @@ namespace CustomNpcs.Npcs
 					{
 						try
 						{
-							CustomIDFunctions.CurrentID = definition.Name;
-							weight = definition.OnCheckSpawn(player, tileX, tileY);
+							CustomIDFunctions.CurrentID = definition.Identifier;
+                            ScriptArguments[] Args = new ScriptArguments[] { new("player", player), new("tileX", tileX), new("tileY", tileY) };
+
+                            definition.OnCheckSpawn.Execute(Args);
 						}
 						catch(Exception ex)
 						{

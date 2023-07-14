@@ -45,7 +45,8 @@ namespace CustomSkills
 		
 		public static readonly string DataDirectory = "skills";
 		public static readonly string ConfigPath = Path.Combine(DataDirectory, "config.json");
-		public const string SkillPermission = "customskills.skill";
+        public static readonly string ScriptsDirectory = Path.Combine(DataDirectory, Config.Instance.ScriptPath);
+        public const string SkillPermission = "customskills.skill";
 		
 		public static CustomSkillsPlugin Instance = null;
 		internal CustomSkillDefinitionLoader CustomSkillDefinitionLoader { get; private set; }
@@ -92,7 +93,10 @@ namespace CustomSkills
 
 			//register commands here...
 			Commands.ChatCommands.Add(new Command(SkillPermission, SkillCommand, "skill"));
-		}
+
+			if(!Directory.Exists(ScriptsDirectory))
+                Directory.CreateDirectory(ScriptsDirectory);
+        }
 
 		/// <summary>
 		///     Disposes the plugin.

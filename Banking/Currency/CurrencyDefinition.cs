@@ -1,4 +1,5 @@
-﻿using Banking.Currency;
+﻿using Banking.Configuration;
+using Banking.Currency;
 using Banking.Rewards;
 using Banking.TileTracking;
 using Corruption.PluginSupport;
@@ -370,19 +371,22 @@ namespace Banking
 
 		public override string ToString() => InternalName;
 		
-		public static IList<CurrencyDefinition> LoadCurrencys(string currencyDirectoryPath)
+		public static IList<CurrencyDefinition> LoadCurrencys()
 		{
-			//Debug.Print($"Loading CurrencyDefinitions at: {currencyDirectoryPath}");
-			var currencyFiles = Directory.EnumerateFiles(currencyDirectoryPath, "*.currency");
+            //Debug.Print($"Loading CurrencyDefinitions at: {currencyDirectoryPath}");
+            if (!Directory.Exists(BankingPlugin.CurrencyDirectory))
+                Directory.CreateDirectory(BankingPlugin.CurrencyDirectory);
+			
+            var currencyFiles = Directory.EnumerateFiles(BankingPlugin.CurrencyDirectory, "*.json");
 			var results = new List<CurrencyDefinition>();
 			
 #if DEBUG
 			if( currencyFiles.Count()<1)
 			{
-				BankingPlugin.Instance.LogPrint("No .currency files found, creating default 'TerrariaCoin.currency'.", TraceLevel.Warning);
+				BankingPlugin.Instance.LogPrint("No .json files found, creating default 'TerrariaCoin.json'.", TraceLevel.Warning);
 				results.Add(CreateDefaultCurrency());
 
-				SaveCurrencys(currencyDirectoryPath,results);
+				SaveCurrencys(BankingPlugin.CurrencyDirectory, results);
 				return results;
 			}
 #endif
@@ -422,7 +426,7 @@ namespace Banking
 			{
 				try
 				{
-					var filePath = Path.Combine(currencyDirectoryPath, currency.InternalName + ".currency");
+					var filePath = Path.Combine(currencyDirectoryPath, currency.InternalName + ".json");
 					var json = JsonConvert.SerializeObject(currency, Formatting.Indented);
 					File.WriteAllText(filePath, json);
 				}

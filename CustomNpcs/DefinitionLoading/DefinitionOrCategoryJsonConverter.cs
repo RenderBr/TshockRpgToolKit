@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CustomNpcs
 {
-	internal class DefinitionOrCategoryJsonConverter : JsonConverter
+    internal class DefinitionOrCategoryJsonConverter : JsonConverter
 	{
 		Type definitionType;
 
@@ -21,7 +21,7 @@ namespace CustomNpcs
 
 		public override bool CanConvert(Type objectType)
 		{
-			var result = typeof(DefinitionBase).IsAssignableFrom(objectType);
+			var result = typeof(Definition).IsAssignableFrom(objectType);
 			return result;
 		}
 

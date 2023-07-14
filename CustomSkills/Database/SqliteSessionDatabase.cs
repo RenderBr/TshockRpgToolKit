@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mono.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using TerrariaApi.Server;
 using System.Diagnostics;
 using Newtonsoft.Json;

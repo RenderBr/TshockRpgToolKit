@@ -6,9 +6,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Mono.Data.Sqlite;
-using MySql.Data;
-using MySql.Data.MySqlClient;
+using Microsoft.Data.Sqlite;
+using Microsoft.Data;
+using System.Data.SqlClient;
 
 namespace Housing.Database
 {

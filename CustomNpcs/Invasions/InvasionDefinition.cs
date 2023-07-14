@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using BooTS;
 using Corruption.PluginSupport;
+using CustomNpcs.Npcs;
 using Newtonsoft.Json;
+using PythonTS;
 
 namespace CustomNpcs.Invasions
 {
@@ -13,13 +14,14 @@ namespace CustomNpcs.Invasions
     ///     Represents an invasion definition.
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-    public sealed class InvasionDefinition : DefinitionBase, IDisposable
+    public sealed class InvasionDefinition : Definition, IDisposable
     {
-       	/// <summary>
-		///     Gets the name.
-		/// </summary>
-		[JsonProperty(Order = 0)]
-		public override string Name { get; set; } = "NewInvasionDefinition";
+
+        /// <summary>
+        ///     Gets the name.
+        /// </summary>
+        [JsonProperty("Name", Order = 0)]
+		public override string Identifier { get; set; } = "NewInvasionDefinition";
 
 		/// <summary>
 		///     Gets the script path.
@@ -65,37 +67,37 @@ namespace CustomNpcs.Invasions
 		/// <summary>
 		///     Gets a function that is invoked when the invasion is started.
 		/// </summary>
-		public InvasionStartHandler OnInvasionStart { get; internal set; }
+		public Script OnInvasionStart { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the invasion is ending.
 		/// </summary>
-		public InvasionEndHandler OnInvasionEnd { get; internal set; }
+		public Script OnInvasionEnd { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the invasion is updated.
 		/// </summary>
-		public InvasionUpdateHandler OnUpdate { get; internal set; }
+		public Script OnUpdate { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the wave is started.
 		/// </summary>
-		public InvasionWaveStartHandler OnWaveStart { get; internal set; }
+		public Script OnWaveStart { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the wave is ending.
 		/// </summary>
-		public InvasionWaveEndHandler OnWaveEnd { get; internal set; }
+		public Script OnWaveEnd { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the wave is updated.
 		/// </summary>
-		public InvasionWaveUpdateHandler OnWaveUpdate { get; internal set; }
+		public Script OnWaveUpdate { get; internal set; }
 
 		/// <summary>
 		///     Gets a function that is invoked when the boss is defeated.
 		/// </summary>
-		public InvasionBossDefeatedHandler OnBossDefeated { get; internal set; }
+		public Script OnBossDefeated { get; internal set; }
 
 		/// <summary>
 		///     Disposes the definition.
@@ -110,31 +112,41 @@ namespace CustomNpcs.Invasions
 			OnWaveUpdate = null;
 			OnBossDefeated = null;
         }
-		
-		protected override bool OnLinkToScriptAssembly(Assembly ass)
+
+        public static List<InvasionDefinition> LoadAll(string filepath)
+        {
+            var json = File.ReadAllText(filepath);
+            var list = JsonConvert.DeserializeObject<List<InvasionDefinition>>(json);
+            return list;
+        }
+        public static InvasionDefinition Find(string name) => InvasionManager.Definitions.FirstOrDefault(x => x.Identifier == name);
+
+        public override void CreateModules()
 		{
-			if( ass == null )
-				return false;
+			if (string.IsNullOrWhiteSpace(ScriptPath))
+				return;
 
-			if( string.IsNullOrWhiteSpace(ScriptPath) )
-				return false;
+            Console.WriteLine($"Loading invasion scripts for {Identifier}...");
+            var path = $"{InvasionManager.BasePath}/{Identifier}/";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
 
-			var linker = new BooModuleLinker(ass, ScriptPath);
-			
-			OnInvasionStart = linker.TryCreateDelegate<InvasionStartHandler>("OnInvasionStart");
-			OnInvasionEnd = linker.TryCreateDelegate<InvasionEndHandler>("OnInvasionEnd");
-			OnUpdate = linker.TryCreateDelegate<InvasionUpdateHandler>("OnUpdate");
-			OnWaveStart = linker.TryCreateDelegate<InvasionWaveStartHandler>("OnWaveStart");
-			OnWaveEnd = linker.TryCreateDelegate<InvasionWaveEndHandler>("OnWaveEnd");
-			OnWaveUpdate = linker.TryCreateDelegate<InvasionWaveUpdateHandler>("OnWaveUpdate");
-			OnBossDefeated = linker.TryCreateDelegate<InvasionBossDefeatedHandler>("OnBossDefeated");
+            var prefix = $"{path}{Identifier}_";
 
-			return true;
+			OnInvasionStart = Script.AddModuleDefault(prefix+"OnInvasionStart.py");
+			OnInvasionEnd = Script.AddModuleDefault(prefix + "OnInvasionEnd.py");
+			OnUpdate = Script.AddModuleDefault(prefix + "OnUpdate.py");
+			OnWaveStart = Script.AddModuleDefault(prefix + "OnWaveStart.py");
+			OnWaveEnd = Script.AddModuleDefault(prefix + "OnWaveEnd.py");
+			OnWaveUpdate = Script.AddModuleDefault(prefix + "OnWaveUpdate.py");
+			OnBossDefeated = Script.AddModuleDefault(prefix + "OnBossDefeated.py");
+
+			return;
 		}
 
-		public override ValidationResult Validate()
+/*		public override ValidationResult Validate()
 		{
-			var result = new ValidationResult(DefinitionBase.CreateValidationSourceString(this));
+			var result = new ValidationResult(Definition.CreateValidationSourceString(this));
 					
 			if( string.IsNullOrWhiteSpace(Name) )
 				result.Errors.Add( new ValidationError($"{nameof(Name)} is null or whitespace."));
@@ -173,6 +185,6 @@ namespace CustomNpcs.Invasions
 			}
 
 			return result;
-		}
+		}*/
 	}
 }

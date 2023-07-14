@@ -197,7 +197,7 @@ namespace NpcShops
 						var customNpc = NpcManager.Instance?.GetCustomNpc(npc);
 						if( customNpc != null )
 						{
-							npcType = customNpc.Definition.Name ?? npcType;
+							npcType = customNpc.Definition.Identifier ?? npcType;
 						}
 					}
 					

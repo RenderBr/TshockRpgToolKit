@@ -9,6 +9,8 @@ using System.Threading;
 using System.Collections.Concurrent;
 using TShockAPI;
 using Corruption.PluginSupport;
+using PythonTS;
+using PythonTS.Models;
 
 namespace CustomQuests.Quests
 {
@@ -40,11 +42,13 @@ namespace CustomQuests.Quests
 		///     Gets a value indicating whether the quest is successful.
 		/// </summary>
 		public bool IsSuccessful { get; private set; }
-		
-		/// <summary>
-		///  Gets or sets a friendly string informing players of their progress within a quest.
-		/// </summary>
-		public string QuestStatus { get; set; }
+
+        public Script Script { get; internal set; }
+
+        /// <summary>
+        ///  Gets or sets a friendly string informing players of their progress within a quest.
+        /// </summary>
+        public string QuestStatus { get; set; }
 		public Color QuestStatusColor { get; set; } // = Color.White;
 
 		internal HashSet<string> RejoinablePlayers { get; private set; }
@@ -93,8 +97,12 @@ namespace CustomQuests.Quests
 		{
 			MainQuestTask = Task.Run(() =>
 			{
-				OnRun();
-			});
+				ScriptArguments[] args = new ScriptArguments[]
+				{
+					new ScriptArguments("quest", this)
+				};
+                Script.ExecuteMethod(QuestInfo.PrimaryMethodName, args);
+            });
 		}
 
 		//this method gets overridden in boo, by transplanting the modules main method into it.
@@ -135,7 +143,7 @@ namespace CustomQuests.Quests
 		///     Completes the quest.
 		/// </summary>
 		/// <param name="isSuccess"><c>true</c> to complete successfully; otherwise, <c>false</c>.</param>
-		protected void Complete(bool isSuccess)
+		public void Complete(bool isSuccess)
         {
 			if( IsEnded )
 				return;
