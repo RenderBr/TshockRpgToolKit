@@ -1,0 +1,119 @@
+# TShockRpgToolkit
+
+Welcome to TShockRpgToolkit! This toolkit provides a brand new scripting implementation called PythonTS, which aims to replace BooTS. With the utilization of IronPython, it offers seamless integration with user-defined scripts and the plugins that can be utilized with them.
+
+## Features
+
+TShockRpgToolKit offers extensive customization options, allowing you to modify the functionality of various events. This is achieved through PythonTS. In this README, we will provide a brief overview of how you can add functionality to each plugin using our scripting module.
+
+## Usage
+
+To get started with TShockRpgToolkit, please follow these steps:
+
+1. Install TShockRpgToolkit by [downloading the latest release](https://github.com/TShockRpgToolkit/releases), and pasting in TShock's root.
+2. Ensure you have IronPython and its dependencies dropped in the bin folder. These are found in the release.
+3. Once installed, launch TShock. Everything should run without any modification.
+
+## PythonTS Documentation
+PythonTS by default generates a few default scripts, these can be found in the `scripting` folder.
+
+By default, the following scripts can be found in there:
+
+  - PlayerJoin.py
+  - ServerStart.py
+  - ServerLeave.py
+
+Each of these scripts is attached to the appropriate TShock hooks and they will execute when any of these events are executed. For example, when a player joins, it will execute PlayerJoin.py.
+
+To get the latest arguments that are passed through to the Python scripts, if one is missing or not working as previously, please check the source code for when the event fires. 
+
+For example, if you navigate here: [PythonScriptingPlugin.cs](https://github.com/RenderBr/TshockRpgToolKit/blob/e178699ab82c78a37e5cc56f2b1684121b3bdc74/PythonTS/PythonScriptingPlugin.cs#L114)
+You will notice the line:
+```cs
+ScriptArguments[] arg = new ScriptArguments[]
+{
+    new("Player", player)
+};
+```
+ScriptArguments[] Arrays are typically passed through to it's respective Python script dynamically. This means each object is accessible in its respective script by the first parameter in each ScriptArgument.
+
+To sum it up, you can utilize the object "player" in Python via something like this:
+```py
+# by default, the arguments passed are already accessible, meaning the user does not have to define them
+
+# we can access "Player" as such:
+Player.SendInfoMessage("Welcome to the server!")
+
+# if we don't like the argument name we can change it like so:
+global p = Player
+
+# the object will work the same way, meaning we can access it's methods as such:
+p.KillPlayer()
+p.SendErrorMessage("haha ur dead!")
+```
+
+The function of this script will execute as follows:
+- The player is greeted with a welcome message
+- We then declare a new reference to the Player object defined as 'p'
+- Using our newly declared variable, we kill the player and send a message
+
+Now that you understand how arguments are given to Python scripts, looking at [Executor.cs](https://github.com/RenderBr/TshockRpgToolKit/blob/e178699ab82c78a37e5cc56f2b1684121b3bdc74/PythonTS/Executor.cs#L48), you will notice this line:
+```cs
+Scope.SetVariable("TSPlayer.All", TSPlayer.All);
+Scope.SetVariable("TSPlayer.Server", TSPlayer.Server);
+Scope.SetVariable("TSPlayers", TShock.Players);
+Scope.SetVariable("TSUtils", TShock.Utils);
+Scope.SetVariable("Main", Terraria.Main.instance);
+
+ICollection<string> searchPaths = Engine.GetSearchPaths();
+searchPaths.Add(TShock.SavePath + Path.DirectorySeparatorChar + "bin");
+searchPaths.Add(TShock.SavePath + Path.DirectorySeparatorChar + "ServerPlugins");
+```
+These are loaded slightly differently, not passed through via arguments but strictly set. 
+
+In **EVERY** script from PythonTS these objects are accessible:
+  - TSPlayer.All
+  - TSPlayer.Server
+  - TSPlayers (TShock.Players array)
+  - TSUtils (TShock Utility Manager)
+  - Main (access to the Terraria instance, tiles, entities, etc.)
+
+As well as this, everything in ServerPlugins and the bin folder are added as available import assemblies. Use the [IronPython docs](https://ironpython.net/documentation/dotnet/dotnet.html#id31) for a guide on how to import and utilize these.
+
+ Now, we're just scraping the surface. For each of the plugins included in this kit, there are special arguments given to each script event type, just like with PlayerJoin.py.
+
+ ## Banking Integration
+
+ ### OnAccountDeposit.py
+ | Variable           | Value           |
+|-----------------------|-----------------|
+| Bank Account ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Banking/BankAccount.cs))          | `bankAccount`   |
+| New Balance (decimal)          | `newBalance`    |
+| Previous Balance (decimal)     | `previousBalance`|
+
+ ### OnAccountWithdraw.py
+ | Variable           | Value           |
+|-----------------------|-----------------|
+| Bank Account ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Banking/BankAccount.cs))          | `bankAccount`   |
+| New Balance (decimal)          | `newBalance`    |
+| Previous Balance (decimal)     | `previousBalance`|
+
+ ### OnPreReward.py
+| Variable                                   | Value           |
+|-----------------------------------------------|-----------------|
+| Player Name (string])                     | `playerName`    |
+| Reward ([Class]())                           | `reward`        |
+| Currency ([Class](#))                         | `currency`      |
+| Value (decimal)                            | `value`         |
+
+## Contributing
+
+We welcome contributions from the community to improve TShockRpgToolkit. If you have any bug fixes, feature enhancements, or suggestions, please feel free to open an issue or submit a pull request.
+
+## License
+
+TShockRpgToolkit is released under the [MIT License](LICENSE).
+
+---
+
+We hope you enjoy using TShockRpgToolkit and find it useful for customizing your TShock server! If you have any questions or need assistance, please don't hesitate to reach out.
