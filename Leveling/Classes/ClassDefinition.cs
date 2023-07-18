@@ -27,7 +27,7 @@ namespace Leveling.Classes
 		///     Gets the name.
 		/// </summary>
 		[JsonProperty("Name", Order = 0)]
-		public string Name { get; internal set; }
+		public string Name { get; internal set; } = "ranger";
 
 		/// <summary>
 		///     Gets the display name.
@@ -353,8 +353,10 @@ namespace Leveling.Classes
 			//...but these are disabled since I have no idea how these should work
 			//def.OnMaximumCurrency = linker["OnMaximumCurrency"]?.TryCreateDelegate<Action<object>>();
 			//def.OnNegativeCurrency = linker["OnNegativeCurrency"]?.TryCreateDelegate<Action<object>>();
+			if(!Directory.Exists(LevelingPlugin.ClassPath))
+                Directory.CreateDirectory(LevelingPlugin.ClassPath);
 
-			var path = Path.Combine(LevelingPlugin.ClassPath, Name);
+            var path = Path.Combine(LevelingPlugin.ClassPath, Name);
 			if (!Directory.Exists(path))
 				Directory.CreateDirectory(path);
 
