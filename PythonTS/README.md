@@ -82,6 +82,8 @@ As well as this, everything in ServerPlugins and the bin folder are added as ava
 
  Now, we're just scraping the surface. For each of the plugins included in this kit, there are special arguments given to each script event type, just like with PlayerJoin.py.
 
+ **If a script is not mentioned here, it does not have any special arguments passed.**
+
  ## Banking Integration
 
  ### OnAccountDeposit.py
@@ -101,10 +103,87 @@ As well as this, everything in ServerPlugins and the bin folder are added as ava
  ### OnPreReward.py
 | Variable                                   | Value           |
 |-----------------------------------------------|-----------------|
-| Player Name (string])                     | `playerName`    |
-| Reward ([Class]())                           | `reward`        |
-| Currency ([Class](#))                         | `currency`      |
+| Player Name (string)                     | `playerName`    |
+| Reward ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Banking/Rewards/Reward.cs))                           | `reward`        |
+| Currency ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Banking/Currency/CurrencyDefinition.cs))                         | `currency`      |
 | Value (decimal)                            | `value`         |
+
+ ## CustomNPCs Integration
+
+#### OnWaveUpdate.py
+| Description                           | Value                 |
+|---------------------------------------|-----------------------|
+| Wave Index (int)                | `waveIndex`   |
+| Wave Definition ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Invasions/WaveDefinition.cs))           | `waveDefinition`                |
+| Current Points (int)            | `currentPoints`      |
+
+#### OnWaveStart.py
+| Description                      | Value                      |
+|----------------------------------|----------------------------|
+| Wave Index (int)          | `"waveIndex"`              |
+| Wave ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Invasions/WaveDefinition.cs))                | `wave`                     |
+
+#### OnWaveEnd.py
+
+| Description                          | Value                      |
+|--------------------------------------|----------------------------|
+| Previous Wave Index (int)     | `previousWaveIndex`        |
+| Previous Wave ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Invasions/WaveDefinition.cs))           | `previousWave`             |
+
+#### OnSpawn.py, OnTransformed.py, OnAiUpdate.py, OnKilled.py
+| Description                         | Value                |
+|-------------------------------------|----------------------|
+| Custom NPC ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Npcs/CustomNpc.cs))              | `customNpc`          |
+
+#### OnCollision.py
+| Description                         | Value                |
+|-------------------------------------|----------------------|
+| Custom NPC ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Npcs/CustomNpc.cs))              | `customNpc`          |
+| Player (TSPlayer)                  | `player`             |
+
+#### OnTileCollision.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Custom NPC ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Npcs/CustomNpc.cs))              | `customNpc`          |
+| Tile Collisions (List<Point>)            | `tileCollisions`       |
+
+#### OnStrike.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Custom NPC ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Npcs/CustomNpc.cs))              | `customNpc`          |
+| Player (TSPlayer)                     | `player`               |
+| Damage (int)                     | `damage`          |
+| Knockback (float)                  | `knockback`       |
+| Critical (bool)                   | `critical`        |
+
+#### OnCheckReplace.py
+| Description                           | Value                |
+|---------------------------------------|----------------------|
+| NPC (NPC)                       | `npc`                |
+
+#### OnCheckSpawn.py
+| Description                          | Value                |
+|--------------------------------------|----------------------|
+| Player (TSPlayer)                  | `player`             |
+| Tile X (int)                   | `tileX`              |
+| Tile Y (int)                   | `tileY`              |
+
+#### OnSpawn.py, OnGameUpdate.py, OnAiUpdate.py, OnKilled.py (projectile)
+| Description                              | Value                     |
+|------------------------------------------|---------------------------|
+| Custom Projectile ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Projectiles/CustomProjectile.cs))           | `customProjectile`        |
+
+#### OnCollision.py (projectile)
+| Description                              | Value                     |
+|------------------------------------------|---------------------------|
+| Custom Projectile ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Projectiles/CustomProjectile.cs))           | `customProjectile`        |
+| Player (TSPlayer)                      | `player`                  |
+
+#### OnTileCollision.py (projectile)
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Custom Projectile ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Projectiles/CustomProjectile.cs))           | `customProjectile`        |
+| Tile Collisions (List<Point>)            | `tileCollisions`       |
 
 ## Contributing
 
