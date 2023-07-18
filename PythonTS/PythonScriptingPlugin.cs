@@ -104,11 +104,17 @@ namespace PythonTS
         private void OnServerJoin(GreetPlayerEventArgs args)
         {
             Debug.Print("OnServerJoin");
-
             var player = TShock.Players[args.Who];
+
+            // if you are reading off the readme for help on deducting correct arguments
+            // passed through to the respective script, each argument set will look something like this
+            // in Python, these arguments are available via the string, ex. "Player",
+            // this is a direct link to the player object, which is a TSPlayer class,
+            // thus in Python you can use any public methods from the TSPlayer class
             ScriptArguments[] arg = new ScriptArguments[]
             {
                 new("Player", player)
+
             };
             PlayerJoin?.Execute(arg);
         }
