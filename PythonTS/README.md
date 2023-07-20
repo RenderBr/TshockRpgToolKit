@@ -185,6 +185,60 @@ As well as this, everything in ServerPlugins and the bin folder are added as ava
 | Custom Projectile ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomNpcs/Projectiles/CustomProjectile.cs))           | `customProjectile`        |
 | Tile Collisions (List<Point>)            | `tileCollisions`       |
 
+ ## CustomQuests Integration
+
+#### YourQuest.py
+This script will be determined by what you choose for it. The quest will execute the PrimaryMethodName set in the Quest info.
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Quest ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomQuests/Quests/Quest.cs))           | `quest`        |
+
+Quest classes have a few useful methods I thought I should outline here:
+  ```py
+  quest.QuestInfo # retrieves the QuestInfo class
+
+  quest.Complete() # marks the quest as done for all party members
+
+  quest.party # retrieves the party, something like this can be done with it:
+  quest.party.SendMessage() # sends a message to every member in the party
+  ```
+There are more methods you can utilize. Please refer to them at [Quest.cs](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomQuests/Quests/Quest.cs) and [Quest.Dsl.cs](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomQuests/Quests/Quest.Dsl.cs)
+
+ ## CustomSkills Integration
+
+#### OnCast.py, OnCharge.py, OnFire.py, OnCancelled.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Player (TSPlayer)           | `Player`        |
+| Skillstate ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/CustomSkills/SkillState.cs))           | `SkillState`        |
+
+#### OnLevelUp.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Player (TSPlayer)           | `Player`        |
+
+ ## Leveling Integration
+#### OnLevelUp.py, OnLevelDown.py, 
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Player (TSPlayer)           | `player`        |
+| Class ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Leveling/Classes/Class.cs))           | `class`        |
+| Level Index (int)           | `levelIndex`        |
+
+#### OnClassChange.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Player (TSPlayer)           | `player`        |
+| Class ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Leveling/Classes/Class.cs))           | `class`        |
+| Previous Class ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Leveling/Classes/Class.cs))           | `previousClass`        |
+
+#### OnClassMastered.py
+| Description                            | Value                  |
+|----------------------------------------|------------------------|
+| Player (TSPlayer)           | `player`        |
+| Class ([Class](https://github.com/RenderBr/TshockRpgToolKit/blob/v1.4.9/Leveling/Classes/Class.cs))           | `class`        |
+
+
 ## Contributing
 
 We welcome contributions from the community to improve TShockRpgToolkit. If you have any bug fixes, feature enhancements, or suggestions, please feel free to open an issue or submit a pull request.
