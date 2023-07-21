@@ -129,18 +129,9 @@ namespace Leveling.Classes
 		//not sure how these should/would work
 		//public Action<object> OnMaximumCurrency;
 		//public Action<object> OnNegativeCurrency;
-		
-		//player, currentclass, currentLevelIndex
-		public Script OnLevelUp;
 
-		//player, currentclass, currentLevelIndex
-		public Script OnLevelDown;
+        public Script Script { get; private set; }
 
-		//player, currentclass, oldclass
-		public Script OnClassChange;
-		
-		//player, currentclass
-		public Script OnClassMastered;
 		
 		public override string ToString()
 		{
@@ -360,11 +351,8 @@ namespace Leveling.Classes
 			if (!Directory.Exists(path))
 				Directory.CreateDirectory(path);
 
-            var prefix = $"{path}/{Name}_";
-			OnLevelUp = Script.AddModuleDefault(prefix+"OnLevelUp.py");
-            OnLevelDown = Script.AddModuleDefault(prefix + "OnLevelDown.py");
-            OnClassChange = Script.AddModuleDefault(prefix + "OnClassChange.py");
-            OnClassMastered = Script.AddModuleDefault(prefix + "OnClassMastered.py");
+            var prefix = $"{path}/";
+			Script = Script.AddModuleDefault(prefix + $"{Name}.py");
 
             return true;
 		}

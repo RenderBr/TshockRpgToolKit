@@ -24,6 +24,7 @@ namespace Banking
         /// Gets the CurrencyManager.
         /// </summary>
         public CurrencyManager CurrencyManager { get; private set; }
+        public static Script BankingScript { get; private set; }
 
         private Dictionary<string, PlayerBankAccountMap> playerAccountMaps;
 
@@ -43,9 +44,6 @@ namespace Banking
 
         //scripting points
         //private void ScriptHook(string playerName, CurrencyDefinition currency, ref decimal value, Reward reward)
-        internal Script OnPreReward;
-        private Script OnAccountDeposit;
-        private Script OnAccountWithdraw;
 
         /// <summary>
         /// Raised when a deposit into a BankAccount succeeds.
@@ -65,8 +63,6 @@ namespace Banking
 
         internal void InvokeAccountDeposit(BankAccount bankAccount, ref decimal newBalance, ref decimal previousBalance)
         {
-            if (AccountDeposit != null || OnAccountDeposit != null)
-            {
                 var args = new ScriptArguments[]
                 {
                     new ScriptArguments("bankAccount", bankAccount),
@@ -79,19 +75,18 @@ namespace Banking
 
                 try
                 {
-                    OnAccountDeposit.Execute(args);
+                    BankingScript.ExecuteMethod("OnAccountDeposit", args);
                 }
                 catch (Exception ex)
                 {
                     BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
                 }
-            }
+            
         }
 
         internal void InvokeAccountWithdraw(BankAccount bankAccount, ref decimal newBalance, ref decimal previousBalance)
         {
-            if (AccountWithdraw != null || OnAccountWithdraw != null)
-            {
+
                 var args = new ScriptArguments[]
                 {
                     new ScriptArguments("bankAccount", bankAccount),
@@ -103,13 +98,13 @@ namespace Banking
 
                 try
                 {
-                    OnAccountWithdraw.Execute(args);
+                    BankingScript.ExecuteMethod("OnAccountWithdraw", args);
                 }
                 catch (Exception ex)
                 {
                     BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
                 }
-            }
+            
         }
 
         /// <summary>
@@ -164,9 +159,7 @@ namespace Banking
             if (!Directory.Exists(prefix))
                 Directory.CreateDirectory(prefix);
 
-            OnPreReward = Script.AddModuleDefault(prefix + "OnPreReward.py");
-            OnAccountDeposit = Script.AddModuleDefault(prefix + "OnAccountDeposit.py");
-            OnAccountWithdraw = Script.AddModuleDefault(prefix + "OnAccountWithdraw.py");
+            BankingScript = Script.AddModuleDefault(prefix + "Banking.py");
         }
 
         /// <summary>

@@ -176,12 +176,11 @@ namespace CustomNpcs.Npcs
 			{
 				CustomIDFunctions.CurrentID = definition.Identifier;
 				ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
-				definition.OnSpawn?.Execute(Arg);
+				definition.Script.ExecuteMethod("OnSpawn", Arg);
 			}
 			catch(Exception ex)
 			{
 				Utils.LogScriptRuntimeError(ex);
-				definition.OnSpawn = null;
 			}
 			
             // Ensure that all players see the changes.
@@ -261,23 +260,20 @@ namespace CustomNpcs.Npcs
 
 					var definition = customNpc.Definition;
 
-					if( definition.OnTransformed != null )
-					{
 						try
 						{
 							CustomIDFunctions.CurrentID = definition.Identifier;
                             ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
-                            definition.OnTransformed.Execute(Arg);
-						}
-						catch(Exception ex)
+                            definition.Script.ExecuteMethod("OnTransformed", Arg);
+                        }
+                        catch (Exception ex)
 						{
 							Utils.LogScriptRuntimeError(ex);
-							definition.OnTransformed = null;
 						}
 						
 						TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", id);
 						TSPlayer.All.SendData(PacketTypes.UpdateNPCName, "", id);
-					}
+					
 				}
 
 				var npcId = npc.whoAmI;
@@ -303,8 +299,6 @@ namespace CustomNpcs.Npcs
 					{
 						var definition = customNpc.Definition;
 
-						if( definition.OnCollision != null )
-						{
 							if( npc.Hitbox.Intersects(playerHitbox) && !player.GetData<bool>(IgnoreCollisionKey) )
 							{
 								try
@@ -313,18 +307,18 @@ namespace CustomNpcs.Npcs
                                     ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), 
 										new("player", player) };
 
-                                    definition.OnCollision.Execute(Args);
+                                    definition.Script.ExecuteMethod("OnCollision", Args);
+
 								}
 								catch(Exception ex)
 								{
 									Utils.LogScriptRuntimeError(ex);
-									definition.OnCollision = null;
 								}
 																
 								//player.SetData(IgnoreCollisionKey, true);
 								//break;//should this be a continue instead??
 							}
-						}
+						
 					}
 				}
 
@@ -342,8 +336,7 @@ namespace CustomNpcs.Npcs
 				{
 					var definition = customNpc.Definition;
 
-					if( definition.OnTileCollision != null )
-					{
+
 						var tileCollisions = TileFunctions.GetOverlappedTiles(npc.Hitbox);
 						if( tileCollisions.Count > 0 )
 						{
@@ -352,15 +345,14 @@ namespace CustomNpcs.Npcs
 								CustomIDFunctions.CurrentID = definition.Identifier;
                                 ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), new("tileCollisions", tileCollisions) };
 
-                                definition.OnTileCollision.Execute(Args);
+                                definition.Script.ExecuteMethod("OnTileCollision", Args);
 							}
 							catch(Exception ex)
 							{
 								Utils.LogScriptRuntimeError(ex);
-								definition.OnTileCollision = null;
 							}
 						}
-					}
+					
 				}
 			}
 	    }
@@ -384,9 +376,10 @@ namespace CustomNpcs.Npcs
 				var result = true;
 				try
 				{
-                    definition.OnAiUpdate?.Execute(Arg);
-				}
-				catch
+                    definition.Script.ExecuteMethod("OnAiUpdate", Arg);
+
+                }
+                catch
 				{
 					result = false;
 				}
@@ -396,7 +389,6 @@ namespace CustomNpcs.Npcs
 			catch(Exception ex)
 			{
 				Utils.LogScriptRuntimeError(ex);
-				definition.OnAiUpdate = null;
 			}
 			
 			TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.Npc.whoAmI);
@@ -428,12 +420,11 @@ namespace CustomNpcs.Npcs
 				CustomIDFunctions.CurrentID = definition.Identifier;
                 ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
 
-                definition.OnKilled.Execute(Arg);
+				definition.Script.ExecuteMethod("OnKilled", Arg);
 			}
 			catch(Exception ex)
 			{
 				Utils.LogScriptRuntimeError(ex);
-				definition.OnKilled = null;
 			}
 
 			customNpc.IsNpcValid = false;
@@ -513,14 +504,14 @@ namespace CustomNpcs.Npcs
 					new ScriptArguments("critical", args.Critical)
 				};
 
-                    definition.OnStrike?.Execute(Args);
+                definition.Script.ExecuteMethod("OnStrike", Args);
+
 
 
 			}
 			catch(Exception ex)
 			{
 				Utils.LogScriptRuntimeError(ex);
-				definition.OnStrike = null;
 			}
 		}
 		
@@ -550,21 +541,20 @@ namespace CustomNpcs.Npcs
             {
 				var chance = 0.0;
 
-				if( definition.OnCheckReplace != null )
-				{
+
 					try
 					{
 						CustomIDFunctions.CurrentID = definition.Identifier;
                         ScriptArguments[] Args = new ScriptArguments[] { new("npc", npc) };
 
-                        definition.OnCheckReplace.Execute(Args);
-					}
-					catch(Exception ex)
+                        definition.Script.ExecuteMethod("OnCheckReplace", Args);
+
+                    }
+                    catch (Exception ex)
 					{
 						Utils.LogScriptRuntimeError(ex);
-						definition.OnCheckReplace = null;
 					}
-				}
+				
 								
 				chances[definition] = chance;
 			}
@@ -602,21 +592,19 @@ namespace CustomNpcs.Npcs
 				{
 					var weight = 0;
 
-					if(definition.OnCheckSpawn!=null)
-					{
 						try
 						{
 							CustomIDFunctions.CurrentID = definition.Identifier;
                             ScriptArguments[] Args = new ScriptArguments[] { new("player", player), new("tileX", tileX), new("tileY", tileY) };
 
-                            definition.OnCheckSpawn.Execute(Args);
-						}
-						catch(Exception ex)
+                            definition.Script.ExecuteMethod("OnCheckSpawn", Args);
+
+                        }
+                        catch (Exception ex)
 						{
 							Utils.LogScriptRuntimeError(ex);
-							definition.OnCheckSpawn = null;
 						}
-					}
+					
 											
 					weights[definition] = weight;
 				}

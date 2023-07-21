@@ -98,19 +98,15 @@ namespace Banking.Rewards
 		{
 			try
 			{
-				var scriptHookOnPreReward = BankingPlugin.Instance.Bank.OnPreReward;
-				if(scriptHookOnPreReward!=null)
+				ScriptArguments[] args = new ScriptArguments[]
 				{
-					ScriptArguments[] args = new ScriptArguments[]
-					{
-						new ScriptArguments("playerName", playerName),
-						new ScriptArguments("reward", reward),
-						new ScriptArguments("currency", currency),
-						new ScriptArguments("value", value)
-					};
-					scriptHookOnPreReward.Execute(args);
-				}
-			}
+					new ScriptArguments("playerName", playerName),
+					new ScriptArguments("reward", reward),
+					new ScriptArguments("currency", currency),
+					new ScriptArguments("value", value)
+				};
+                Bank.BankingScript.ExecuteMethod("OnPreReward", args);
+            }
 			catch(Exception ex)
 			{
 				BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);

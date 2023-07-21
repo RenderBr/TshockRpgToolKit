@@ -64,53 +64,15 @@ namespace CustomNpcs.Invasions
 		/// </summary>
 		public bool HasStarted { get; internal set; }
 
-		/// <summary>
-		///     Gets a function that is invoked when the invasion is started.
-		/// </summary>
-		public Script OnInvasionStart { get; internal set; }
+		[JsonIgnore]
+        public Script Script { get; private set; }
 
-		/// <summary>
-		///     Gets a function that is invoked when the invasion is ending.
-		/// </summary>
-		public Script OnInvasionEnd { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the invasion is updated.
-		/// </summary>
-		public Script OnUpdate { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the wave is started.
-		/// </summary>
-		public Script OnWaveStart { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the wave is ending.
-		/// </summary>
-		public Script OnWaveEnd { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the wave is updated.
-		/// </summary>
-		public Script OnWaveUpdate { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the boss is defeated.
-		/// </summary>
-		public Script OnBossDefeated { get; internal set; }
-
-		/// <summary>
-		///     Disposes the definition.
-		/// </summary>
-		public void Dispose()
+        /// <summary>
+        ///     Disposes the definition.
+        /// </summary>
+        public void Dispose()
         {
-			OnInvasionStart = null;
-			OnInvasionEnd = null;
-			OnUpdate = null;
-			OnWaveStart = null;
-			OnWaveEnd = null;
-			OnWaveUpdate = null;
-			OnBossDefeated = null;
+			Script = null;
         }
 
         public static List<InvasionDefinition> LoadAll(string filepath)
@@ -131,15 +93,9 @@ namespace CustomNpcs.Invasions
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var prefix = $"{path}{Identifier}_";
+            var prefix = $"{path}";
 
-			OnInvasionStart = Script.AddModuleDefault(prefix+"OnInvasionStart.py");
-			OnInvasionEnd = Script.AddModuleDefault(prefix + "OnInvasionEnd.py");
-			OnUpdate = Script.AddModuleDefault(prefix + "OnUpdate.py");
-			OnWaveStart = Script.AddModuleDefault(prefix + "OnWaveStart.py");
-			OnWaveEnd = Script.AddModuleDefault(prefix + "OnWaveEnd.py");
-			OnWaveUpdate = Script.AddModuleDefault(prefix + "OnWaveUpdate.py");
-			OnBossDefeated = Script.AddModuleDefault(prefix + "OnBossDefeated.py");
+			Script = Script.AddModuleDefault(prefix + $"{Identifier}.py");
 
 			return;
 		}

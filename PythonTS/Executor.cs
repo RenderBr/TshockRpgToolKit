@@ -1,6 +1,7 @@
 ﻿using IronPython;
 using IronPython.Hosting;
 using IronPython.Runtime.Operations;
+using IronPython.Runtime.Types;
 using Microsoft.Scripting;
 using Microsoft.Scripting.Hosting;
 //using Corruption;
@@ -46,18 +47,52 @@ namespace PythonTS
                     }
                 }
                 // add some nice globals
+                var contents = "import clr" + Environment.NewLine +
+                    "clr.AddReference(\"Corruption\")" + Environment.NewLine +
+                    "from Corruption.PlayerFunctions import *" + Environment.NewLine +
+                    "from Corruption.AreaFunctions import *" + Environment.NewLine +
+                    "from Corruption.ChestFunctions import *" + Environment.NewLine +
+                    "from Corruption.CommandFunctions import *" + Environment.NewLine +
+                    "from Corruption.EmoteFunctions import *" + Environment.NewLine +
+                    "from Corruption.ItemFunctions import *" + Environment.NewLine +
+                    "from Corruption.MiscFunctions import *" + Environment.NewLine +
+                    "from Corruption.NpcFunctions import *" + Environment.NewLine +
+                    "from Corruption.ProjectileFunctions import *" + Environment.NewLine +
+                    "from Corruption.SignFunctions import *" + Environment.NewLine +
+                    "from Corruption.TileFunctions import *" + Environment.NewLine +
+                    "from Corruption.TimeFunctions import *" + Environment.NewLine +
+                    "" + Environment.NewLine + source.Contents;
+
                 Scope.SetVariable("TSPlayer.All", TSPlayer.All);
                 Scope.SetVariable("TSPlayer.Server", TSPlayer.Server);
                 Scope.SetVariable("TSPlayers", TShock.Players);
                 Scope.SetVariable("TSUtils", TShock.Utils);
                 Scope.SetVariable("Main", Terraria.Main.instance);
 
+/*                Scope.SetVariable("pf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.PlayerFunctions)));
+                Scope.SetVariable("af", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.AreaFunctions)));
+                Scope.SetVariable("cf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.ChestFunctions)));
+                Scope.SetVariable("com", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.CommandFunctions)));
+                Scope.SetVariable("ef", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.EmoteFunctions)));
+                Scope.SetVariable("if", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.ItemFunctions)));
+                Scope.SetVariable("mf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.MiscFunctions)));
+                Scope.SetVariable("nf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.NpcFunctions)));
+                Scope.SetVariable("nf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.NpcFunctions)));
+                Scope.SetVariable("proj", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.ProjectileFunctions)));
+                Scope.SetVariable("sign", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.SignFunctions)));
+                Scope.SetVariable("tf", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.TileFunctions)));
+                Scope.SetVariable("time", DynamicHelpers.GetPythonTypeFromType(typeof(Corruption.TimeFunctions)));
+*/
+
+
                 ICollection<string> searchPaths = Engine.GetSearchPaths();
 				searchPaths.Add(TShock.SavePath + Path.DirectorySeparatorChar + "bin");
 				searchPaths.Add(TShock.SavePath + Path.DirectorySeparatorChar + "ServerPlugins");
-                var d = Engine.Execute(source.Contents, Scope);
+                Engine.SetSearchPaths(searchPaths);
+                var d = Engine.Execute(contents, Scope);
+
                 Engine.Runtime.IO.RedirectToConsole();
-				return d;
+                return d;
             }
 			catch(Exception e)
 			{

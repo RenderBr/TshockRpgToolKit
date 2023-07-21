@@ -168,26 +168,13 @@ namespace CustomSkills
 				{
 					foreach(var level in skill.Levels)
 					{
-                        var path = CustomSkillsPlugin.ScriptsDirectory + "/" + skill.Name + "/" + skill.Levels.IndexOf(level) + "/";
+                        var path = CustomSkillsPlugin.ScriptsDirectory + "/" + skill.Name + "/";
                         if (!Directory.Exists(path))
                             Directory.CreateDirectory(path);
 						
-                        var prefix = $"{path}{skill.Name}_{skill.Levels.IndexOf(level)}_";
-                        if (level.OnCancelled == null)
-							level.OnCancelled = Script.AddModuleDefault(prefix+"OnCancelled.py");
-
-						if(level.OnLevelUp==null)
-							level.OnLevelUp = Script.AddModuleDefault(prefix+"OnLevelUp.py");
-
-						if(level.OnCast == null)
-							level.OnCast = Script.AddModuleDefault(prefix+"OnCast.py");
-						
-						if(level.OnCharge == null)
-							level.OnCharge = Script.AddModuleDefault(prefix+"OnCharge.py");
-
-						if(level.OnFire == null)
-							level.OnFire = Script.AddModuleDefault(prefix+"OnFire.py");
-							
+                        var prefix = $"{path}{skill.Name}_";
+                        if (level.Script == null)
+							level.Script = Script.AddModuleDefault(prefix+ $"Level{skill.Levels.IndexOf(level)}.py");
 						
 					}
 				}

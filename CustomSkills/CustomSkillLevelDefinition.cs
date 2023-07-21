@@ -86,17 +86,10 @@ namespace CustomSkills
 		//helpers
 		public bool CanLevelUp => UsesToLevelUp > 0;
 
-		//callbacks
-		
-		//hook for notifying player about gaining new level, or learning a skill
-		internal Script OnLevelUp { get; set; }
-		
-		internal Script OnCancelled { get; set; }
-		
-		internal Script OnCast { get; set; }
+        public Script Script { get; set; }
 
-		internal Script OnCharge { get; set; }
+        //callbacks
 
-		internal Script OnFire { get; set; }
+
 	}
 }

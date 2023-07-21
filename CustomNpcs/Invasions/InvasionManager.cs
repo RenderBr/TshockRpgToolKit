@@ -108,12 +108,12 @@ namespace CustomNpcs.Invasions
             {
 				try
 				{
-					invasion.OnInvasionStart.Execute();
+
+					invasion.Script.ExecuteMethod("OnInvasionStart");
 				}
 				catch(Exception ex)
 				{
 					Utils.LogScriptRuntimeError(ex);
-					invasion.OnInvasionStart = null;
 				}
 				
 				CurrentInvasion.HasStarted = true;
@@ -130,12 +130,11 @@ namespace CustomNpcs.Invasions
 								
 				try
 				{
-					CurrentInvasion.OnInvasionEnd.Execute();
+					CurrentInvasion.Script.ExecuteMethod("OnInvasionEnd");
 				}
 				catch( Exception ex )
 				{
 					Utils.LogScriptRuntimeError(ex);
-					CurrentInvasion.OnInvasionEnd = null;
 				}
 				
 				TSPlayer.All.SendMessage(CurrentInvasion.CompletedMessage, new Color(175, 75, 225));
@@ -227,12 +226,11 @@ namespace CustomNpcs.Invasions
 
 			try
 			{
-                CurrentInvasion?.OnUpdate?.Execute();
+                CurrentInvasion.Script.ExecuteMethod("OnUpdate");
             }
 			catch( Exception ex )
 			{
 				Utils.LogScriptRuntimeError(ex);
-				CurrentInvasion.OnUpdate = null;
 			}
 		}
 
@@ -248,12 +246,11 @@ namespace CustomNpcs.Invasions
             {
 				try
 				{
-                    CurrentInvasion.OnBossDefeated?.Execute();
+					CurrentInvasion.Script.ExecuteMethod("OnBossDefeated");
                 }
 				catch(Exception ex)
 				{
 					Utils.LogScriptRuntimeError(ex);
-					CurrentInvasion.OnBossDefeated = null;
 					_currentMiniboss = null;
 				}
 
@@ -278,12 +275,11 @@ namespace CustomNpcs.Invasions
                                 new ScriptArguments("waveDefinition", wave),
                                 new ScriptArguments("currentPoints", _currentPoints),
                             };
-							CurrentInvasion.OnWaveUpdate?.Execute(Args);
+							CurrentInvasion.Script.ExecuteMethod("OnWaveEnd", Args);
 						}
 						catch( Exception ex )
 						{
 							Utils.LogScriptRuntimeError(ex);
-							CurrentInvasion.OnWaveUpdate = null;
 						}
 					}
 				}
@@ -327,12 +323,11 @@ namespace CustomNpcs.Invasions
 						new ScriptArguments("waveIndex", _currentWaveIndex),
 						new ScriptArguments("wave", wave)
 					};
-					CurrentInvasion.OnWaveStart?.Execute(args);
+					CurrentInvasion.Script.ExecuteMethod("OnWaveEnd", args);
 				}
 				catch( Exception ex )
 				{
 					Utils.LogScriptRuntimeError(ex);
-					CurrentInvasion.OnWaveStart = null;
 				}
 			}
 		}
@@ -352,12 +347,12 @@ namespace CustomNpcs.Invasions
 						new ScriptArguments("previousWaveIndex", previousWaveIndex),
 						new ScriptArguments("previousWave", previousWave)
 					};
-					CurrentInvasion.OnWaveEnd?.Execute(args);
-				}
+					CurrentInvasion.Script.ExecuteMethod("OnWaveEnd", args);
+
+                }
 				catch( Exception ex )
 				{
 					Utils.LogScriptRuntimeError(ex);
-					CurrentInvasion.OnWaveEnd = null;
 				}
 			}
 		}

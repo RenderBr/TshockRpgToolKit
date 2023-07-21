@@ -186,7 +186,7 @@ namespace CustomSkills
 					{
                         new ScriptArguments("Player", player),
 					};
-                    definition.Levels?[0]?.OnLevelUp?.Execute(plr);
+                    definition.Levels?[0]?.Script?.ExecuteMethod("OnLevelUp", plr);
 				}
 				catch(Exception ex)
 				{

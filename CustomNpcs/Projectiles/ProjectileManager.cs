@@ -173,12 +173,11 @@ namespace CustomNpcs.Projectiles
                 ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile),
                                     };
-                definition.OnSpawn?.Execute(Args);
+                definition.Script.ExecuteMethod("OnSpawn", Args);
             }
             catch (Exception ex)
             {
                 Utils.LogScriptRuntimeError(ex);
-                definition.OnSpawn = null;
             }
 
             return customProjectile;
@@ -221,8 +220,7 @@ namespace CustomNpcs.Projectiles
                                                     //by the end of this method we hopefully have enough information to tell if terraria modified it, or if we need to do it ourselves.
 
             //game updates
-            var onGameUpdate = definition.OnGameUpdate;
-            if (customProjectile.Active && onGameUpdate != null)
+            if (customProjectile.Active)
             {
                 try
                 {
@@ -233,7 +231,7 @@ namespace CustomNpcs.Projectiles
                     var handled = true;
                     try
                     {
-                        onGameUpdate.Execute(Args);
+                        definition.Script.ExecuteMethod("OnGameUpdate", Args);
                     }
                     catch
                     {
@@ -252,22 +250,18 @@ namespace CustomNpcs.Projectiles
                 catch (Exception ex)
                 {
                     Utils.LogScriptRuntimeError(ex);
-                    definition.OnGameUpdate = null;
                 }
             }
 
             //collision tests
 
             //players
-            if (customProjectile.Active && definition.OnCollision != null)
+            if (customProjectile.Active)
             {
                 foreach (var player in TShock.Players)
                 {
                     if (player?.Active == true)
                     {
-                        var onCollision = definition.OnCollision;
-                        if (onCollision != null)
-                        {
                             var tplayer = player.TPlayer;
                             var playerHitbox = tplayer.Hitbox;
 
@@ -280,16 +274,16 @@ namespace CustomNpcs.Projectiles
                                         new ScriptArguments("customProjectile", customProjectile),
                                         new ScriptArguments("player", player)
                                     };
-                                    onCollision.Execute(Args);
+                                    definition.Script.ExecuteMethod("OnCollision", Args);
+
                                     customProjectile.SendNetUpdate = true;
                                 }
                                 catch (Exception ex)
                                 {
                                     Utils.LogScriptRuntimeError(ex);
-                                    definition.OnCollision = null;
                                 }
                             }
-                        }
+                        
                     }
                 }
             }
@@ -299,7 +293,7 @@ namespace CustomNpcs.Projectiles
             {
                 // this is a bit convoluted, because of the 2 conditions-- player wants to run custom code on tile collisions and/or player isn't allowing terraria
                 // to run Update(), thus the projectile wont be killed in a timely manner. See condition below for result == HookResult.Cancel
-                if (definition.OnTileCollision != null || result == HookResult.Cancel)
+                if (result == HookResult.Cancel)
                 {
                     var tileCollisions = TileFunctions.GetOverlappedTiles(projectile.Hitbox);
 
@@ -329,13 +323,13 @@ namespace CustomNpcs.Projectiles
                                         new ScriptArguments("customProjectile", customProjectile),
                                         new ScriptArguments("tileCollisions", tileCollisions)
                                     };
-                            definition.OnTileCollision?.Execute(Args);
+                            definition.Script.ExecuteMethod("OnTileCollision", Args);
+
                             //customProjectile.SendNetUpdate = true;
                         }
                         catch (Exception ex)
                         {
                             Utils.LogScriptRuntimeError(ex);
-                            definition.OnTileCollision = null;
                         }
 
                         //script hasnt killed projectile, but we did hit a foreground tile, so lets kill it ourselves
@@ -369,9 +363,6 @@ namespace CustomNpcs.Projectiles
 
             if (customProjectile != null)
             {
-                var onAiUpdate = customProjectile.Definition.OnAiUpdate;
-                if (onAiUpdate != null)
-                {
                     try
                     {
                         CustomIDFunctions.CurrentID = customProjectile.Definition.Identifier;
@@ -381,7 +372,7 @@ namespace CustomNpcs.Projectiles
                         var handled = true;
                         try
                         {
-                            onAiUpdate.Execute(Args);
+                            customProjectile.Definition.Script.ExecuteMethod("OnAiUpdate", Args);
 
                         }
                         catch
@@ -393,9 +384,8 @@ namespace CustomNpcs.Projectiles
                     catch (Exception ex)
                     {
                         Utils.LogScriptRuntimeError(ex);
-                        customProjectile.Definition.OnAiUpdate = null;
                     }
-                }
+                
             }
 
             return result;
@@ -407,21 +397,19 @@ namespace CustomNpcs.Projectiles
             if (customProjectile != null)
             {
                 var definition = customProjectile.Definition;
-                var onKilled = definition.OnKilled;
-                if (onKilled != null)
-                {
+
                     try
                     {
                         CustomIDFunctions.CurrentID = definition.Identifier;
                         ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile)
                                     };
-                        onKilled.Execute(Args);
+                        definition.Script.ExecuteMethod("OnKilled", Args);
+
                     }
                     catch (Exception ex)
                     {
                         Utils.LogScriptRuntimeError(ex);
-                        definition.OnKilled = null;
                     }
 
                     customProjectiles.Remove(projectile);
@@ -429,12 +417,7 @@ namespace CustomNpcs.Projectiles
                     SendProjectileKill(customProjectile.Index, customProjectile.Owner);
 
                     return HookResult.Cancel;
-                }
-                else
-                {
-                    customProjectiles.Remove(projectile);
-                    return HookResult.Continue;
-                }
+
             }
             else
             {

@@ -117,7 +117,7 @@ namespace CustomSkills
 					new ScriptArguments("Player", Player),
 					new ScriptArguments("SkillState", SkillState)
 				};
-				if((bool)levelDef.OnCast?.Execute(Args).GetVariable("casted")==false)
+				if((bool)levelDef.Script?.ExecuteMethod("OnCast", Args).GetVariable("casted")==false)
 				{
 					Phase = SkillPhase.Cancelled;
 					return;
@@ -190,7 +190,7 @@ namespace CustomSkills
 				{
 
 
-                    if ((bool)levelDef.OnCharge?.Execute(Args).GetVariable("casted") == false)
+                    if ((bool)levelDef.Script?.ExecuteMethod("OnCharge", Args).GetVariable("casted") == false)
 					{
 						Phase = SkillPhase.Firing;
 						return;
@@ -198,7 +198,7 @@ namespace CustomSkills
 				}
 				else
 				{
-                    if ((bool)levelDef.OnCharge?.Execute(Args).GetVariable("casted") == false)
+                    if ((bool)levelDef.Script?.ExecuteMethod("OnCharge", Args).GetVariable("casted") == false)
 					{
 						Phase = SkillPhase.Cancelled;
 						return;
@@ -237,7 +237,7 @@ namespace CustomSkills
                         new ScriptArguments("Player", Player),
                         new ScriptArguments("SkillState", SkillState)
 };
-                levelDef.OnFire?.Execute(Args);
+                levelDef.Script.ExecuteMethod("OnFire", Args);
 				//only fires once, but should spark something that can continue for some time afterwards.
 				//check if we moved up a level..
 
@@ -260,7 +260,7 @@ namespace CustomSkills
 							{
 								new ScriptArguments("Player", Player),
 							};
-                            nextLevelDef.OnLevelUp?.Execute(plr);
+                            nextLevelDef.Script.ExecuteMethod("OnLevelUp", plr);
 						}
 					}
 
@@ -293,7 +293,7 @@ namespace CustomSkills
                         new ScriptArguments("Player", Player),
                         new ScriptArguments("SkillState", SkillState)
 				};
-                levelDef.OnCancelled?.Execute(Args);
+                levelDef.Script.ExecuteMethod("OnCancelled", Args);
 
 				SkillState.Emitters.Destroy();
 				

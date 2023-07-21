@@ -33,32 +33,7 @@ namespace CustomNpcs.Projectiles
 		/// <summary>
 		///     Gets a function that is invoked when the projectile AI is spawned.
 		/// </summary>
-		public Script OnSpawn { get; internal set; }
-
-		/// <summary>
-		/// Gets a function that is invoked when the projectile becomes inactive.
-		/// </summary>
-		public Script OnKilled { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked for the projectile on each game update.
-		/// </summary>
-		public Script OnGameUpdate { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the projectile AI is updated.
-		/// </summary>
-		public Script OnAiUpdate { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the projectile collides with a player.
-		/// </summary>
-		public Script OnCollision { get; internal set; }
-
-		/// <summary>
-		///     Gets a function that is invoked when the projectile collides with a tile.
-		/// </summary>
-		public Script OnTileCollision { get; internal set; }
+        public Script Script { get; private set; }
 
         public static List<ProjectileDefinition> LoadAll(string filepath)
         {
@@ -72,12 +47,7 @@ namespace CustomNpcs.Projectiles
 
         public void Dispose()
 		{
-			OnSpawn = null;
-			OnKilled = null;
-			OnGameUpdate = null;
-			OnAiUpdate = null;
-			OnCollision = null;
-			OnTileCollision = null;
+			Script = null;
 		}
 
 		public void ApplyTo(Projectile projectile)
@@ -151,18 +121,13 @@ namespace CustomNpcs.Projectiles
 
 
             Console.WriteLine($"Loading Projectile scripts for {Identifier}...");
-            var path = $"{NpcManager.BasePath}/{Identifier}/";
+            var path = $"{NpcManager.BasePath}/";
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var prefix = $"{path}{Identifier}_";
+            var prefix = $"{path}";
 
-            OnSpawn = Script.AddModuleDefault(prefix+"OnSpawn.py");
-			OnKilled = Script.AddModuleDefault(prefix + "OnKilled.py");
-			OnAiUpdate = Script.AddModuleDefault(prefix + "OnAiUpdate.py");
-			OnGameUpdate = Script.AddModuleDefault(prefix + "OnGameUpdate.py");
-			OnCollision = Script.AddModuleDefault(prefix + "OnCollision.py");
-			OnTileCollision = Script.AddModuleDefault(prefix + "OnTileCollision.py");
+			Script = Script.AddModuleDefault(prefix + $"{Identifier}.py");
 			
 			return;
 		}

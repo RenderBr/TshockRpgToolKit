@@ -47,50 +47,9 @@ namespace CustomNpcs.Npcs
         /// </summary>
         public List<LootEntryDefinition> LootEntries => _loot.Entries;
 
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC is checked for replacing.
-        /// </summary>
-        public Script OnCheckReplace { get; internal set; }
 
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC is checked for spawning.
-        /// </summary>
-        public Script OnCheckSpawn { get; internal set; }
+        public Script Script { get; private set; }
 
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC is spawned.
-        /// </summary>
-        public Script OnSpawn { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC collides with a player.
-        /// </summary>
-        public Script OnCollision { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC collides with a tile.
-        /// </summary>
-        public Script OnTileCollision { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked when NPC is killed.
-        /// </summary>
-        public Script OnKilled { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked after the NPC has transformed.
-        /// </summary>
-        public Script OnTransformed { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC is struck.
-        /// </summary>
-        public Script OnStrike { get; internal set; }
-
-        /// <summary>
-        ///     Gets a function that is invoked when the NPC AI is updated.
-        /// </summary>
-        public Script OnAiUpdate { get; internal set; }
 
         /// <summary>
         ///     Gets a value indicating whether the NPC should aggressively update due to unsynced changes with clients.
@@ -137,15 +96,7 @@ namespace CustomNpcs.Npcs
         /// </summary>
         public void Dispose()
         {
-            OnCheckReplace = null;
-            OnCheckSpawn = null;
-            OnSpawn = null;
-            OnKilled = null;
-            OnTransformed = null;
-            OnCollision = null;
-            OnTileCollision = null;
-            OnStrike = null;
-            OnAiUpdate = null;
+            Script = null;
         }
 
         public static List<NpcDefinition> LoadAll(string filepath)
@@ -221,17 +172,10 @@ namespace CustomNpcs.Npcs
             if (!Directory.Exists(path))
                 Directory.CreateDirectory(path);
 
-            var prefix = $"{path}{Identifier}_";
+            var prefix = $"{path}";
 
-            OnCheckReplace = Script.AddModuleDefault(prefix + "OnCheckReplace.py");
-            OnCheckSpawn = Script.AddModuleDefault(prefix + "OnCheckSpawn.py");
-            OnSpawn = Script.AddModuleDefault(prefix + "OnSpawn.py");
-            OnCollision = Script.AddModuleDefault(prefix + "OnCollision.py");
-            OnTileCollision = Script.AddModuleDefault(prefix + "OnTileCollision.py");
-            OnTransformed = Script.AddModuleDefault(prefix + "OnTransformed.py");
-            OnKilled = Script.AddModuleDefault(prefix + "OnKilled.py");
-            OnStrike = Script.AddModuleDefault(prefix + "OnStrike.py");
-            OnAiUpdate = Script.AddModuleDefault(prefix + "OnAiUpdate.py");
+            Script = Script.AddModuleDefault(prefix + $"{Identifier}.py");
+
             return;
         }
 

@@ -129,7 +129,7 @@ namespace Leveling.Classes
                     new ScriptArguments("class", this),
                     new ScriptArguments("levelIndex", levelIndex)
                 };
-                Definition.OnLevelUp?.Execute(Args);
+                Definition.Script?.ExecuteMethod("OnLevelUp", Args);
             }
             catch (Exception ex)
             {
@@ -147,12 +147,12 @@ namespace Leveling.Classes
             try
             {
                 ScriptArguments[] Args = new ScriptArguments[]
-{
+                {
                     new ScriptArguments("player", player),
                     new ScriptArguments("class", this),
                     new ScriptArguments("levelIndex", levelIndex)
-};
-                Definition.OnLevelDown?.Execute(Args);
+                };
+                Definition.Script?.ExecuteMethod("OnLevelDown", Args);
             }
             catch (Exception ex)
             {
@@ -170,12 +170,12 @@ namespace Leveling.Classes
             try
             {
                 ScriptArguments[] Args = new ScriptArguments[]
-{
+                {
                     new ScriptArguments("player", player),
                     new ScriptArguments("class", this),
                     new ScriptArguments("previousClass", previousClass)
-};
-                Definition.OnClassChange?.Execute(Args);
+                };
+                Definition.Script?.ExecuteMethod("OnClassChange", Args);
             }
             catch (Exception ex)
             {
@@ -196,7 +196,8 @@ namespace Leveling.Classes
                     new ScriptArguments("player", player),
                     new ScriptArguments("class", this),
             };
-                Definition.OnClassMastered?.Execute(Args);
+
+                Definition.Script?.ExecuteMethod("OnClassMastered",Args);
             }
             catch (Exception ex)
             {
