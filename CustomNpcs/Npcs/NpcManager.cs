@@ -150,7 +150,7 @@ namespace CustomNpcs.Npcs
             // erroneously checked for replacement.
             //lock (_checkNpcLock)
             {
-                var npcId = NPC.NewNPC(new EntitySource_DebugCommand(), x, y, definition.BaseType);
+                var npcId = NPC.NewNPC(new EntitySource_SpawnNPC(), x, y, definition.BaseType);
                 return npcId != Main.maxNPCs ? AttachCustomNpc(Main.npc[npcId], definition) : null;
             }
         }
@@ -373,18 +373,11 @@ namespace CustomNpcs.Npcs
 				CustomIDFunctions.CurrentID = definition.Identifier;
                 ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
 
-				var result = true;
-				try
-				{
-                    definition.Script.ExecuteMethod("OnAiUpdate", Arg);
+                definition.Script.ExecuteMethod("OnAiUpdate", Arg);
 
-                }
-                catch
-				{
-					result = false;
-				}
+                
+ 
 
-                args.Handled = result==true;
 			}
 			catch(Exception ex)
 			{

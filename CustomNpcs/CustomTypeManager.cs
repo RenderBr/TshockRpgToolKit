@@ -25,10 +25,10 @@ namespace CustomNpcs
         /// <summary>
         /// Gets the IList of custom definitions managed by this instance.
         /// </summary>
-        public virtual List<IDefinition> Definitions { get; protected set; }
+        public virtual List<IDefinition> Definitions { get; protected set; } = new List<IDefinition>();
 
 		//for fast access, instead of always doing a linear search through our definitions...
-		private Dictionary<string, TCustomType> definitionMap { get; set; }
+		private Dictionary<string, TCustomType> definitionMap { get; set; } = new Dictionary<string, TCustomType>();
 
 		/// <summary>
 		/// Gets or sets the Assembly name prefix to be applied during the next compile.
@@ -166,7 +166,7 @@ namespace CustomNpcs
 
 		public void ClearDefinitions()
         {
-			Definitions.Clear();
+			Definitions?.Clear();
 			definitionMap.Clear();
 		}
 

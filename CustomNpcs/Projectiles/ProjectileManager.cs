@@ -369,17 +369,9 @@ namespace CustomNpcs.Projectiles
                         ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile)
                                     };
-                        var handled = true;
-                        try
-                        {
                             customProjectile.Definition.Script.ExecuteMethod("OnAiUpdate", Args);
 
-                        }
-                        catch
-                        {
-                            handled = false;
-                        }
-                        result = handled == true ? HookResult.Cancel : HookResult.Continue;
+
                     }
                     catch (Exception ex)
                     {

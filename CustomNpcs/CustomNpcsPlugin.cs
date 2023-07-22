@@ -106,9 +106,9 @@ namespace CustomNpcs
 		{
 			Config.Instance = JsonConfig.LoadOrCreate<Config>(this, ConfigPath);
 
-			InvasionManager.Instance = InvasionManager.Instance ?? new InvasionManager(this);
-			NpcManager.Instance = NpcManager.Instance ?? new NpcManager(this);
-			ProjectileManager.Instance = ProjectileManager.Instance ?? new ProjectileManager(this);
+			InvasionManager.Instance = new InvasionManager(this);
+			NpcManager.Instance = new NpcManager(this);
+			ProjectileManager.Instance = new ProjectileManager(this);
 		}
 		
 		private void sendGroupedInfoMessage(TSPlayer player, IEnumerable<string> items, int itemsPerLine, string separator = ", ")
