@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Banking.Currency;
+using Housing.Models;
+using Microsoft.Data.Sqlite;
+using System;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using Banking.Currency;
-using Housing.Models;
-using Microsoft.Data.Sqlite;
 using Terraria;
 using TShockAPI;
 using TShockAPI.DB;
@@ -18,14 +17,14 @@ namespace Housing.Database
     /// </summary>
     public sealed class SqliteDatabase : DatabaseBase
     {
-		private readonly object _lock = new object();
-		private IDbConnection Connection { get; set; }
+        private readonly object _lock = new();
+        private IDbConnection Connection { get; set; }
 
-		/// <summary>
-		///     Initializes a new instance of the <see cref="SqliteDatabase" /> class with the specified connection.
-		/// </summary>
-		/// <param name="connection">The connection, which must not be <c>null</c>.</param>
-		public SqliteDatabase(IDbConnection connection)
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="SqliteDatabase" /> class with the specified connection.
+        /// </summary>
+        /// <param name="connection">The connection, which must not be <c>null</c>.</param>
+        public SqliteDatabase(IDbConnection connection)
         {
             Debug.Assert(connection != null, "Connection must not be null.");
 
@@ -85,11 +84,11 @@ namespace Housing.Database
                               "  FOREIGN KEY(OwnerName, ShopName, WorldId)" +
                               "    REFERENCES Shops(OwnerName, Name, WorldId) ON DELETE CASCADE," +
                               "  UNIQUE(OwnerName, ShopName, WorldId, ItemId) ON CONFLICT REPLACE)");
-			Connection.Query("CREATE TABLE IF NOT EXISTS TaxCollectors (" +
-							  "  WorldId            INTEGER NOT NULL," +
-							  "  PlayerName         TEXT NOT NULL," +
-							  "  PRIMARY KEY (WorldId, PlayerName) )" );
-		}
+            Connection.Query("CREATE TABLE IF NOT EXISTS TaxCollectors (" +
+                              "  WorldId            INTEGER NOT NULL," +
+                              "  PlayerName         TEXT NOT NULL," +
+                              "  PRIMARY KEY (WorldId, PlayerName) )");
+        }
 
         /// <summary>
         ///     Adds a house with the specified properties.
@@ -156,31 +155,31 @@ namespace Housing.Database
             }
         }
 
-		/// <summary>
-		/// Adds a player name to the tax collector list.
-		/// </summary>
-		/// <param name="playerName"></param>
-		public override TaxCollector AddTaxCollector(string playerName)
-		{
-			Debug.Assert(playerName != null, "playerName must not be null.");
+        /// <summary>
+        /// Adds a player name to the tax collector list.
+        /// </summary>
+        /// <param name="playerName"></param>
+        public override TaxCollector AddTaxCollector(string playerName)
+        {
+            Debug.Assert(playerName != null, "playerName must not be null.");
 
-			lock( _lock )
-			{
-				if( TaxCollectorNames.Contains(playerName) )
-					return null;
+            lock (_lock)
+            {
+                if (TaxCollectorNames.Contains(playerName))
+                    return null;
 
-				Connection.Query(
-					"INSERT INTO TaxCollectors (WorldId, PlayerName)" +
-					"VALUES (@0, @1)",
-					Main.worldID, playerName);
+                Connection.Query(
+                    "INSERT INTO TaxCollectors (WorldId, PlayerName)" +
+                    "VALUES (@0, @1)",
+                    Main.worldID, playerName);
 
-				var tc = new TaxCollector(playerName);
-				TaxCollectors.Add(tc);
-				TaxCollectorNames.Add(playerName);
-				return tc;
-			}
-		}
-		
+                var tc = new TaxCollector(playerName);
+                TaxCollectors.Add(tc);
+                TaxCollectorNames.Add(playerName);
+                return tc;
+            }
+        }
+
         /// <summary>
         ///     Loads the houses and shops.
         /// </summary>
@@ -275,19 +274,19 @@ namespace Housing.Database
                     }
                 }
 
-				//load in tax collectors.
-				TaxCollectors.Clear();
-				TaxCollectorNames.Clear();
-				using (var reader = Connection.QueryReader("SELECT * FROM TaxCollectors WHERE WorldID = @0", Main.worldID))
-				{
-					while (reader.Read())
-					{
-						var playerName = reader.Get<string>("PlayerName");
-						var tc = new TaxCollector(playerName);
-						TaxCollectors.Add(tc);
-						TaxCollectorNames.Add(playerName);
-					}
-				}
+                //load in tax collectors.
+                TaxCollectors.Clear();
+                TaxCollectorNames.Clear();
+                using (var reader = Connection.QueryReader("SELECT * FROM TaxCollectors WHERE WorldID = @0", Main.worldID))
+                {
+                    while (reader.Read())
+                    {
+                        var playerName = reader.Get<string>("PlayerName");
+                        var tc = new TaxCollector(playerName);
+                        TaxCollectors.Add(tc);
+                        TaxCollectorNames.Add(playerName);
+                    }
+                }
             }
         }
 
@@ -328,29 +327,29 @@ namespace Housing.Database
                 Shops.Remove(shop);
             }
         }
-		
-		public override void Remove(TaxCollector taxCollector)
-		{
-			Debug.Assert(taxCollector != null, "playerName must not be null.");
-			
-			lock( _lock )
-			{
-				var indexOf = TaxCollectors.IndexOf(taxCollector);
 
-				if( indexOf == -1 )
-					return;
+        public override void Remove(TaxCollector taxCollector)
+        {
+            Debug.Assert(taxCollector != null, "playerName must not be null.");
 
-				Connection.Query("DELETE FROM TaxCollectors WHERE WorldId = @0 AND PlayerName = @1",
-								  Main.worldID, taxCollector.PlayerName);
-				TaxCollectors.RemoveAt(indexOf);
-			}
-		}
+            lock (_lock)
+            {
+                var indexOf = TaxCollectors.IndexOf(taxCollector);
 
-		/// <summary>
-		///     Updates the specified house.
-		/// </summary>
-		/// <param name="house">The shop, which must not be <c>null</c>.</param>
-		public override void Update(House house)
+                if (indexOf == -1)
+                    return;
+
+                Connection.Query("DELETE FROM TaxCollectors WHERE WorldId = @0 AND PlayerName = @1",
+                                  Main.worldID, taxCollector.PlayerName);
+                TaxCollectors.RemoveAt(indexOf);
+            }
+        }
+
+        /// <summary>
+        ///     Updates the specified house.
+        /// </summary>
+        /// <param name="house">The shop, which must not be <c>null</c>.</param>
+        public override void Update(House house)
         {
             Debug.Assert(house != null, "House must not be null.");
 

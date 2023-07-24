@@ -1,140 +1,135 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using Terraria.Localization;
-using TShockAPI;
 
 namespace NpcShops
 {
-	/// <summary>
-	/// Tracks and freezes NPC's in-place, for a configurable period of time.
-	/// </summary>
-	/// <remarks>For NpcPauser to work, <see cref="OnGameUpdate"/> must be called each server update.</remarks>
-	public class NpcPauser
-	{
-		Stopwatch clock;
-		Dictionary<int, PausedNpcInfo> pausedNpcs { get; set; }
+    /// <summary>
+    /// Tracks and freezes NPC's in-place, for a configurable period of time.
+    /// </summary>
+    /// <remarks>For NpcPauser to work, <see cref="OnGameUpdate"/> must be called each server update.</remarks>
+    public class NpcPauser
+    {
+        Stopwatch clock;
+        Dictionary<int, PausedNpcInfo> pausedNpcs { get; set; }
 
-		public NpcPauser()
-		{
-			clock = Stopwatch.StartNew();
-			pausedNpcs = new Dictionary<int, PausedNpcInfo>();
-		}
-		
-		public void Pause(NPC npc, int durationMS = -1, bool replaceExisting = true)
-		{
-			var index = npc.whoAmI;
-			PausedNpcInfo info;
-			
-			if(pausedNpcs.TryGetValue(index,out info))
-			{
-				if( replaceExisting )
-				{
-					info.StartTime = clock.ElapsedMilliseconds;
-					info.Duration = durationMS;
-				}
-				//else, ignore the update
-				return;
-			}
-			else
-			{
-				info = new PausedNpcInfo()
-				{
-					StartTime = clock.ElapsedMilliseconds,
-					Duration = durationMS,
-					PreviousAiStyle = npc.aiStyle
-				};
+        public NpcPauser()
+        {
+            clock = Stopwatch.StartNew();
+            pausedNpcs = new Dictionary<int, PausedNpcInfo>();
+        }
 
-				Debug.Print($"Pause NPC #{npc.whoAmI}");
+        public void Pause(NPC npc, int durationMS = -1, bool replaceExisting = true)
+        {
+            var index = npc.whoAmI;
+            PausedNpcInfo info;
 
-				npc.velocity = Vector2.Zero;
+            if (pausedNpcs.TryGetValue(index, out info))
+            {
+                if (replaceExisting)
+                {
+                    info.StartTime = clock.ElapsedMilliseconds;
+                    info.Duration = durationMS;
+                }
+                //else, ignore the update
+                return;
+            }
+            else
+            {
+                info = new PausedNpcInfo()
+                {
+                    StartTime = clock.ElapsedMilliseconds,
+                    Duration = durationMS,
+                    PreviousAiStyle = npc.aiStyle
+                };
 
-				var x = npc.position.X;
-				var y = npc.position.Y;
-				var vx = 0;
-				var vy = 0;
-				var flags = 4 + 8 + 16 + 32;
-				//var flags = 4;
-				
-				npc.ai[0] = 0;
-				npc.ai[1] = 0;
-				npc.ai[2] = 0;
-				npc.ai[3] = 0;
-								
-				npc.aiStyle = 0;
-				NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.FromLiteral(""), npc.whoAmI, x, y, vx, vy, flags);
+                Debug.Print($"Pause NPC #{npc.whoAmI}");
 
-				pausedNpcs.Add(index, info);
-			}
-		}
+                npc.velocity = Vector2.Zero;
 
-		public void Unpause(NPC npc)
-		{
-			if(pausedNpcs.TryGetValue(npc.whoAmI, out var info))
-			{
-				Debug.Print($"Unpause NPC #{npc.whoAmI}");
-				pausedNpcs.Remove(npc.whoAmI);
-				
-				npc.aiStyle = info.PreviousAiStyle;
-				NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.FromLiteral(""), npc.whoAmI);
-			}
-		}
+                var x = npc.position.X;
+                var y = npc.position.Y;
+                var vx = 0;
+                var vy = 0;
+                var flags = 4 + 8 + 16 + 32;
+                //var flags = 4;
 
-		public void UnpauseAll()
-		{
-			var kvps = pausedNpcs.ToArray();
+                npc.ai[0] = 0;
+                npc.ai[1] = 0;
+                npc.ai[2] = 0;
+                npc.ai[3] = 0;
 
-			foreach( var kvp in kvps )
-			{
-				var npc = Main.npc[kvp.Key];
-				var info = kvp.Value;
+                npc.aiStyle = 0;
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.FromLiteral(""), npc.whoAmI, x, y, vx, vy, flags);
 
-				//remove any despawned npcs
-				if( npc?.active == true )
-				{
-					Unpause(npc);
-				}
-			}
-		}
-		
-		public void OnGameUpdate()
-		{
-			var kvps = pausedNpcs.ToArray();
-						
-			foreach(var kvp in kvps )
-			{
-				var npc = Main.npc[kvp.Key];
-				var info = kvp.Value;
+                pausedNpcs.Add(index, info);
+            }
+        }
 
-				//remove any despawned npcs
-				if(npc == null || npc.active==false)
-				{
-					pausedNpcs.Remove(kvp.Key);
-					continue;
-				}
+        public void Unpause(NPC npc)
+        {
+            if (pausedNpcs.TryGetValue(npc.whoAmI, out var info))
+            {
+                Debug.Print($"Unpause NPC #{npc.whoAmI}");
+                pausedNpcs.Remove(npc.whoAmI);
 
-				//set to unlimited pause.
-				if( info.Duration == -1 )
-					continue;
+                npc.aiStyle = info.PreviousAiStyle;
+                NetMessage.SendData((int)PacketTypes.NpcUpdate, -1, -1, NetworkText.FromLiteral(""), npc.whoAmI);
+            }
+        }
 
-				if(clock.ElapsedMilliseconds - info.StartTime >= info.Duration )
-					Unpause(npc);
-			}
-		}
+        public void UnpauseAll()
+        {
+            var kvps = pausedNpcs.ToArray();
 
-		private class PausedNpcInfo
-		{
-			//internal int NpcIndex;
-			//internal int NpcType;
-			internal int PreviousAiStyle;
-			internal long StartTime;
-			internal int Duration;
-		}
-	}
+            foreach (var kvp in kvps)
+            {
+                var npc = Main.npc[kvp.Key];
+                var info = kvp.Value;
+
+                //remove any despawned npcs
+                if (npc?.active == true)
+                {
+                    Unpause(npc);
+                }
+            }
+        }
+
+        public void OnGameUpdate()
+        {
+            var kvps = pausedNpcs.ToArray();
+
+            foreach (var kvp in kvps)
+            {
+                var npc = Main.npc[kvp.Key];
+                var info = kvp.Value;
+
+                //remove any despawned npcs
+                if (npc == null || npc.active == false)
+                {
+                    pausedNpcs.Remove(kvp.Key);
+                    continue;
+                }
+
+                //set to unlimited pause.
+                if (info.Duration == -1)
+                    continue;
+
+                if (clock.ElapsedMilliseconds - info.StartTime >= info.Duration)
+                    Unpause(npc);
+            }
+        }
+
+        private class PausedNpcInfo
+        {
+            //internal int NpcIndex;
+            //internal int NpcType;
+            internal int PreviousAiStyle;
+            internal long StartTime;
+            internal int Duration;
+        }
+    }
 }

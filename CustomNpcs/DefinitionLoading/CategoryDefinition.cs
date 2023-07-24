@@ -1,15 +1,9 @@
 ﻿using Corruption.PluginSupport;
-using Google.Protobuf.WellKnownTypes;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Terraria.GameContent.Skies.CreditsRoll.CreditsRollComposer.SimplifiedNPCInfo;
-using static Terraria.WorldBuilding.GenCondition;
 
 namespace CustomNpcs
 {
@@ -19,52 +13,52 @@ namespace CustomNpcs
     /// Pseudo definition for Categories and Includes. This type is only used for deserialization of Categories, and never backs a CustomType. 
     /// </summary>
     [JsonObject(MemberSerialization.OptIn)]
-	public class CategoryDefinition : Definition
-	{
+    public class CategoryDefinition : Definition
+    {
 
         [JsonIgnore]//...in case later down the road, DefinitionBase opts in on this property!
-		public override string Identifier { get => Category; set => Category = value; }
+        public override string Identifier { get => Category; set => Category = value; }
 
-		[JsonIgnore]
-		public override string ScriptPath { get; set; }
-			
-		[JsonProperty(Order = 0)]
-		public string Category { get; set; }
+        [JsonIgnore]
+        public override string ScriptPath { get; set; }
 
-		[JsonProperty(Order = 1)]
-		public List<string> Includes { get; set; }
+        [JsonProperty(Order = 0)]
+        public string Category { get; set; }
 
-		[JsonIgnore]
-		public Dictionary<string, DefinitionInclude> DefinitionIncludes { get; set; } = new Dictionary<string, DefinitionInclude>();
+        [JsonProperty(Order = 1)]
+        public List<string> Includes { get; set; }
 
-        public override void CreateModules(){ }
+        [JsonIgnore]
+        public Dictionary<string, DefinitionInclude> DefinitionIncludes { get; set; } = new Dictionary<string, DefinitionInclude>();
+
+        public override void CreateModules() { }
 
         internal List<IDefinition> TryLoadIncludes(string parentFilePath)
-		{
-			var result = new List<IDefinition>();
-			var basePath = Path.GetDirectoryName(parentFilePath);
+        {
+            var result = new List<IDefinition>();
+            var basePath = Path.GetDirectoryName(parentFilePath);
 
-			foreach( var includeName in Includes )
-			{
-				var includePath = Path.Combine(basePath, includeName);
+            foreach (var includeName in Includes)
+            {
+                var includePath = Path.Combine(basePath, includeName);
 
-				try
-				{
-					var json = File.ReadAllText(includePath);
-					var definitions = JsonConvert.DeserializeObject<List<IDefinition>>(json);
+                try
+                {
+                    var json = File.ReadAllText(includePath);
+                    var definitions = JsonConvert.DeserializeObject<List<IDefinition>>(json);
 
-					foreach( var def in definitions )
-						def.FilePosition = new FilePosition(includePath);
+                    foreach (var def in definitions)
+                        def.FilePosition = new FilePosition(includePath);
 
-					result.AddRange(definitions);
-				}
-				catch( Exception ex )
-				{
-					CustomNpcsPlugin.Instance.LogPrint($"An error occurred while loading definition file '{includePath}': {ex.Message}", TraceLevel.Error);
-				}
-			}
+                    result.AddRange(definitions);
+                }
+                catch (Exception ex)
+                {
+                    CustomNpcsPlugin.Instance.LogPrint($"An error occurred while loading definition file '{includePath}': {ex.Message}", TraceLevel.Error);
+                }
+            }
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

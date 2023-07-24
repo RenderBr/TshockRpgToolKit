@@ -1,6 +1,5 @@
 ﻿using Corruption.PluginSupport;
 using System;
-using TShockAPI;
 
 namespace CustomQuests.Triggers
 {
@@ -10,22 +9,22 @@ namespace CustomQuests.Triggers
     public sealed class Condition : Trigger
     {
         private Func<bool> condition;
-		
-		/// <summary>
-		///     Initializes a new instance of the <see cref="Condition" /> class with the specified condition.
-		/// </summary>
-		/// <param name="condition">The condition, which must not be <c>null</c>.</param>
-		public Condition(Func<bool> condition)
-		{
-			this.condition = condition;
-		}
 
-		/// <inheritdoc />
-		protected override void Dispose(bool disposing)
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="Condition" /> class with the specified condition.
+        /// </summary>
+        /// <param name="condition">The condition, which must not be <c>null</c>.</param>
+        public Condition(Func<bool> condition)
+        {
+            this.condition = condition;
+        }
+
+        /// <inheritdoc />
+        protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-				condition = null;
+                condition = null;
             }
 
             base.Dispose(disposing);
@@ -41,13 +40,13 @@ namespace CustomQuests.Triggers
         {
             try
             {
-				var result = condition!=null ? condition() : true;//disregard trigger if it received a null Func.
-				return result.ToTriggerStatus();
+                var result = condition != null ? condition() : true;//disregard trigger if it received a null Func.
+                return result.ToTriggerStatus();
             }
             catch (Exception ex)
             {
                 CustomQuestsPlugin.Instance.LogPrint(ex.ToString());
-				return TriggerStatus.Fail;
+                return TriggerStatus.Fail;
             }
         }
     }

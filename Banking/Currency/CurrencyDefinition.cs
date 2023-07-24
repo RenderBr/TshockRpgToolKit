@@ -1,5 +1,4 @@
-﻿using Banking.Configuration;
-using Banking.Currency;
+﻿using Banking.Currency;
 using Banking.Rewards;
 using Banking.TileTracking;
 using Corruption.PluginSupport;
@@ -11,506 +10,505 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Banking
 {
-	/// <summary>
-	/// Provides configuration and internal support for a Currency. 
-	/// </summary>
-	[JsonObject(MemberSerialization.OptIn)]
-	public class CurrencyDefinition : IValidator
-	{
-		[JsonProperty(Order = 0)]
-		public string InternalName { get; set; }
+    /// <summary>
+    /// Provides configuration and internal support for a Currency. 
+    /// </summary>
+    [JsonObject(MemberSerialization.OptIn)]
+    public class CurrencyDefinition : IValidator
+    {
+        [JsonProperty(Order = 0)]
+        public string InternalName { get; set; }
 
-		[JsonProperty(Order = 1)]
-		public string ScriptPath { get; set; }
+        [JsonProperty(Order = 1)]
+        public string ScriptPath { get; set; }
 
-		[JsonProperty(Order = 2)]
-		public List<CurrencyQuadrant> Quadrants { get; set; } = new List<CurrencyQuadrant>();
+        [JsonProperty(Order = 2)]
+        public List<CurrencyQuadrant> Quadrants { get; set; } = new List<CurrencyQuadrant>();
 
-		[JsonProperty(Order = 3, ItemConverterType = typeof(StringEnumConverter))]
-		public List<RewardReason> GainBy { get; set; } = new List<RewardReason>();
+        [JsonProperty(Order = 3, ItemConverterType = typeof(StringEnumConverter))]
+        public List<RewardReason> GainBy { get; set; } = new List<RewardReason>();
 
-		[JsonProperty(Order = 4)]
-		public bool SendCombatText { get; set; }
+        [JsonProperty(Order = 4)]
+        public bool SendCombatText { get; set; }
 
-		[JsonProperty(Order = 5)]
-		public bool SendStatus { get; set; }
+        [JsonProperty(Order = 5)]
+        public bool SendStatus { get; set; }
 
-		[JsonProperty(Order = 6)]
-		public bool EnableStatueNpcRewards { get; set; } = false;
-		
-		[JsonProperty(Order = 7)]
-		public float Multiplier { get; set; } = 1.0f;
+        [JsonProperty(Order = 6)]
+        public bool EnableStatueNpcRewards { get; set; } = false;
 
-		[JsonProperty(Order = 8)]
-		public float DefenseBonusMultiplier { get; set; } = 0.0f;
+        [JsonProperty(Order = 7)]
+        public float Multiplier { get; set; } = 1.0f;
 
-		[JsonProperty(Order = 9)]
-		public float DeathPenaltyMultiplier { get; set; }
+        [JsonProperty(Order = 8)]
+        public float DefenseBonusMultiplier { get; set; } = 0.0f;
 
-		[JsonProperty(Order = 10)]
-		public float DeathPenaltyMinimum { get; set; }
+        [JsonProperty(Order = 9)]
+        public float DeathPenaltyMultiplier { get; set; }
 
-		[JsonProperty(Order = 11)]
-		public float DeathPenaltyPvPMultiplier { get; set; }
+        [JsonProperty(Order = 10)]
+        public float DeathPenaltyMinimum { get; set; }
 
-		[JsonProperty(Order = 12)]
-		public TimeSpan PlayingDuration { get; set; } = TimeSpan.FromMinutes(15);
+        [JsonProperty(Order = 11)]
+        public float DeathPenaltyPvPMultiplier { get; set; }
 
-		[JsonProperty(Order = 13, PropertyName = "DefaultMiningValue")]
-		public string DefaultMiningValueString { get; set; } = "";
-		public decimal DefaultMiningValue = 1m;
+        [JsonProperty(Order = 12)]
+        public TimeSpan PlayingDuration { get; set; } = TimeSpan.FromMinutes(15);
 
-		[JsonProperty(Order = 14, PropertyName = "DefaultPlacingValue")]
-		public string DefaultPlacingValueString { get; set; } = "";
-		public decimal DefaultPlacingValue = 1m;
+        [JsonProperty(Order = 13, PropertyName = "DefaultMiningValue")]
+        public string DefaultMiningValueString { get; set; } = "";
+        public decimal DefaultMiningValue = 1m;
 
-		[JsonProperty(Order = 15, PropertyName = "DefaultFishingValue")]
-		public string DefaultFishingValueString { get; set; } = "";
-		public decimal DefaultFishingValue = 1m;
-				
-		[JsonProperty(Order = 16, PropertyName = "DefaultPlayingValue")]
-		public string DefaultPlayingValueString { get; set; } = "";
-		public decimal DefaultPlayingValue = 1m;
+        [JsonProperty(Order = 14, PropertyName = "DefaultPlacingValue")]
+        public string DefaultPlacingValueString { get; set; } = "";
+        public decimal DefaultPlacingValue = 1m;
 
-		[JsonProperty(Order = 17)]
-		public Dictionary<string, float> WeaponMultipliers { get; set; } = new Dictionary<string, float>();
-		
-		[JsonProperty(Order = 18)]
-		public ValueOverrideList<string> KillingOverrides { get; set; } = new ValueOverrideList<string>();
+        [JsonProperty(Order = 15, PropertyName = "DefaultFishingValue")]
+        public string DefaultFishingValueString { get; set; } = "";
+        public decimal DefaultFishingValue = 1m;
 
-		[JsonProperty(Order = 19)]
-		public ValueOverrideList<TileKey> MiningOverrides { get; set; } = new ValueOverrideList<TileKey>();
+        [JsonProperty(Order = 16, PropertyName = "DefaultPlayingValue")]
+        public string DefaultPlayingValueString { get; set; } = "";
+        public decimal DefaultPlayingValue = 1m;
 
-		[JsonProperty(Order = 20)]
-		public ValueOverrideList<TileKey> PlacingOverrides { get; set; } = new ValueOverrideList<TileKey>();
+        [JsonProperty(Order = 17)]
+        public Dictionary<string, float> WeaponMultipliers { get; set; } = new Dictionary<string, float>();
 
-		[JsonProperty(Order = 21)]
-		public ValueOverrideList<ItemKey> FishingOverrides { get; set; } = new ValueOverrideList<ItemKey>();
+        [JsonProperty(Order = 18)]
+        public ValueOverrideList<string> KillingOverrides { get; set; } = new ValueOverrideList<string>();
 
-		[JsonProperty(Order = 22)]
-		public GroupValueOverrides<TileKey> GroupMiningOverrides { get; set; } = new GroupValueOverrides<TileKey>();
+        [JsonProperty(Order = 19)]
+        public ValueOverrideList<TileKey> MiningOverrides { get; set; } = new ValueOverrideList<TileKey>();
 
-		[JsonProperty(Order = 23)]
-		public GroupValueOverrides<TileKey> GroupPlacingOverrides { get; set; } = new GroupValueOverrides<TileKey>();
+        [JsonProperty(Order = 20)]
+        public ValueOverrideList<TileKey> PlacingOverrides { get; set; } = new ValueOverrideList<TileKey>();
 
-		[JsonProperty(Order = 24)]
-		public GroupValueOverrides<string> GroupPlayingOverrides { get; set; } = new GroupValueOverrides<string>();
+        [JsonProperty(Order = 21)]
+        public ValueOverrideList<ItemKey> FishingOverrides { get; set; } = new ValueOverrideList<ItemKey>();
 
-		/// <summary>
-		/// Gets or sets the permission a player must have to trade this currency.
-		/// </summary>
-		[JsonProperty(Order = 25)]
-		public string TradePermission { get; set; }
+        [JsonProperty(Order = 22)]
+        public GroupValueOverrides<TileKey> GroupMiningOverrides { get; set; } = new GroupValueOverrides<TileKey>();
 
-		//non serialized members.
+        [JsonProperty(Order = 23)]
+        public GroupValueOverrides<TileKey> GroupPlacingOverrides { get; set; } = new GroupValueOverrides<TileKey>();
 
-		//We want to reuse the GroupValueOverrides type, but GroupPlayingOverrides property doesn't need a specialized key.
-		//In order to reuse the existing code, we give GroupPlayingOverrides a dummy key placeholder and call it a day.  
-		internal const string DummyKeyString = "key";
+        [JsonProperty(Order = 24)]
+        public GroupValueOverrides<string> GroupPlayingOverrides { get; set; } = new GroupValueOverrides<string>();
 
-		//used internally for fast access to currencies -- do not cache or save this.
-		public int Id { get; internal set; }
+        /// <summary>
+        /// Gets or sets the permission a player must have to trade this currency.
+        /// </summary>
+        [JsonProperty(Order = 25)]
+        public string TradePermission { get; set; }
 
-		/// <summary>
-		/// Gets a cached string used for display by /bank list.
-		/// </summary>
-		internal string DisplayString { get; private set; }
+        //non serialized members.
 
-		/// <summary>
-		/// Fast access to quadrants, by name.
-		/// </summary>
-		internal Dictionary<string, CurrencyQuadrant> NamesToQuadrants { get; private set; }
+        //We want to reuse the GroupValueOverrides type, but GroupPlayingOverrides property doesn't need a specialized key.
+        //In order to reuse the existing code, we give GroupPlayingOverrides a dummy key placeholder and call it a day.  
+        internal const string DummyKeyString = "key";
 
-		/// <summary>
-		/// Fired before a Reward is sent to the player's BankAccount for this currency.
-		/// </summary>
-		public event EventHandler<RewardEventArgs> PreReward;
+        //used internally for fast access to currencies -- do not cache or save this.
+        public int Id { get; internal set; }
 
-		internal void FirePreRewardEvents(Reward reward, ref decimal rewardValue, string playerName)
-		{
-			if( PreReward == null )
-				return;
+        /// <summary>
+        /// Gets a cached string used for display by /bank list.
+        /// </summary>
+        internal string DisplayString { get; private set; }
 
-			var args = new RewardEventArgs(reward,ref rewardValue,this, playerName);
+        /// <summary>
+        /// Fast access to quadrants, by name.
+        /// </summary>
+        internal Dictionary<string, CurrencyQuadrant> NamesToQuadrants { get; private set; }
 
-			//Debug.Print($"RewardIn: {rewardValue}");
-			
-			PreReward(this, args);
+        /// <summary>
+        /// Fired before a Reward is sent to the player's BankAccount for this currency.
+        /// </summary>
+        public event EventHandler<RewardEventArgs> PreReward;
 
-			rewardValue = args.RewardValue;
+        internal void FirePreRewardEvents(Reward reward, ref decimal rewardValue, string playerName)
+        {
+            if (PreReward == null)
+                return;
 
-			//Debug.Print($"RewardOut: {rewardValue}");
-		}
-				
-		/// <summary>
-		/// Performs necessary setup and preprocessing to use a Currency in-game.  
-		/// </summary>
-		/// <param name="id"></param>
-		internal void OnInitialize(int id)
-		{
-			Id = id;
-			NamesToQuadrants = createNamesToQuadrants();
-			currencyConverter = new CurrencyConverter(this);
+            var args = new RewardEventArgs(reward, ref rewardValue, this, playerName);
 
-			//set defaults 
-			if(currencyConverter.TryParse(DefaultMiningValueString, out var parsedResult))
-				DefaultMiningValue = parsedResult;
+            //Debug.Print($"RewardIn: {rewardValue}");
 
-			if( currencyConverter.TryParse(DefaultPlacingValueString, out parsedResult) )
-				DefaultPlacingValue = parsedResult;
+            PreReward(this, args);
 
-			if( currencyConverter.TryParse(DefaultFishingValueString, out parsedResult) )
-				DefaultFishingValue = parsedResult;
+            rewardValue = args.RewardValue;
 
-			if( currencyConverter.TryParse(DefaultPlayingValueString, out parsedResult) )
-				DefaultPlayingValue = parsedResult;
+            //Debug.Print($"RewardOut: {rewardValue}");
+        }
 
-			//set overrides
-			KillingOverrides.Initialize(this);
-			MiningOverrides.Initialize(this);
-			PlacingOverrides.Initialize(this);
-			FishingOverrides.Initialize(this);
+        /// <summary>
+        /// Performs necessary setup and preprocessing to use a Currency in-game.  
+        /// </summary>
+        /// <param name="id"></param>
+        internal void OnInitialize(int id)
+        {
+            Id = id;
+            NamesToQuadrants = createNamesToQuadrants();
+            currencyConverter = new CurrencyConverter(this);
 
-			//set group overrides for tiles
-			var tileGroupOverrides = new List<GroupValueOverrides<TileKey>>()
-			{
-				GroupMiningOverrides,
-				GroupPlacingOverrides
-			};
+            //set defaults 
+            if (currencyConverter.TryParse(DefaultMiningValueString, out var parsedResult))
+                DefaultMiningValue = parsedResult;
 
-			foreach(var go in tileGroupOverrides)
-			{
-				foreach(var vol in go.Values)
-				{
-					vol.Initialize(this);
-				}
-			}
+            if (currencyConverter.TryParse(DefaultPlacingValueString, out parsedResult))
+                DefaultPlacingValue = parsedResult;
 
-			//set group overrides for playing
-			foreach(var vol in GroupPlayingOverrides.Values)
-				vol.Initialize(this);
-						
-			InitializeDisplayString();
-		}
+            if (currencyConverter.TryParse(DefaultFishingValueString, out parsedResult))
+                DefaultFishingValue = parsedResult;
 
-		private Dictionary<string, CurrencyQuadrant> createNamesToQuadrants()
-		{
-			var mapping = new Dictionary<string, CurrencyQuadrant>();
-			
-			foreach(var quad in Quadrants)
-			{
-				var names = new List<string>() { quad.FullName, quad.Abbreviation };
-								
-				foreach(var name in names)
-				{
-					if( !string.IsNullOrWhiteSpace(name) )
-					{
-						if( mapping.ContainsKey(name) )
-						{
-							BankingPlugin.Instance.LogPrint($"Currency {this.InternalName} already contains " +
-															$"a quadrant using the name or abbreviation '{name}'. ",
-															TraceLevel.Warning);
-						}
+            if (currencyConverter.TryParse(DefaultPlayingValueString, out parsedResult))
+                DefaultPlayingValue = parsedResult;
 
-						mapping[name] = quad;
-					}
-				}
-			}
-			
-			return mapping;
-		}
-		
-		internal void InitializeDisplayString()
-		{
-			try
-			{
-				var sb = new StringBuilder();
-				var useSeparator = false;
-				var quadrants = Quadrants.ToList();
+            //set overrides
+            KillingOverrides.Initialize(this);
+            MiningOverrides.Initialize(this);
+            PlacingOverrides.Initialize(this);
+            FishingOverrides.Initialize(this);
 
-				quadrants.Reverse();
+            //set group overrides for tiles
+            var tileGroupOverrides = new List<GroupValueOverrides<TileKey>>()
+            {
+                GroupMiningOverrides,
+                GroupPlacingOverrides
+            };
 
-				foreach( var q in quadrants )
-				{
-					if( useSeparator )
-						sb.Append(" | ");
+            foreach (var go in tileGroupOverrides)
+            {
+                foreach (var vol in go.Values)
+                {
+                    vol.Initialize(this);
+                }
+            }
 
-					sb.AppendFormat("{0}({1})", q.FullName, q.Abbreviation);
-					useSeparator = true;
-				}
+            //set group overrides for playing
+            foreach (var vol in GroupPlayingOverrides.Values)
+                vol.Initialize(this);
 
-				var quadrantInfo = sb.ToString();
+            InitializeDisplayString();
+        }
 
-				DisplayString = $"{InternalName} - {quadrantInfo}";
-			}
-			catch
-			{
-				DisplayString = $"{InternalName} - Information not available.";
-			}
-		}
+        private Dictionary<string, CurrencyQuadrant> createNamesToQuadrants()
+        {
+            var mapping = new Dictionary<string, CurrencyQuadrant>();
 
-		private CurrencyConverter currencyConverter;
-		public CurrencyConverter GetCurrencyConverter()
-		{
-			return currencyConverter;
-		}
+            foreach (var quad in Quadrants)
+            {
+                var names = new List<string>() { quad.FullName, quad.Abbreviation };
 
-		/// <summary>
-		/// Gets an override value for killing an npc, should an override exist.
-		/// </summary>
-		/// <remarks>This is related to the GetBase*Value() methods, but works a bit differently in that it tries to find an override value only.
-		/// If one cannot be found, null is returned.</remarks>
-		/// <param name="npcGivenOrTypeName">Npc given or type name string.</param>
-		/// <returns>Decimal value if override exists, null otherwise.</returns>
-		public decimal? GetKillingValueOverride(string npcGivenOrTypeName)
-		{
-			if(KillingOverrides.TryGetValue(npcGivenOrTypeName,out var valueOverride))
-				return valueOverride.Value;
-			else
-				return null;
-		}
+                foreach (var name in names)
+                {
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        if (mapping.ContainsKey(name))
+                        {
+                            BankingPlugin.Instance.LogPrint($"Currency {this.InternalName} already contains " +
+                                                            $"a quadrant using the name or abbreviation '{name}'. ",
+                                                            TraceLevel.Warning);
+                        }
 
-		/// <summary>
-		/// Computes the base value for mining a tile, that is, before multipliers or modifications.
-		/// </summary>
-		/// <param name="tileOrWallType">The tile type or wall.</param>
-		/// <param name="miningTargetType">Type of tile data, either tile or wall.</param>
-		/// <returns>Base value in generic units.</returns>
-		public decimal GetBaseMiningValue(ushort tileOrWallType, TileSubTarget miningTargetType, string group)
-		{
-			var key = new TileKey(tileOrWallType, miningTargetType);
+                        mapping[name] = quad;
+                    }
+                }
+            }
 
-			//check group overrides first
-			if(!string.IsNullOrWhiteSpace(group))
-			{
-				if(GroupMiningOverrides.TryGetValue(group,out var groupMiningOverride))
-				{
-					if(groupMiningOverride.TryGetValue(key, out var groupValueOverride))
-					{
-						return groupValueOverride.Value;
-					}
-				}
-			}
+            return mapping;
+        }
 
-			//no group override found, move to global overrides
-			if( MiningOverrides.TryGetValue(key, out var valueOverride) )
-				return valueOverride.Value;
-			else
-				return DefaultMiningValue;
-		}
+        internal void InitializeDisplayString()
+        {
+            try
+            {
+                var sb = new StringBuilder();
+                var useSeparator = false;
+                var quadrants = Quadrants.ToList();
 
-		/// <summary>
-		/// Computes the base value for placing a tile, that is, before multipliers or modifications.
-		/// </summary>
-		/// <param name="tileOrWallType">The tile type or wall.</param>
-		/// <param name="miningTargetType">Type of tile data, either tile or wall.</param>
-		/// <returns>Base value in generic units.</returns>
-		public decimal GetBasePlacingValue(ushort tileOrWallType, TileSubTarget miningTargetType, string group)
-		{
-			var key = new TileKey(tileOrWallType, miningTargetType);
+                quadrants.Reverse();
 
-			//check group overrides first
-			if( !string.IsNullOrWhiteSpace(group) )
-			{
-				if( GroupPlacingOverrides.TryGetValue(group, out var groupPlacingOverride) )
-				{
-					if( groupPlacingOverride.TryGetValue(key, out var groupValueOverride) )
-					{
-						return groupValueOverride.Value;
-					}
-				}
-			}
+                foreach (var q in quadrants)
+                {
+                    if (useSeparator)
+                        sb.Append(" | ");
 
-			if( PlacingOverrides.TryGetValue(key, out var valueOverride) )
-				return valueOverride.Value;
-			else
-				return DefaultPlacingValue;
-		}
+                    sb.AppendFormat("{0}({1})", q.FullName, q.Abbreviation);
+                    useSeparator = true;
+                }
 
-		/// <summary>
-		/// Computes the base value for catching items through fishing, that is, before multipliers or modifications.
-		/// </summary>
-		/// <param name="itemId">ItemId</param>
-		/// <param name="prefix">Prefix</param>
-		/// <returns>Base value in generic units.</returns>
-		public decimal GetBaseFishingValue(int itemId, byte prefix)
-		{
-			var key = new ItemKey(itemId, prefix);
+                var quadrantInfo = sb.ToString();
 
-			if( FishingOverrides.TryGetValue(key, out var valueOverride) )
-				return valueOverride.Value;
-			else
-				return DefaultFishingValue;
-		}
+                DisplayString = $"{InternalName} - {quadrantInfo}";
+            }
+            catch
+            {
+                DisplayString = $"{InternalName} - Information not available.";
+            }
+        }
 
-		/// <summary>
-		/// Computes the base value for placing a certain amount of time, before multipliers or modifications.
-		/// </summary>
-		/// <param name="group">Optional Group name.</param>
-		/// <returns>Base value in generic units.</returns>
-		public decimal GetBasePlayingValue(string group="")
-		{
-			//check group overrides first
-			if( !string.IsNullOrWhiteSpace(group) )
-			{
-				if( GroupPlayingOverrides.TryGetValue(group, out var groupPlacingOverride) )
-				{
-					if( groupPlacingOverride.TryGetValue(DummyKeyString, out var groupValueOverride) )
-					{
-						return groupValueOverride.Value;
-					}
-				}
-			}
-			
-			return DefaultPlayingValue;
-		}
+        private CurrencyConverter currencyConverter;
+        public CurrencyConverter GetCurrencyConverter()
+        {
+            return currencyConverter;
+        }
 
-		public override string ToString() => InternalName;
-		
-		public static IList<CurrencyDefinition> LoadCurrencys()
-		{
+        /// <summary>
+        /// Gets an override value for killing an npc, should an override exist.
+        /// </summary>
+        /// <remarks>This is related to the GetBase*Value() methods, but works a bit differently in that it tries to find an override value only.
+        /// If one cannot be found, null is returned.</remarks>
+        /// <param name="npcGivenOrTypeName">Npc given or type name string.</param>
+        /// <returns>Decimal value if override exists, null otherwise.</returns>
+        public decimal? GetKillingValueOverride(string npcGivenOrTypeName)
+        {
+            if (KillingOverrides.TryGetValue(npcGivenOrTypeName, out var valueOverride))
+                return valueOverride.Value;
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Computes the base value for mining a tile, that is, before multipliers or modifications.
+        /// </summary>
+        /// <param name="tileOrWallType">The tile type or wall.</param>
+        /// <param name="miningTargetType">Type of tile data, either tile or wall.</param>
+        /// <returns>Base value in generic units.</returns>
+        public decimal GetBaseMiningValue(ushort tileOrWallType, TileSubTarget miningTargetType, string group)
+        {
+            var key = new TileKey(tileOrWallType, miningTargetType);
+
+            //check group overrides first
+            if (!string.IsNullOrWhiteSpace(group))
+            {
+                if (GroupMiningOverrides.TryGetValue(group, out var groupMiningOverride))
+                {
+                    if (groupMiningOverride.TryGetValue(key, out var groupValueOverride))
+                    {
+                        return groupValueOverride.Value;
+                    }
+                }
+            }
+
+            //no group override found, move to global overrides
+            if (MiningOverrides.TryGetValue(key, out var valueOverride))
+                return valueOverride.Value;
+            else
+                return DefaultMiningValue;
+        }
+
+        /// <summary>
+        /// Computes the base value for placing a tile, that is, before multipliers or modifications.
+        /// </summary>
+        /// <param name="tileOrWallType">The tile type or wall.</param>
+        /// <param name="miningTargetType">Type of tile data, either tile or wall.</param>
+        /// <returns>Base value in generic units.</returns>
+        public decimal GetBasePlacingValue(ushort tileOrWallType, TileSubTarget miningTargetType, string group)
+        {
+            var key = new TileKey(tileOrWallType, miningTargetType);
+
+            //check group overrides first
+            if (!string.IsNullOrWhiteSpace(group))
+            {
+                if (GroupPlacingOverrides.TryGetValue(group, out var groupPlacingOverride))
+                {
+                    if (groupPlacingOverride.TryGetValue(key, out var groupValueOverride))
+                    {
+                        return groupValueOverride.Value;
+                    }
+                }
+            }
+
+            if (PlacingOverrides.TryGetValue(key, out var valueOverride))
+                return valueOverride.Value;
+            else
+                return DefaultPlacingValue;
+        }
+
+        /// <summary>
+        /// Computes the base value for catching items through fishing, that is, before multipliers or modifications.
+        /// </summary>
+        /// <param name="itemId">ItemId</param>
+        /// <param name="prefix">Prefix</param>
+        /// <returns>Base value in generic units.</returns>
+        public decimal GetBaseFishingValue(int itemId, byte prefix)
+        {
+            var key = new ItemKey(itemId, prefix);
+
+            if (FishingOverrides.TryGetValue(key, out var valueOverride))
+                return valueOverride.Value;
+            else
+                return DefaultFishingValue;
+        }
+
+        /// <summary>
+        /// Computes the base value for placing a certain amount of time, before multipliers or modifications.
+        /// </summary>
+        /// <param name="group">Optional Group name.</param>
+        /// <returns>Base value in generic units.</returns>
+        public decimal GetBasePlayingValue(string group = "")
+        {
+            //check group overrides first
+            if (!string.IsNullOrWhiteSpace(group))
+            {
+                if (GroupPlayingOverrides.TryGetValue(group, out var groupPlacingOverride))
+                {
+                    if (groupPlacingOverride.TryGetValue(DummyKeyString, out var groupValueOverride))
+                    {
+                        return groupValueOverride.Value;
+                    }
+                }
+            }
+
+            return DefaultPlayingValue;
+        }
+
+        public override string ToString() => InternalName;
+
+        public static IList<CurrencyDefinition> LoadCurrencys()
+        {
             //Debug.Print($"Loading CurrencyDefinitions at: {currencyDirectoryPath}");
             if (!Directory.Exists(BankingPlugin.CurrencyDirectory))
                 Directory.CreateDirectory(BankingPlugin.CurrencyDirectory);
-			
+
             var currencyFiles = Directory.EnumerateFiles(BankingPlugin.CurrencyDirectory, "*.json");
-			var results = new List<CurrencyDefinition>();
-			
+            var results = new List<CurrencyDefinition>();
+
 #if DEBUG
-			if( currencyFiles.Count()<1)
-			{
-				BankingPlugin.Instance.LogPrint("No .json files found, creating default 'TerrariaCoin.json'.", TraceLevel.Warning);
-				results.Add(CreateDefaultCurrency());
+            if (currencyFiles.Count() < 1)
+            {
+                BankingPlugin.Instance.LogPrint("No .json files found, creating default 'TerrariaCoin.json'.", TraceLevel.Warning);
+                results.Add(CreateDefaultCurrency());
 
-				SaveCurrencys(BankingPlugin.CurrencyDirectory, results);
-				return results;
-			}
+                SaveCurrencys(BankingPlugin.CurrencyDirectory, results);
+                return results;
+            }
 #endif
-			
-			foreach(var file in currencyFiles)
-			{
-				try
-				{
-					var json = File.ReadAllText(file);
-					var currency = JsonConvert.DeserializeObject<CurrencyDefinition>(json);
-					var validationResult = currency.Validate();
-					int totalErrors = 0, totalWarnings = 0;
-										
-					validationResult.GetTotals(ref totalErrors, ref totalWarnings);
 
-					BankingPlugin.Instance.LogPrint(validationResult);
-									   
-					if (totalErrors == 0)
-						results.Add(currency);
-					else
-						BankingPlugin.Instance.LogPrint($"{file}: Disabling Currency due to errors.",TraceLevel.Error);
-				}
-				catch(Exception ex)
-				{
-					BankingPlugin.Instance.LogPrint($"{file}: {ex.Message}", TraceLevel.Error);
-				}
-			}
+            foreach (var file in currencyFiles)
+            {
+                try
+                {
+                    var json = File.ReadAllText(file);
+                    var currency = JsonConvert.DeserializeObject<CurrencyDefinition>(json);
+                    var validationResult = currency.Validate();
+                    int totalErrors = 0, totalWarnings = 0;
 
-			return results;
-		}
+                    validationResult.GetTotals(ref totalErrors, ref totalWarnings);
 
-		public static void SaveCurrencys(string currencyDirectoryPath, IEnumerable<CurrencyDefinition> currencys)
-		{
-			Directory.CreateDirectory(currencyDirectoryPath);
+                    BankingPlugin.Instance.LogPrint(validationResult);
 
-			foreach(var currency in currencys)
-			{
-				try
-				{
-					var filePath = Path.Combine(currencyDirectoryPath, currency.InternalName + ".json");
-					var json = JsonConvert.SerializeObject(currency, Formatting.Indented);
-					File.WriteAllText(filePath, json);
-				}
-				catch(Exception ex)
-				{
-					BankingPlugin.Instance.LogPrint(ex.Message, TraceLevel.Error);
-				}
-			}
-		}
-		
-		/// <summary>
-		/// This is a standard Currency that matches the Terraria Platinum/Gold/Silver/Copper currency. The n
-		/// </summary>
-		/// <returns></returns>
-		internal static CurrencyDefinition CreateDefaultCurrency()
-		{
-			const string DefaultCurrencyName = "TerrariaCoin";
+                    if (totalErrors == 0)
+                        results.Add(currency);
+                    else
+                        BankingPlugin.Instance.LogPrint($"{file}: Disabling Currency due to errors.", TraceLevel.Error);
+                }
+                catch (Exception ex)
+                {
+                    BankingPlugin.Instance.LogPrint($"{file}: {ex.Message}", TraceLevel.Error);
+                }
+            }
 
-			var result = new CurrencyDefinition();
+            return results;
+        }
 
-			result.InternalName = DefaultCurrencyName;
-			//result.GainBy.Add(RewardReason.Killing);
-			//result.SendCombatText = true;
+        public static void SaveCurrencys(string currencyDirectoryPath, IEnumerable<CurrencyDefinition> currencys)
+        {
+            Directory.CreateDirectory(currencyDirectoryPath);
 
-			var q = new CurrencyQuadrant();
-			q.BaseUnitMultiplier = 1;
-			q.FullName = "Copper";
-			q.ShortName = "copper";
-			q.Abbreviation = "c";
+            foreach (var currency in currencys)
+            {
+                try
+                {
+                    var filePath = Path.Combine(currencyDirectoryPath, currency.InternalName + ".json");
+                    var json = JsonConvert.SerializeObject(currency, Formatting.Indented);
+                    File.WriteAllText(filePath, json);
+                }
+                catch (Exception ex)
+                {
+                    BankingPlugin.Instance.LogPrint(ex.Message, TraceLevel.Error);
+                }
+            }
+        }
 
-			result.Quadrants.Add(q);
+        /// <summary>
+        /// This is a standard Currency that matches the Terraria Platinum/Gold/Silver/Copper currency. The n
+        /// </summary>
+        /// <returns></returns>
+        internal static CurrencyDefinition CreateDefaultCurrency()
+        {
+            const string DefaultCurrencyName = "TerrariaCoin";
 
-			q = new CurrencyQuadrant();
-			q.BaseUnitMultiplier = 100;
-			q.FullName = "Silver";
-			q.ShortName = "silver";
-			q.Abbreviation = "s";
+            var result = new CurrencyDefinition();
 
-			result.Quadrants.Add(q);
+            result.InternalName = DefaultCurrencyName;
+            //result.GainBy.Add(RewardReason.Killing);
+            //result.SendCombatText = true;
 
-			q = new CurrencyQuadrant();
-			q.BaseUnitMultiplier = 10_000;
-			q.FullName = "Gold";
-			q.ShortName = "gold";
-			q.Abbreviation = "g";
+            var q = new CurrencyQuadrant();
+            q.BaseUnitMultiplier = 1;
+            q.FullName = "Copper";
+            q.ShortName = "copper";
+            q.Abbreviation = "c";
 
-			result.Quadrants.Add(q);
+            result.Quadrants.Add(q);
 
-			q = new CurrencyQuadrant();
-			q.BaseUnitMultiplier = 1_000_000;
-			q.FullName = "Platinum";
-			q.ShortName = "platinum";
-			q.Abbreviation = "p";
+            q = new CurrencyQuadrant();
+            q.BaseUnitMultiplier = 100;
+            q.FullName = "Silver";
+            q.ShortName = "silver";
+            q.Abbreviation = "s";
 
-			result.Quadrants.Add(q);
+            result.Quadrants.Add(q);
 
-			return result;
-		}
+            q = new CurrencyQuadrant();
+            q.BaseUnitMultiplier = 10_000;
+            q.FullName = "Gold";
+            q.ShortName = "gold";
+            q.Abbreviation = "g";
 
-		public ValidationResult Validate()
-		{
-			var result = new ValidationResult(this);
+            result.Quadrants.Add(q);
 
-			if (string.IsNullOrWhiteSpace(InternalName))
-				result.Errors.Add(new ValidationError($"{nameof(InternalName)} is null or whitespace."));
+            q = new CurrencyQuadrant();
+            q.BaseUnitMultiplier = 1_000_000;
+            q.FullName = "Platinum";
+            q.ShortName = "platinum";
+            q.Abbreviation = "p";
 
-			if (Quadrants==null || Quadrants.Count<1)
-				result.Errors.Add(new ValidationError($"{nameof(Quadrants)} is null or empty."));
-			else
-			{
-				var i = 0;
+            result.Quadrants.Add(q);
 
-				foreach(var quad in Quadrants)
-				{
-					var quadResult = quad.Validate();
-					quadResult.Source = $"Quadrant[{i++}]";
-					result.Children.Add(quadResult);
-				}
-			}
+            return result;
+        }
 
-			if (GainBy == null || GainBy.Count < 1)
-				result.Warnings.Add(new ValidationWarning($"{nameof(GainBy)} is null or empty."));
+        public ValidationResult Validate()
+        {
+            var result = new ValidationResult(this);
 
-			return result;
-		}
-	}
+            if (string.IsNullOrWhiteSpace(InternalName))
+                result.Errors.Add(new ValidationError($"{nameof(InternalName)} is null or whitespace."));
+
+            if (Quadrants == null || Quadrants.Count < 1)
+                result.Errors.Add(new ValidationError($"{nameof(Quadrants)} is null or empty."));
+            else
+            {
+                var i = 0;
+
+                foreach (var quad in Quadrants)
+                {
+                    var quadResult = quad.Validate();
+                    quadResult.Source = $"Quadrant[{i++}]";
+                    result.Children.Add(quadResult);
+                }
+            }
+
+            if (GainBy == null || GainBy.Count < 1)
+                result.Warnings.Add(new ValidationWarning($"{nameof(GainBy)} is null or empty."));
+
+            return result;
+        }
+    }
 }

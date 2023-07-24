@@ -1,190 +1,188 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Banking
 {
-	/// <summary>
-	/// Handles string conversions for a Currency.  
-	/// </summary>
-	public class CurrencyConverter
-	{
-		static Regex getQuadNamesRegex = new Regex("[A-Za-z]+", RegexOptions.Compiled);
+    /// <summary>
+    /// Handles string conversions for a Currency.  
+    /// </summary>
+    public class CurrencyConverter
+    {
+        static Regex getQuadNamesRegex = new("[A-Za-z]+", RegexOptions.Compiled);
 
-		public CurrencyDefinition Currency { get; private set; }
+        public CurrencyDefinition Currency { get; private set; }
 
-		List<CurrencyQuadrant> sortedQuadrants;//sorted, and reversed.
-		Regex parseCurrencyRegex;
-								
-		internal CurrencyConverter(CurrencyDefinition currency)
-		{
-			Currency = currency;
-			generateParser(currency);
-		}
+        List<CurrencyQuadrant> sortedQuadrants;//sorted, and reversed.
+        Regex parseCurrencyRegex;
 
-		private void generateParser(CurrencyDefinition def)
-		{
-			var sb = new StringBuilder();
-			string regexString = "";
+        internal CurrencyConverter(CurrencyDefinition currency)
+        {
+            Currency = currency;
+            generateParser(currency);
+        }
 
-			sortedQuadrants = def.Quadrants.ToList();
-			sortedQuadrants.Sort((a, b) =>
-			{
-				if( a.BaseUnitMultiplier == b.BaseUnitMultiplier )
-					return 0;
-				else
-					return a.BaseUnitMultiplier > b.BaseUnitMultiplier ? 1 : -1;
-			});
+        private void generateParser(CurrencyDefinition def)
+        {
+            var sb = new StringBuilder();
+            string regexString = "";
 
-			sortedQuadrants.Reverse();
+            sortedQuadrants = def.Quadrants.ToList();
+            sortedQuadrants.Sort((a, b) =>
+            {
+                if (a.BaseUnitMultiplier == b.BaseUnitMultiplier)
+                    return 0;
+                else
+                    return a.BaseUnitMultiplier > b.BaseUnitMultiplier ? 1 : -1;
+            });
 
-			sb.Append($"(-|\\+)?");//pos/neg
+            sortedQuadrants.Reverse();
 
-			foreach(var quad in sortedQuadrants)
-			{
-				//value-quad pair
-				if(!string.IsNullOrWhiteSpace(quad.Abbreviation))
-					sb.Append($"((\\d+)({quad.FullName}|{quad.Abbreviation}))?");
-				else
-					sb.Append($"((\\d+)({quad.FullName}))?");
+            sb.Append($"(-|\\+)?");//pos/neg
 
-				sb.Append(@",?");//optional separator between value/quad 
-				//sb.Append(@"(\W*)");//optional separator between value/quad pairs
-			}
+            foreach (var quad in sortedQuadrants)
+            {
+                //value-quad pair
+                if (!string.IsNullOrWhiteSpace(quad.Abbreviation))
+                    sb.Append($"((\\d+)({quad.FullName}|{quad.Abbreviation}))?");
+                else
+                    sb.Append($"((\\d+)({quad.FullName}))?");
 
-			regexString = sb.ToString();
-			//Debug.Print($"Created {Currency} regex = {regexString}");
-					
-			parseCurrencyRegex = new Regex(regexString,RegexOptions.Compiled);
-		}
+                sb.Append(@",?");//optional separator between value/quad 
+                                 //sb.Append(@"(\W*)");//optional separator between value/quad pairs
+            }
 
-		public bool TryParse(string input, out decimal value)
-		{
-			input = input.Replace(" ", "");//quick hack for inputs like "value quad value quad" 
+            regexString = sb.ToString();
+            //Debug.Print($"Created {Currency} regex = {regexString}");
 
-			var tempValue = 0m;
-			var match = parseCurrencyRegex.Match(input);
-			var quadMatched = false;
-			var sign = 1;
-			var quadIndex = 0;
-			
-			if(match.Success)
-			{
-				if(match.Groups[1].Success)
-				{
-					sign = match.Groups[1].Value == "-" ? -1 : 1;
-				}
+            parseCurrencyRegex = new Regex(regexString, RegexOptions.Compiled);
+        }
 
-				for(var i=3;i<match.Groups.Count;i+=3)
-				{
-					var gValue = match.Groups[i];
-					var gQuad = match.Groups[i + 1];
+        public bool TryParse(string input, out decimal value)
+        {
+            input = input.Replace(" ", "");//quick hack for inputs like "value quad value quad" 
 
-					if(gValue.Success && gQuad.Success)
-					{
-						quadMatched = true;
-						var quad = sortedQuadrants[quadIndex];
-						var number = gValue.Value;
-						var quadValue = long.Parse(number);
+            var tempValue = 0m;
+            var match = parseCurrencyRegex.Match(input);
+            var quadMatched = false;
+            var sign = 1;
+            var quadIndex = 0;
 
-						tempValue += quadValue * quad.BaseUnitMultiplier;
-					}
+            if (match.Success)
+            {
+                if (match.Groups[1].Success)
+                {
+                    sign = match.Groups[1].Value == "-" ? -1 : 1;
+                }
 
-					quadIndex++;
-				}
+                for (var i = 3; i < match.Groups.Count; i += 3)
+                {
+                    var gValue = match.Groups[i];
+                    var gQuad = match.Groups[i + 1];
 
-				//need to check that a quadrant matched, or else signs (+/-) may result in success.
-				if(quadMatched)
-				{
-					tempValue *= sign;
-					value = tempValue;
-					return true;
-				}
-			}
+                    if (gValue.Success && gQuad.Success)
+                    {
+                        quadMatched = true;
+                        var quad = sortedQuadrants[quadIndex];
+                        var number = gValue.Value;
+                        var quadValue = long.Parse(number);
 
-			value = 0m;
-			return false;
-		}
-		
-		public string ToString(decimal value) // bool useCommas = false)
-		{
-			Color color = Color.White;
-			return ToStringAndColor(value, ref color);// useCommas);
-		}
-		
-		public string ToStringAndColor(decimal value, ref Color color) //, bool useCommas = false)
-		{
-			string result = null;
-			var colorSelected = false; // we find the first non zero quad, to determine color.
-			var emitSpace = false;
-			var lastQuad = sortedQuadrants[sortedQuadrants.Count - 1];
-			var sb = new StringBuilder(64);
-			var sign = Math.Sign(value);
-			value = Math.Abs(value);
+                        tempValue += quadValue * quad.BaseUnitMultiplier;
+                    }
 
-			if( sign < 0 && value >= 1.0m )
-			{
-				sb.Append('-');
-			}
+                    quadIndex++;
+                }
 
-			foreach( var quad in sortedQuadrants )
-			{
-				var quadValue = (long)value / quad.BaseUnitMultiplier;
+                //need to check that a quadrant matched, or else signs (+/-) may result in success.
+                if (quadMatched)
+                {
+                    tempValue *= sign;
+                    value = tempValue;
+                    return true;
+                }
+            }
 
-				if( quadValue != 0 ||
-						quad == lastQuad && sb.Length < 1 )//we must emit a 0 value if no previous quads emitted anything 
-				{
-					if( emitSpace )
-						sb.Append(" ");
-											
-					sb.Append($"{quadValue:#,0}");//render with commas for thousands, and no leading zeros.
-					sb.Append(" ");
-					sb.Append(quad.FullName);
-					
-					//if( useCommas && i < sortedQuadrants.Count - 1 )//dont emit comma on last quad
-					//	sb.Append(", ");
-					
-					emitSpace = true;
+            value = 0m;
+            return false;
+        }
 
-					value = value - ( quadValue * quad.BaseUnitMultiplier );
+        public string ToString(decimal value) // bool useCommas = false)
+        {
+            Color color = Color.White;
+            return ToStringAndColor(value, ref color);// useCommas);
+        }
 
-					if( !colorSelected )
-					{
-						color = sign < 0 ? quad.LossColor : quad.GainColor;
-						colorSelected = true;
-					}
-				}
-			}
-			
-			result = sb.ToString();
-			//Debug.Print($"{Currency} - {result}");
-			//Debug.Print("Color:{0:x8}", color.PackedValue);
+        public string ToStringAndColor(decimal value, ref Color color) //, bool useCommas = false)
+        {
+            string result = null;
+            var colorSelected = false; // we find the first non zero quad, to determine color.
+            var emitSpace = false;
+            var lastQuad = sortedQuadrants[sortedQuadrants.Count - 1];
+            var sb = new StringBuilder(64);
+            var sign = Math.Sign(value);
+            value = Math.Abs(value);
 
-			return result;
-		}
+            if (sign < 0 && value >= 1.0m)
+            {
+                sb.Append('-');
+            }
 
-		/// <summary>
-		/// Helper method to grab all quadrant suffixes.
-		/// </summary>
-		/// <param name="input">string containing value-quadrant pairs.</param>
-		/// <returns>IList of strings.</returns>
-		internal static IList<string> ParseQuadrantNames(string input)
-		{
-			var results = new List<string>();
-			var match = getQuadNamesRegex.Match(input);
+            foreach (var quad in sortedQuadrants)
+            {
+                var quadValue = (long)value / quad.BaseUnitMultiplier;
 
-			while( match.Success )
-			{
-				results.Add(match.Value);
-				match = match.NextMatch();
-			}
+                if (quadValue != 0 ||
+                        (quad == lastQuad && sb.Length < 1))//we must emit a 0 value if no previous quads emitted anything 
+                {
+                    if (emitSpace)
+                        sb.Append(" ");
 
-			return results;
-		}
-	}
+                    sb.Append($"{quadValue:#,0}");//render with commas for thousands, and no leading zeros.
+                    sb.Append(" ");
+                    sb.Append(quad.FullName);
+
+                    //if( useCommas && i < sortedQuadrants.Count - 1 )//dont emit comma on last quad
+                    //	sb.Append(", ");
+
+                    emitSpace = true;
+
+                    value = value - (quadValue * quad.BaseUnitMultiplier);
+
+                    if (!colorSelected)
+                    {
+                        color = sign < 0 ? quad.LossColor : quad.GainColor;
+                        colorSelected = true;
+                    }
+                }
+            }
+
+            result = sb.ToString();
+            //Debug.Print($"{Currency} - {result}");
+            //Debug.Print("Color:{0:x8}", color.PackedValue);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Helper method to grab all quadrant suffixes.
+        /// </summary>
+        /// <param name="input">string containing value-quadrant pairs.</param>
+        /// <returns>IList of strings.</returns>
+        internal static IList<string> ParseQuadrantNames(string input)
+        {
+            var results = new List<string>();
+            var match = getQuadNamesRegex.Match(input);
+
+            while (match.Success)
+            {
+                results.Add(match.Value);
+                match = match.NextMatch();
+            }
+
+            return results;
+        }
+    }
 }

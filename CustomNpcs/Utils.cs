@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Corruption.PluginSupport;
 using CustomNpcs.Npcs;
 using Microsoft.Xna.Framework;
-using Terraria;
-using TShockAPI;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using TerrariaApi.Server;
-using Corruption.PluginSupport;
+using System.Linq;
+using Terraria;
 using Terraria.DataStructures;
 using Terraria.ID;
+using TShockAPI;
 
 namespace CustomNpcs
 {
@@ -18,27 +17,27 @@ namespace CustomNpcs
     /// </summary>
     internal static class Utils
     {
-        private static readonly Random Random = new Random();
+        private static readonly Random Random = new();
 
-		public static void LogScriptRuntimeError(Exception ex)
-		{
-			CustomNpcsPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
-			CustomNpcsPlugin.Instance.LogPrint("Disabling event callback.", TraceLevel.Error);
-		}
+        public static void LogScriptRuntimeError(Exception ex)
+        {
+            CustomNpcsPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
+            CustomNpcsPlugin.Instance.LogPrint("Disabling event callback.", TraceLevel.Error);
+        }
 
-		public static void LogScriptRuntimeError(string message)
-		{
-			CustomNpcsPlugin.Instance.LogPrint(message, TraceLevel.Error);
-			CustomNpcsPlugin.Instance.LogPrint("Disabling event callback.", TraceLevel.Error);
-		}
+        public static void LogScriptRuntimeError(string message)
+        {
+            CustomNpcsPlugin.Instance.LogPrint(message, TraceLevel.Error);
+            CustomNpcsPlugin.Instance.LogPrint("Disabling event callback.", TraceLevel.Error);
+        }
 
-		/// <summary>
-		///     Calculates spawn data for the specified player based on the global spawn data.
-		/// </summary>
-		/// <param name="player">The player, which must not be <c>null</c>.</param>
-		/// <param name="maxSpawns">The number of maximum spawns.</param>
-		/// <param name="spawnRate">The spawn rate.</param>
-		public static void GetSpawnData(TSPlayer player, out double maxSpawns, out double spawnRate)
+        /// <summary>
+        ///     Calculates spawn data for the specified player based on the global spawn data.
+        /// </summary>
+        /// <param name="player">The player, which must not be <c>null</c>.</param>
+        /// <param name="maxSpawns">The number of maximum spawns.</param>
+        /// <param name="spawnRate">The spawn rate.</param>
+        public static void GetSpawnData(TSPlayer player, out double maxSpawns, out double spawnRate)
         {
             maxSpawns = Config.Instance.MaxSpawns;
             spawnRate = Config.Instance.SpawnRate;
@@ -191,18 +190,18 @@ namespace CustomNpcs
         {
             if (int.TryParse(npcNameOrType, out var npcType))
             {
-                NPC.NewNPC(new EntitySource_DebugCommand(), 16 * tileX + 8, 16 * tileY, npcType);
+                NPC.NewNPC(new EntitySource_DebugCommand(), (16 * tileX) + 8, 16 * tileY, npcType);
                 return;
             }
 
             var definition = NpcManager.Instance?.FindDefinition(npcNameOrType);
             if (definition != null)
             {
-                NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, 16 * tileX + 8, 16 * tileY);
+                NpcManager.Instance.SpawnCustomNpc(definition.NpcDefinition, (16 * tileX) + 8, 16 * tileY);
             }
         }
-		
-		/// <summary>
+
+        /// <summary>
         ///     Tries to pick a random key from a dictionary using the values as chances.
         /// </summary>
         /// <typeparam name="TKey">The type of key.</typeparam>
@@ -235,7 +234,7 @@ namespace CustomNpcs
                 var maxX = Math.Min(Main.maxTilesX, player.TileX + spawnRangeX);
                 var minY = Math.Max(0, player.TileY - spawnRangeY);
                 var maxY = Math.Min(Main.maxTilesY, player.TileY + spawnRangeY);
-				
+
                 var succeeded = false;
                 var tileX = -1;
                 var tileY = -1;
@@ -260,29 +259,29 @@ namespace CustomNpcs
                     }
                 }
 
-                if(succeeded && !CanPlayersSeeCoordinates(tileX, tileY))
+                if (succeeded && !CanPlayersSeeCoordinates(tileX, tileY))
                 {
-					action(player, tileX, tileY);
+                    action(player, tileX, tileY);
                 }
             }
         }
 
-		/// <summary>
-		/// Checks that a given tile is suitable to spawn an NPC.
-		/// </summary>
-		/// <param name="tileX">Tile x.</param>
-		/// <param name="tileY">Tile y.</param>
-		/// <param name="extraSpawnSpaceX">Optional extra space.</param>
-		/// <param name="extraSpawnSpaceY">Optional extra space.</param>
-		/// <returns>True if the space is big enough.</returns>
+        /// <summary>
+        /// Checks that a given tile is suitable to spawn an NPC.
+        /// </summary>
+        /// <param name="tileX">Tile x.</param>
+        /// <param name="tileY">Tile y.</param>
+        /// <param name="extraSpawnSpaceX">Optional extra space.</param>
+        /// <param name="extraSpawnSpaceY">Optional extra space.</param>
+        /// <returns>True if the space is big enough.</returns>
         private static bool CanNpcSpawnAtCoordinates(int tileX, int tileY, int extraSpawnSpaceX = 0, int extraSpawnSpaceY = 0)
         {
-			//try to minimize invasion npcs spawning in tight areas by adding extra space...
-			var spawnSpaceX = NPC.spawnSpaceX + extraSpawnSpaceX;
-			var spawnSpaceY = NPC.spawnSpaceY + extraSpawnSpaceY;
+            //try to minimize invasion npcs spawning in tight areas by adding extra space...
+            var spawnSpaceX = NPC.spawnSpaceX + extraSpawnSpaceX;
+            var spawnSpaceY = NPC.spawnSpaceY + extraSpawnSpaceY;
 
-            var minCheckX = Math.Max(0, tileX - spawnSpaceX / 2);
-            var maxCheckX = Math.Min(Main.maxTilesX, tileX + spawnSpaceX / 2);
+            var minCheckX = Math.Max(0, tileX - (spawnSpaceX / 2));
+            var maxCheckX = Math.Min(Main.maxTilesX, tileX + (spawnSpaceX / 2));
             var minCheckY = Math.Max(0, tileY - spawnSpaceY);
             for (var x = minCheckX; x < maxCheckX; ++x)
             {
@@ -290,12 +289,12 @@ namespace CustomNpcs
                 {
                     var tile2 = Main.tile[x, y];
 
-					//if(tile2.liquid>0 && tile2.liquidType() == 0)
-					//{
-					//	//Debug.Print($"Can spawn npc at {tileX},{tileY}");
-					//	//return true;
-					//	continue;
-					//}
+                    //if(tile2.liquid>0 && tile2.liquidType() == 0)
+                    //{
+                    //	//Debug.Print($"Can spawn npc at {tileX},{tileY}");
+                    //	//return true;
+                    //	continue;
+                    //}
 
                     if (tile2.IsSolid() || tile2.lava())
                     {
@@ -314,9 +313,9 @@ namespace CustomNpcs
             foreach (var player2 in TShock.Players.Where(p => p?.Active == true))
             {
                 var playerCenter = player2.TPlayer.Center;
-                var playerSafeRectangle = new Rectangle((int)(playerCenter.X - NPC.sWidth / 2.0 - safeRangeX),
-                    (int)(playerCenter.Y - NPC.sHeight / 2.0 - safeRangeY),
-                    NPC.sWidth + 2 * safeRangeX, NPC.sHeight + 2 * safeRangeY);
+                var playerSafeRectangle = new Rectangle((int)(playerCenter.X - (NPC.sWidth / 2.0) - safeRangeX),
+                    (int)(playerCenter.Y - (NPC.sHeight / 2.0) - safeRangeY),
+                    NPC.sWidth + (2 * safeRangeX), NPC.sHeight + (2 * safeRangeY));
                 if (spawnRectangle.Intersects(playerSafeRectangle))
                 {
                     return true;

@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using Banking;
-using Banking.Rewards;
+﻿using Banking;
 using Corruption.PluginSupport;
 using Leveling.Classes;
 using Leveling.Database;
 using Leveling.Levels;
 //using Leveling.LoaderDsl;
 using Leveling.Sessions;
-using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Terraria;
 using Terraria.DataStructures;
 using TerrariaApi.Server;
@@ -26,10 +23,10 @@ namespace Leveling
     [ApiVersion(2, 1)]
     public sealed partial class LevelingPlugin : TerrariaPlugin
     {
-		public override string Name => "Leveling";
-		public override string Description => "Provides RPG-styled leveling and classes.";
-		public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-		public override string Author => "MarioE, Timothy Barela";
+        public override string Name => "Leveling";
+        public override string Description => "Provides RPG-styled leveling and classes.";
+        public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+        public override string Author => "MarioE, Timothy Barela";
 
         private static readonly string ConfigPath = Path.Combine("leveling", "config.json");
         public static readonly string ClassPath = Path.Combine("leveling", "classes");
@@ -38,30 +35,30 @@ namespace Leveling
         /// The prefix used for BankAccounts created by this plugin.
         /// </summary>
         public const string BankAccountNamePrefix = "Exp_";
-		internal const string SessionKey = "Leveling_Session";
+        internal const string SessionKey = "Leveling_Session";
 
-		public static LevelingPlugin Instance { get; private set; }
-		public static readonly Dictionary<string, Level> ItemNameToLevelRequirements = new Dictionary<string, Level>();
-		internal ISessionDatabase SessionRepository;
-		private readonly ConditionalWeakTable<NPC, Dictionary<TSPlayer, int>> _npcDamages = new ConditionalWeakTable<NPC, Dictionary<TSPlayer, int>>();
-		private List<ClassDefinition> _classDefinitions;
+        public static LevelingPlugin Instance { get; private set; }
+        public static readonly Dictionary<string, Level> ItemNameToLevelRequirements = new();
+        internal ISessionDatabase SessionRepository;
+        private readonly ConditionalWeakTable<NPC, Dictionary<TSPlayer, int>> _npcDamages = new();
+        private List<ClassDefinition> _classDefinitions;
         internal List<Class> _classes;
-		
-		public LevelingPlugin(Main game) : base(game)
-		{
-			Instance = this;
-		}
 
-		public override void Initialize()
+        public LevelingPlugin(Main game) : base(game)
         {
-			GeneralHooks.ReloadEvent += OnReload;
+            Instance = this;
+        }
+
+        public override void Initialize()
+        {
+            GeneralHooks.ReloadEvent += OnReload;
             PlayerHooks.PlayerChat += OnPlayerChat;
             PlayerHooks.PlayerPermission += OnPlayerPermission;
-			ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize);
+            ServerApi.Hooks.GamePostInitialize.Register(this, OnGamePostInitialize);
             ServerApi.Hooks.GameUpdate.Register(this, OnGameUpdate);
             //ServerApi.Hooks.NetGetData.Register(this, OnNetGetData, int.MinValue);
             //ServerApi.Hooks.NpcKilled.Register(this, OnNpcKilled);
-            ServerApi.Hooks.ServerJoin.Register(this,OnServerJoin);
+            ServerApi.Hooks.ServerJoin.Register(this, OnServerJoin);
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
 
             Commands.ChatCommands.Add(new Command("leveling.addhp", AddHp, "addhp"));
@@ -143,7 +140,7 @@ namespace Leveling
 						   "Dumps debug information about the players level to a file."
 			});
             */
-		}
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -157,8 +154,8 @@ namespace Leveling
                 GeneralHooks.ReloadEvent -= OnReload;
                 PlayerHooks.PlayerChat -= OnPlayerChat;
                 PlayerHooks.PlayerPermission -= OnPlayerPermission;
-				ServerApi.Hooks.GamePostInitialize.Deregister(this, OnGamePostInitialize);
-				ServerApi.Hooks.GameUpdate.Deregister(this, OnGameUpdate);
+                ServerApi.Hooks.GamePostInitialize.Deregister(this, OnGamePostInitialize);
+                ServerApi.Hooks.GameUpdate.Deregister(this, OnGameUpdate);
                 //ServerApi.Hooks.NetGetData.Deregister(this, OnNetGetData);
                 //ServerApi.Hooks.NpcKilled.Deregister(this, OnNpcKilled);
                 ServerApi.Hooks.ServerJoin.Deregister(this, OnServerJoin);
@@ -168,78 +165,78 @@ namespace Leveling
             base.Dispose(disposing);
         }
 
-		private void OnGamePostInitialize(EventArgs args)
-		{
-			OnLoad();
-		}
+        private void OnGamePostInitialize(EventArgs args)
+        {
+            OnLoad();
+        }
 
-		private void OnReload(ReloadEventArgs args)
-		{
-			OnLoad();
+        private void OnReload(ReloadEventArgs args)
+        {
+            OnLoad();
 
-			// We have to resolve sessions again.
-			foreach( var session in TShock.Players.Where(p => p?.Active == true).Select(GetOrCreateSession) )
-			{
-				session.Resolve(_classes);
-			}
+            // We have to resolve sessions again.
+            foreach (var session in TShock.Players.Where(p => p?.Active == true).Select(GetOrCreateSession))
+            {
+                session.Resolve(_classes);
+            }
 
-			args.Player.SendSuccessMessage("[Leveling] Reloaded config!");
-		}
+            args.Player.SendSuccessMessage("[Leveling] Reloaded config!");
+        }
 
-		private void InitializeBanking()
-		{
-			if(BankingPlugin.Instance==null)
-			{
+        private void InitializeBanking()
+        {
+            if (BankingPlugin.Instance == null)
+            {
                 //ServerApi.LogWriter.PluginWriteLine(LevelingPlugin.Instance, $"Error: Unable to retrieve BankingPlugin.Instance", TraceLevel.Error);
                 throw new Exception($"Unable to retrieve BankingPlugin.Instance.");
-			}
-						
-			var bank = BankingPlugin.Instance.Bank;
-			
-			foreach(var currency in bank.CurrencyManager)
-			{
-				currency.PreReward += OnCurrencyPreReward;
-			}
-						
-			bank.AccountDeposit += Session.OnBankAccountBalanceChanged;
-			bank.AccountWithdraw += Session.OnBankAccountBalanceChanged;
-		}
+            }
 
-		private void OnCurrencyPreReward(object sender, RewardEventArgs e)
-		{
-			var session = TryGetOrCreateSession(e.PlayerName);
+            var bank = BankingPlugin.Instance.Bank;
 
-			if(session!=null)
-			{
-				if(session.Class.LevelingCurrency == e.Currency)
-				{
-					//originally from KillNpc() 
-					//var expAmount = (long)Math.Round((double)kvp.Value / total *
-					//							config.NpcNameToExpReward.Get(npc.GivenOrTypeName, npc.lifeMax) *
-					//							( session.Class.ExpMultiplierOverride ?? 1.0 ) * config.ExpMultiplier);
-					
-					//TODO Start adapting old npc exp overrides... but this wont really work as is -- we need an overhaul
-					//if(e.RewardReason == RewardReason.Killing)
-					//{
-					//	var expValues = session.Class.Definition.ParsedNpcNameToExpValues;
-					//	//var result = rewardValue;
-					//	var killReward = (KillingReward)e.Reward;
-						
-					//	if( expValues.TryGetValue(killReward.NpcGivenOrTypeName, out var newValue) == true )
-					//	{
-					//		Debug.Print($"ClassExpReward adjusted to {newValue}(was {e.RewardValue}).");
-					//		e.RewardValue = newValue;
-					//	}
-					//}
-					
-					e.RewardValue = e.RewardValue *
-										(decimal)((session.Class.ExpMultiplierOverride ?? 1.0 ) * Config.Instance.ExpMultiplier );
-				}
-			}
-		}
-		
-		private void OnLoad()
-		{
+            foreach (var currency in bank.CurrencyManager)
+            {
+                currency.PreReward += OnCurrencyPreReward;
+            }
+
+            bank.AccountDeposit += Session.OnBankAccountBalanceChanged;
+            bank.AccountWithdraw += Session.OnBankAccountBalanceChanged;
+        }
+
+        private void OnCurrencyPreReward(object sender, RewardEventArgs e)
+        {
+            var session = TryGetOrCreateSession(e.PlayerName);
+
+            if (session != null)
+            {
+                if (session.Class.LevelingCurrency == e.Currency)
+                {
+                    //originally from KillNpc() 
+                    //var expAmount = (long)Math.Round((double)kvp.Value / total *
+                    //							config.NpcNameToExpReward.Get(npc.GivenOrTypeName, npc.lifeMax) *
+                    //							( session.Class.ExpMultiplierOverride ?? 1.0 ) * config.ExpMultiplier);
+
+                    //TODO Start adapting old npc exp overrides... but this wont really work as is -- we need an overhaul
+                    //if(e.RewardReason == RewardReason.Killing)
+                    //{
+                    //	var expValues = session.Class.Definition.ParsedNpcNameToExpValues;
+                    //	//var result = rewardValue;
+                    //	var killReward = (KillingReward)e.Reward;
+
+                    //	if( expValues.TryGetValue(killReward.NpcGivenOrTypeName, out var newValue) == true )
+                    //	{
+                    //		Debug.Print($"ClassExpReward adjusted to {newValue}(was {e.RewardValue}).");
+                    //		e.RewardValue = newValue;
+                    //	}
+                    //}
+
+                    e.RewardValue = e.RewardValue *
+                                        (decimal)((session.Class.ExpMultiplierOverride ?? 1.0) * Config.Instance.ExpMultiplier);
+                }
+            }
+        }
+
+        private void OnLoad()
+        {
             if (!Directory.Exists(ClassPath))
             {
                 Directory.CreateDirectory(ClassPath);
@@ -252,82 +249,82 @@ namespace Leveling
                 {
 
                     Console.WriteLine("[Leveling] Default class does not exist, creating a default class.");
-                    var defaultClass = new ClassDefinition() { Name=Config.Instance.DefaultClassName, DisplayName=Config.Instance.DefaultClassName };
+                    var defaultClass = new ClassDefinition() { Name = Config.Instance.DefaultClassName, DisplayName = Config.Instance.DefaultClassName };
                     defaultClass.Initialize();
                     File.WriteAllText(classPath, JsonConvert.SerializeObject(defaultClass));
                 }
             }
-			var dbConfig = Config.Instance.DatabaseConfig;
+            var dbConfig = Config.Instance.DatabaseConfig;
             SessionRepository = SessionDatabaseFactory.LoadOrCreateDatabase(dbConfig.DatabaseType, dbConfig.ConnectionString);
 
-			InitializeBanking();
+            InitializeBanking();
 
-			Directory.CreateDirectory(ClassPath);
-						
-			var classDefs = ClassDefinition.Load(ClassPath);
-									
-			_classDefinitions = classDefs;
-			_classes = _classDefinitions.Select(cd => new Class(cd)).ToList();
-						
-			////if default class file does not exist, we're in an error state
-			//if( _classDefinitions.Select(cd => cd.Name).
-			//	FirstOrDefault(n => n == Config.Instance.DefaultClassName) == null )
-			//{
-			//	//throw new Exception($"DefaultClassName: '{Config.Instance.DefaultClassName}' was not found.");
-			//	ServerApi.LogWriter.PluginWriteLine(this, $"DefaultClassName: '{Config.Instance.DefaultClassName}' was not found. ", TraceLevel.Error);
-			//	//_classDefinitions.Clear();
-			//	//_classes.Clear();
-			//	//return;
-			//}
+            Directory.CreateDirectory(ClassPath);
 
-			//foreach(var def in classDefs)
-			//{
-			//	//disabled during conversion to multi currency
-			//	//def.PreParseRewardValues(ExpCurrency);
-			//	def.PreParseRewardValues();
-			//}
-			
-			ItemNameToLevelRequirements?.Clear();
-			var levels = _classes.SelectMany(c => c.Levels).ToList();
-			foreach( var @class in _classes )
-			{
-				@class.Resolve(levels, 0);
-			}
-			foreach( var @class in _classes )
-			{
-				@class.Resolve(levels, 1);
-			}
-			foreach( var level in levels )
-			{
-				foreach( var itemName in level.ItemNamesAllowed )
-				{
-					ItemNameToLevelRequirements[itemName] = level;
-				}
-			}
-		}
-				
-		internal Session TryGetOrCreateSession(string playerName)
-		{
-			var tsPlayer = TSPlayer.FindByNameOrID(playerName).FirstOrDefault();
+            var classDefs = ClassDefinition.Load(ClassPath);
 
-			if( tsPlayer != null && tsPlayer.Active )
-				return GetOrCreateSession(tsPlayer);
-			else
-				return null;
-		}
+            _classDefinitions = classDefs;
+            _classes = _classDefinitions.Select(cd => new Class(cd)).ToList();
+
+            ////if default class file does not exist, we're in an error state
+            //if( _classDefinitions.Select(cd => cd.Name).
+            //	FirstOrDefault(n => n == Config.Instance.DefaultClassName) == null )
+            //{
+            //	//throw new Exception($"DefaultClassName: '{Config.Instance.DefaultClassName}' was not found.");
+            //	ServerApi.LogWriter.PluginWriteLine(this, $"DefaultClassName: '{Config.Instance.DefaultClassName}' was not found. ", TraceLevel.Error);
+            //	//_classDefinitions.Clear();
+            //	//_classes.Clear();
+            //	//return;
+            //}
+
+            //foreach(var def in classDefs)
+            //{
+            //	//disabled during conversion to multi currency
+            //	//def.PreParseRewardValues(ExpCurrency);
+            //	def.PreParseRewardValues();
+            //}
+
+            ItemNameToLevelRequirements?.Clear();
+            var levels = _classes.SelectMany(c => c.Levels).ToList();
+            foreach (var @class in _classes)
+            {
+                @class.Resolve(levels, 0);
+            }
+            foreach (var @class in _classes)
+            {
+                @class.Resolve(levels, 1);
+            }
+            foreach (var level in levels)
+            {
+                foreach (var itemName in level.ItemNamesAllowed)
+                {
+                    ItemNameToLevelRequirements[itemName] = level;
+                }
+            }
+        }
+
+        internal Session TryGetOrCreateSession(string playerName)
+        {
+            var tsPlayer = TSPlayer.FindByNameOrID(playerName).FirstOrDefault();
+
+            if (tsPlayer != null && tsPlayer.Active)
+                return GetOrCreateSession(tsPlayer);
+            else
+                return null;
+        }
 
         internal Session GetOrCreateSession(TSPlayer player)
         {
             var session = player.GetData<Session>(SessionKey);
-			if (session == null)
+            if (session == null)
             {
-				var username = player.Account?.Name ?? player.Name;
-				
+                var username = player.Account?.Name ?? player.Name;
+
                 //first try the database
                 SessionDefinition definition = SessionRepository.Load(username);
 
                 //otherwise we need to create
-                if(definition==null)
+                if (definition == null)
                 {
                     definition = new SessionDefinition();
                     definition.Initialize();
@@ -339,7 +336,7 @@ namespace Leveling
             }
             return session;
         }
-				
+
         private void OnGameUpdate(EventArgs args)
         {
             foreach (var player in TShock.Players.Where(p => p?.Active == true))
@@ -356,58 +353,58 @@ namespace Leveling
                 return;
             }
 
-      //      if (args.MsgID == PacketTypes.NpcItemStrike || args.MsgID == PacketTypes.NpcStrike)
-      //      {
-      //          var player = TShock.Players[args.Msg.whoAmI];
-      //          using (var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length)))
-      //          {
-      //              var npcIndex = reader.ReadInt16();
+            //      if (args.MsgID == PacketTypes.NpcItemStrike || args.MsgID == PacketTypes.NpcStrike)
+            //      {
+            //          var player = TShock.Players[args.Msg.whoAmI];
+            //          using (var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length)))
+            //          {
+            //              var npcIndex = reader.ReadInt16();
 
-      //              void DoStrike(double damage, bool isCritical)
-      //              {
-      //                  if (damage < 1.0)
-      //                  {
-      //                      return;
-      //                  }
+            //              void DoStrike(double damage, bool isCritical)
+            //              {
+            //                  if (damage < 1.0)
+            //                  {
+            //                      return;
+            //                  }
 
-      //                  var npc = Main.npc[npcIndex];
-      //                  var defense = npc.defense;
-      //                  defense -= npc.ichor ? 20 : 0;
-      //                  defense -= npc.betsysCurse ? 40 : 0;
-      //                  defense = Math.Max(0, defense);
+            //                  var npc = Main.npc[npcIndex];
+            //                  var defense = npc.defense;
+            //                  defense -= npc.ichor ? 20 : 0;
+            //                  defense -= npc.betsysCurse ? 40 : 0;
+            //                  defense = Math.Max(0, defense);
 
-      //                  damage = Main.CalculateDamage((int)damage, defense);
-      //                  damage *= isCritical ? 2.0 : 1.0;
-      //                  damage *= Math.Max(1.0, npc.takenDamageMultiplier);
+            //                  damage = Main.CalculateDamage((int)damage, defense);
+            //                  damage *= isCritical ? 2.0 : 1.0;
+            //                  damage *= Math.Max(1.0, npc.takenDamageMultiplier);
 
-      //                  var damages = _npcDamages.GetOrCreateValue(npc);
-      //                  damages[player] = damages.Get(player) + (int)damage;
+            //                  var damages = _npcDamages.GetOrCreateValue(npc);
+            //                  damages[player] = damages.Get(player) + (int)damage;
 
-						////Debug.Print($"Leveling - DoStrike! Damage: {damage}, Critical: {isCritical}");
+            ////Debug.Print($"Leveling - DoStrike! Damage: {damage}, Critical: {isCritical}");
 
-						//if (npc.life <= damage)
-      //                  {
-      //                      KillNpc(npc);
-      //                  }
-      //              }
+            //if (npc.life <= damage)
+            //                  {
+            //                      KillNpc(npc);
+            //                  }
+            //              }
 
-      //              if (args.MsgID == PacketTypes.NpcItemStrike)
-      //              {
-      //                  DoStrike(player.SelectedItem.damage, false);
-      //              }
-      //              else
-      //              {
-      //                  var damage = reader.ReadInt16();
-      //                  reader.ReadSingle();
-      //                  reader.ReadByte();
-      //                  var isCritical = reader.ReadByte() == 1;
-      //                  DoStrike(damage, isCritical);
-      //              }
-      //          }
-      //      }
+            //              if (args.MsgID == PacketTypes.NpcItemStrike)
+            //              {
+            //                  DoStrike(player.SelectedItem.damage, false);
+            //              }
+            //              else
+            //              {
+            //                  var damage = reader.ReadInt16();
+            //                  reader.ReadSingle();
+            //                  reader.ReadByte();
+            //                  var isCritical = reader.ReadByte() == 1;
+            //                  DoStrike(damage, isCritical);
+            //              }
+            //          }
+            //      }
             //else if (args.MsgID == PacketTypes.PlayerDeathV2)
-			if( args.MsgID == PacketTypes.PlayerDeathV2 )
-			{
+            if (args.MsgID == PacketTypes.PlayerDeathV2)
+            {
                 var player = TShock.Players[args.Msg.whoAmI];
                 var session = GetOrCreateSession(player);
                 using (var reader = new BinaryReader(new MemoryStream(args.Msg.readBuffer, args.Index, args.Length)))
@@ -512,5 +509,5 @@ namespace Leveling
                 session.Save();
             }
         }
-	}
+    }
 }

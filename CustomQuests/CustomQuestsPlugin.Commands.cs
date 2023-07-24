@@ -2,12 +2,9 @@
 using CustomQuests.Quests;
 using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Terraria;
 using TerrariaApi.Server;
 using TShockAPI;
@@ -730,7 +727,7 @@ namespace CustomQuests
             var completedQuests = validCompletedQuests.Select(s => QuestLoader[s]).ToList();
 
             var totalQuestCount = availableQuests.Count + completedQuests.Count;
-            var maxPage = (totalQuestCount - 1) / QuestsPerPage + 1;
+            var maxPage = ((totalQuestCount - 1) / QuestsPerPage) + 1;
             var inputPageNumber = parameters.Count == 1 ? "1" : parameters[1];
             if (!int.TryParse(inputPageNumber, out var pageNumber) || pageNumber <= 0 || pageNumber > maxPage)
             {

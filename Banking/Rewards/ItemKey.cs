@@ -1,48 +1,44 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Banking.Rewards
 {
-	/// <summary>
-	/// Key for FishingReward ValueOverrides.
-	/// </summary>
-	[JsonObject(MemberSerialization.OptIn)]
-	public class ItemKey : IEquatable<ItemKey>
-	{
-		[JsonProperty(Order = 0 )]
-		public int ItemId { get; set; }
+    /// <summary>
+    /// Key for FishingReward ValueOverrides.
+    /// </summary>
+    [JsonObject(MemberSerialization.OptIn)]
+    public class ItemKey : IEquatable<ItemKey>
+    {
+        [JsonProperty(Order = 0)]
+        public int ItemId { get; set; }
 
-		[JsonProperty(Order = 1)]
-		public byte Prefix { get; set; }
-		
-		public ItemKey(int itemId, byte prefix)
-		{
-			ItemId = itemId;
-			Prefix = prefix;
-		}
+        [JsonProperty(Order = 1)]
+        public byte Prefix { get; set; }
 
-		public bool Equals(ItemKey other)
-		{
-			return ItemId == other.ItemId && Prefix == other.Prefix;
-		}
+        public ItemKey(int itemId, byte prefix)
+        {
+            ItemId = itemId;
+            Prefix = prefix;
+        }
 
-		public override bool Equals(object obj)
-		{
-			ItemKey other = obj as ItemKey;
+        public bool Equals(ItemKey other)
+        {
+            return ItemId == other.ItemId && Prefix == other.Prefix;
+        }
 
-			if( other != null )
-				return Equals(other);
-			else
-				return false;
-		}
+        public override bool Equals(object obj)
+        {
+            ItemKey other = obj as ItemKey;
 
-		public override int GetHashCode()
-		{
-			return ItemId ^ Prefix;
-		}
-	}
+            if (other != null)
+                return Equals(other);
+            else
+                return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return ItemId ^ Prefix;
+        }
+    }
 }

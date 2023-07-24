@@ -4,7 +4,6 @@ using CustomNpcs.Npcs;
 using CustomNpcs.Projectiles;
 using Newtonsoft.Json;
 using PythonTS;
-using System;
 using System.Collections.Generic;
 
 namespace CustomNpcs
@@ -15,17 +14,17 @@ namespace CustomNpcs
         public abstract string ScriptPath { get; set; }
         public List<Script> LinkedScripts { get; set; } = new();
 
-        public NpcDefinition NpcDefinition => ((NpcDefinition)this);
+        public NpcDefinition NpcDefinition => (NpcDefinition)this;
 
-        public ProjectileDefinition ProjDefinition => ((ProjectileDefinition)this);
+        public ProjectileDefinition ProjDefinition => (ProjectileDefinition)this;
 
-        public InvasionDefinition InvasionDefinition => ((InvasionDefinition)this);
+        public InvasionDefinition InvasionDefinition => (InvasionDefinition)this;
 
         [JsonIgnore]
         public FilePosition FilePosition { get; set; }
 
         public abstract void CreateModules();
- 
+
     }
 
     public class CustomDefinition : Definition

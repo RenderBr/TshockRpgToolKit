@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Leveling.Classes;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Leveling.Classes;
 
 namespace Leveling.Levels
 {
@@ -54,10 +54,10 @@ namespace Leveling.Levels
         /// </summary>
         public long ExpRequired => _definition.ExpRequired;
 
-		/// <summary>
-		///		Gets the CurrencyRequired string, if any.
-		/// </summary>
-		public CurrencyDefefinition Currency => _definition.Currency;
+        /// <summary>
+        ///		Gets the CurrencyRequired string, if any.
+        /// </summary>
+        public CurrencyDefefinition Currency => _definition.Currency;
 
         /// <summary>
         ///     Gets the set of item names allowed.

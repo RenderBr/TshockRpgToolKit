@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Corruption.PluginSupport;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Corruption.PluginSupport;
-using Newtonsoft.Json;
 
 namespace CustomQuests.Configuration
 {
@@ -12,11 +12,11 @@ namespace CustomQuests.Configuration
     [JsonObject(MemberSerialization.OptIn)]
     public sealed class Config : JsonConfig
     {
-		[JsonProperty(Order = 0)]
+        [JsonProperty(Order = 0)]
         public DatabaseConfig Database { get; set; } = new DatabaseConfig("sqlite", "Data Source=quests/db.sqlite");
 
-        [JsonProperty("DefaultQuests",Order = 1)]
-        private readonly List<string> _defaultQuestNames = new List<string>();
+        [JsonProperty("DefaultQuests", Order = 1)]
+        private readonly List<string> _defaultQuestNames = new();
 
         [JsonProperty("ScriptPath", Order = 2)]
         public string ScriptPath { get; set; } = "quests";
@@ -25,26 +25,26 @@ namespace CustomQuests.Configuration
         /// </summary>
         public ReadOnlyCollection<string> DefaultQuestNames => _defaultQuestNames.AsReadOnly();
 
-		/// <summary>
-		///     Gets the save period.
-		/// </summary>
-		[JsonProperty]
-		public TimeSpan SavePeriod { get; private set; } = TimeSpan.FromMinutes(10.0);
+        /// <summary>
+        ///     Gets the save period.
+        /// </summary>
+        [JsonProperty]
+        public TimeSpan SavePeriod { get; private set; } = TimeSpan.FromMinutes(10.0);
 
-		public override ValidationResult Validate()
-		{
-			var result = new ValidationResult();
+        public override ValidationResult Validate()
+        {
+            var result = new ValidationResult();
 
-			if (Database == null)
-				result.Errors.Add(new ValidationError($"Database config is null."));
+            if (Database == null)
+                result.Errors.Add(new ValidationError($"Database config is null."));
 
-			if(_defaultQuestNames.Count<1)
-				result.Warnings.Add(new ValidationWarning("There are no DefaultQuestNames configured."));
+            if (_defaultQuestNames.Count < 1)
+                result.Warnings.Add(new ValidationWarning("There are no DefaultQuestNames configured."));
 
-			if (SavePeriod < TimeSpan.FromSeconds(20.0))
-				result.Warnings.Add(new ValidationWarning("SavePeriod is less than 20 seconds. This may severely impact server performance."));
+            if (SavePeriod < TimeSpan.FromSeconds(20.0))
+                result.Warnings.Add(new ValidationWarning("SavePeriod is less than 20 seconds. This may severely impact server performance."));
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

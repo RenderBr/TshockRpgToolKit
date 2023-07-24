@@ -63,48 +63,48 @@ namespace Banking
 
         internal void InvokeAccountDeposit(BankAccount bankAccount, ref decimal newBalance, ref decimal previousBalance)
         {
-                var args = new ScriptArguments[]
-                {
+            var args = new ScriptArguments[]
+            {
                     new ScriptArguments("bankAccount", bankAccount),
                     new ScriptArguments("newBalance", newBalance),
                     new ScriptArguments("previousBalance", previousBalance)
-                };
-                var eventArgs = new BalanceChangedEventArgs(bankAccount, ref newBalance, ref previousBalance);
+            };
+            var eventArgs = new BalanceChangedEventArgs(bankAccount, ref newBalance, ref previousBalance);
 
-                AccountDeposit?.Invoke(this, eventArgs);
+            AccountDeposit?.Invoke(this, eventArgs);
 
-                try
-                {
-                    BankingScript.ExecuteMethod("OnAccountDeposit", args);
-                }
-                catch (Exception ex)
-                {
-                    BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
-                }
-            
+            try
+            {
+                BankingScript.ExecuteMethod("OnAccountDeposit", args);
+            }
+            catch (Exception ex)
+            {
+                BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
+            }
+
         }
 
         internal void InvokeAccountWithdraw(BankAccount bankAccount, ref decimal newBalance, ref decimal previousBalance)
         {
 
-                var args = new ScriptArguments[]
-                {
+            var args = new ScriptArguments[]
+            {
                     new ScriptArguments("bankAccount", bankAccount),
                     new ScriptArguments("newBalance", newBalance),
                     new ScriptArguments("previousBalance", previousBalance)
-                };
-                var eventArgs = new BalanceChangedEventArgs(bankAccount, ref newBalance, ref previousBalance);
-                AccountWithdraw?.Invoke(this, eventArgs);
+            };
+            var eventArgs = new BalanceChangedEventArgs(bankAccount, ref newBalance, ref previousBalance);
+            AccountWithdraw?.Invoke(this, eventArgs);
 
-                try
-                {
-                    BankingScript.ExecuteMethod("OnAccountWithdraw", args);
-                }
-                catch (Exception ex)
-                {
-                    BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
-                }
-            
+            try
+            {
+                BankingScript.ExecuteMethod("OnAccountWithdraw", args);
+            }
+            catch (Exception ex)
+            {
+                BankingPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
+            }
+
         }
 
         /// <summary>

@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using CustomQuests.Triggers;
+﻿using CustomQuests.Triggers;
 using Microsoft.Xna.Framework;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Threading;
-using System.Collections.Concurrent;
-using TShockAPI;
-using Corruption.PluginSupport;
 using PythonTS;
 using PythonTS.Models;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using TShockAPI;
 
 namespace CustomQuests.Quests
 {
@@ -19,29 +17,29 @@ namespace CustomQuests.Quests
     /// </summary>
     public partial class Quest : IDisposable
     {
-		internal protected Task MainQuestTask { get; internal set; } // deliberately long winded, to not clash with likely script names
-		private CancellationTokenSource CancellationTokenSource;
-		protected CancellationToken QuestCancellationToken => CancellationTokenSource.Token;
-		private ConcurrentDictionary<int, Trigger> triggers;
-		int nextTriggerId = 1;
+        internal protected Task MainQuestTask { get; internal set; } // deliberately long winded, to not clash with likely script names
+        private CancellationTokenSource CancellationTokenSource;
+        protected CancellationToken QuestCancellationToken => CancellationTokenSource.Token;
+        private ConcurrentDictionary<int, Trigger> triggers;
+        int nextTriggerId = 1;
 
-		//used to warn when containing task exited, and Complete() was not called( leads to hanging triggers ).
-		internal bool CalledComplete { get; private set; }
+        //used to warn when containing task exited, and Complete() was not called( leads to hanging triggers ).
+        internal bool CalledComplete { get; private set; }
 
-		/// <summary>
-		///     Gets the quest info.
-		/// </summary>
-		public QuestInfo QuestInfo { get; internal set; }
+        /// <summary>
+        ///     Gets the quest info.
+        /// </summary>
+        public QuestInfo QuestInfo { get; internal set; }
 
-		/// <summary>
-		///     Gets a value indicating whether the quest is ended.
-		/// </summary>
-		public bool IsEnded { get; private set; }
+        /// <summary>
+        ///     Gets a value indicating whether the quest is ended.
+        /// </summary>
+        public bool IsEnded { get; private set; }
 
-		/// <summary>
-		///     Gets a value indicating whether the quest is successful.
-		/// </summary>
-		public bool IsSuccessful { get; private set; }
+        /// <summary>
+        ///     Gets a value indicating whether the quest is successful.
+        /// </summary>
+        public bool IsSuccessful { get; private set; }
 
         public Script Script { get; internal set; }
 
@@ -49,150 +47,150 @@ namespace CustomQuests.Quests
         ///  Gets or sets a friendly string informing players of their progress within a quest.
         /// </summary>
         public string QuestStatus { get; set; }
-		public Color QuestStatusColor { get; set; } // = Color.White;
+        public Color QuestStatusColor { get; set; } // = Color.White;
 
-		internal HashSet<string> RejoinablePlayers { get; private set; }
-		
-		public Quest()
-		{
-			CancellationTokenSource = new CancellationTokenSource();
-			triggers = new ConcurrentDictionary<int, Trigger>();
-			QuestStatusColor = Color.White;
+        internal HashSet<string> RejoinablePlayers { get; private set; }
 
-			RejoinablePlayers = new HashSet<string>();
-		}
-		
-		/// <summary>
-		///     Disposes the quest.
-		/// </summary>
-		public void Dispose()
-		{
-			foreach( var ct in triggers.Values )
-			{
-				ct.Dispose();
-			}
-		}
+        public Quest()
+        {
+            CancellationTokenSource = new CancellationTokenSource();
+            triggers = new ConcurrentDictionary<int, Trigger>();
+            QuestStatusColor = Color.White;
 
-		internal void TryAddRejoinablePlayer(TSPlayer player)
-		{
-			if( !QuestInfo.AllowRejoin )
-				return;
+            RejoinablePlayers = new HashSet<string>();
+        }
 
-			RejoinablePlayers.Add(player.Name);
-		}
+        /// <summary>
+        ///     Disposes the quest.
+        /// </summary>
+        public void Dispose()
+        {
+            foreach (var ct in triggers.Values)
+            {
+                ct.Dispose();
+            }
+        }
 
-		internal bool CanRejoin(TSPlayer player)
-		{
-			if( !QuestInfo.AllowRejoin )
-				return false;
+        internal void TryAddRejoinablePlayer(TSPlayer player)
+        {
+            if (!QuestInfo.AllowRejoin)
+                return;
 
-			if( RejoinablePlayers.Contains(player.Name) )
-				return true;
+            RejoinablePlayers.Add(player.Name);
+        }
 
-			return false;
-		}
+        internal bool CanRejoin(TSPlayer player)
+        {
+            if (!QuestInfo.AllowRejoin)
+                return false;
 
-		
-		internal void Run()
-		{
-			MainQuestTask = Task.Run(() =>
-			{
-				ScriptArguments[] args = new ScriptArguments[]
-				{
-					new ScriptArguments("quest", this)
-				};
+            if (RejoinablePlayers.Contains(player.Name))
+                return true;
+
+            return false;
+        }
+
+
+        internal void Run()
+        {
+            MainQuestTask = Task.Run(() =>
+            {
+                ScriptArguments[] args = new ScriptArguments[]
+                {
+                    new ScriptArguments("quest", this)
+                };
                 Script.ExecuteMethod(QuestInfo.PrimaryMethodName, args);
             });
-		}
+        }
 
-		//this method gets overridden in boo, by transplanting the modules main method into it.
-		protected virtual void OnRun()
-		{
-		}
-
-		public void Abort()
-		{
-			OnAbort();
-		}
-
-		/// <summary>
-		/// Aborts a Quest, and optionally sends each party member an error message.
-		/// </summary>
-		/// <param name="partyAbortMessage">Optional message to send party members on abort, null ignores.</param>
-		protected internal virtual void OnAbort(string partyAbortMessage=null)
-		{
-			Debug.Print($"OnAbort()! for {QuestInfo.Name}");
-			Debug.Print("Cancelling...");
-			CancellationTokenSource.Cancel();
-
-			foreach( var member in party )
-			{
-				if(member!=null)
-				{
-					if( partyAbortMessage != null )
-						member.SendErrorMessage(partyAbortMessage);
-
-					var session = CustomQuestsPlugin.Instance.GetSession(member);
-					session.IsAborting = true;
-					session.HasAborted = true;
-				}
-			}
-		}
-		
-		/// <summary>
-		///     Completes the quest.
-		/// </summary>
-		/// <param name="isSuccess"><c>true</c> to complete successfully; otherwise, <c>false</c>.</param>
-		public void Complete(bool isSuccess)
+        //this method gets overridden in boo, by transplanting the modules main method into it.
+        protected virtual void OnRun()
         {
-			if( IsEnded )
-				return;
+        }
 
-			CalledComplete = true;
+        public void Abort()
+        {
+            OnAbort();
+        }
+
+        /// <summary>
+        /// Aborts a Quest, and optionally sends each party member an error message.
+        /// </summary>
+        /// <param name="partyAbortMessage">Optional message to send party members on abort, null ignores.</param>
+        protected internal virtual void OnAbort(string partyAbortMessage = null)
+        {
+            Debug.Print($"OnAbort()! for {QuestInfo.Name}");
+            Debug.Print("Cancelling...");
+            CancellationTokenSource.Cancel();
+
+            foreach (var member in party)
+            {
+                if (member != null)
+                {
+                    if (partyAbortMessage != null)
+                        member.SendErrorMessage(partyAbortMessage);
+
+                    var session = CustomQuestsPlugin.Instance.GetSession(member);
+                    session.IsAborting = true;
+                    session.HasAborted = true;
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Completes the quest.
+        /// </summary>
+        /// <param name="isSuccess"><c>true</c> to complete successfully; otherwise, <c>false</c>.</param>
+        public void Complete(bool isSuccess)
+        {
+            if (IsEnded)
+                return;
+
+            CalledComplete = true;
             IsEnded = true;
             IsSuccessful = isSuccess;
 
-			CancellationTokenSource.Cancel();
-		}
-		
+            CancellationTokenSource.Cancel();
+        }
+
         /// <summary>
         ///     Updates the quest's triggers and party state.
         /// </summary>
         internal void Update()
         {
-			if( IsEnded )
-				return;
+            if (IsEnded)
+                return;
 
-			checkParty();
-			updateTriggers();
-		}
+            checkParty();
+            updateTriggers();
+        }
 
-		private void checkParty()
-		{
-			if(party==null || party.Count<1)
-			{
-				Debug.Print("Party is null or empty, aborting quest.");
-				Abort();
-			}
-		}
+        private void checkParty()
+        {
+            if (party == null || party.Count < 1)
+            {
+                Debug.Print("Party is null or empty, aborting quest.");
+                Abort();
+            }
+        }
 
-		private void updateTriggers()
-		{
-			var completedTriggers = new List<Trigger>();
+        private void updateTriggers()
+        {
+            var completedTriggers = new List<Trigger>();
 
-			foreach( var trigger in triggers.Values )
-			{
-				trigger.Update();
+            foreach (var trigger in triggers.Values)
+            {
+                trigger.Update();
 
-				if( trigger.Status != TriggerStatus.Running )
-					completedTriggers.Add(trigger);
-			}
+                if (trigger.Status != TriggerStatus.Running)
+                    completedTriggers.Add(trigger);
+            }
 
-			foreach( var ct in completedTriggers )
-			{
-				triggers.TryRemove(ct.Id, out var removedTrigger);
-				ct.Dispose();
-			}
-		}
-	}
+            foreach (var ct in completedTriggers)
+            {
+                triggers.TryRemove(ct.Id, out var removedTrigger);
+                ct.Dispose();
+            }
+        }
+    }
 }

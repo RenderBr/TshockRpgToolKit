@@ -1,17 +1,17 @@
-﻿using System.Collections.Generic;
-using Corruption.PluginSupport;
+﻿using Corruption.PluginSupport;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace Leveling.Levels
 {
-	public sealed class CurrencyDefefinition
-	{
-		[JsonProperty("CurrencyType")]
-		public string Type { get; set; } = "TerrariaCoin";
+    public sealed class CurrencyDefefinition
+    {
+        [JsonProperty("CurrencyType")]
+        public string Type { get; set; } = "TerrariaCoin";
 
         [JsonProperty("Cost")]
         public string Cost { get; set; } = "5s";
-	}
+    }
 
     /// <summary>
     ///     Represents a level definition.
@@ -19,29 +19,29 @@ namespace Leveling.Levels
     [JsonObject(MemberSerialization.OptIn)]
     public sealed class LevelDefinition : IValidator
     {
-		/// <summary>
-		///     Gets the name.
-		/// </summary>
-		[JsonProperty("Name", Order = 0)]
-		public string Name { get; internal set; }
+        /// <summary>
+        ///     Gets the name.
+        /// </summary>
+        [JsonProperty("Name", Order = 0)]
+        public string Name { get; internal set; }
 
-		/// <summary>
-		///     Gets the display name.
-		/// </summary>
-		[JsonProperty("DisplayName", Order = 1)]
-		public string DisplayName { get; internal set; }
+        /// <summary>
+        ///     Gets the display name.
+        /// </summary>
+        [JsonProperty("DisplayName", Order = 1)]
+        public string DisplayName { get; internal set; }
 
-		/// <summary>
-		///     Gets the EXP required to level up.
-		/// </summary>
-		[JsonProperty("ExpRequired", Order = 2)]
-		public long ExpRequired { get; internal set; } = 1;
+        /// <summary>
+        ///     Gets the EXP required to level up.
+        /// </summary>
+        [JsonProperty("ExpRequired", Order = 2)]
+        public long ExpRequired { get; internal set; } = 1;
 
-		/// <summary>
-		/// Gets or sets a Currency string that will be parsed into ExpRequired.
-		/// </summary>
-		[JsonProperty("Currency", Order = 3)]
-		public CurrencyDefefinition Currency { get; set; } = new();
+        /// <summary>
+        /// Gets or sets a Currency string that will be parsed into ExpRequired.
+        /// </summary>
+        [JsonProperty("Currency", Order = 3)]
+        public CurrencyDefefinition Currency { get; set; } = new();
 
 
         /// <summary>
@@ -55,17 +55,17 @@ namespace Leveling.Levels
         /// </summary>
         [JsonProperty("ItemsAllowed", Order = 5)]
         public ISet<string> ItemNamesAllowed { get; internal set; } = new HashSet<string>();
-		
+
         /// <summary>
         ///     Gets the set of permissions granted.
         /// </summary>
         [JsonProperty("PermissionsGranted", Order = 6)]
         public ISet<string> PermissionsGranted { get; internal set; } = new HashSet<string>();
 
-		/// <summary>
-		///     Gets the list of commands to execute on leveling up.
-		/// </summary>
-		[JsonProperty("CommandsOnLevelUp", Order = 7)]
+        /// <summary>
+        ///     Gets the list of commands to execute on leveling up.
+        /// </summary>
+        [JsonProperty("CommandsOnLevelUp", Order = 7)]
         public IList<string> CommandsOnLevelUp { get; internal set; } = new List<string>();
 
         /// <summary>
@@ -74,31 +74,31 @@ namespace Leveling.Levels
         [JsonProperty("CommandsOnLevelUpOnce", Order = 8)]
         public IList<string> CommandsOnLevelUpOnce { get; internal set; } = new List<string>();
 
-		/// <summary>
-		///     Gets the list of commands to execute on leveling down.
-		/// </summary>
-		[JsonProperty("CommandsOnLevelDown", Order = 9)]
-		public IList<string> CommandsOnLevelDown { get; internal set; } = new List<string>();
+        /// <summary>
+        ///     Gets the list of commands to execute on leveling down.
+        /// </summary>
+        [JsonProperty("CommandsOnLevelDown", Order = 9)]
+        public IList<string> CommandsOnLevelDown { get; internal set; } = new List<string>();
 
-		public ValidationResult Validate()
-		{
-			string source = Name;
+        public ValidationResult Validate()
+        {
+            string source = Name;
 
-			if (string.IsNullOrWhiteSpace(Name))
-				source = DisplayName;
+            if (string.IsNullOrWhiteSpace(Name))
+                source = DisplayName;
 
-			var result = new ValidationResult(source);
+            var result = new ValidationResult(source);
 
-			if (string.IsNullOrWhiteSpace(Name))
-				result.Errors.Add(new ValidationError($"{nameof(Name)} is null or whitespace."));
+            if (string.IsNullOrWhiteSpace(Name))
+                result.Errors.Add(new ValidationError($"{nameof(Name)} is null or whitespace."));
 
-			if (string.IsNullOrWhiteSpace(DisplayName))
-				result.Warnings.Add(new ValidationWarning($"{nameof(DisplayName)} is null or whitespace."));
+            if (string.IsNullOrWhiteSpace(DisplayName))
+                result.Warnings.Add(new ValidationWarning($"{nameof(DisplayName)} is null or whitespace."));
 
-			if (ExpRequired<1)
-				result.Errors.Add(new ValidationError($"{nameof(ExpRequired)} is less than 1."));
+            if (ExpRequired < 1)
+                result.Errors.Add(new ValidationError($"{nameof(ExpRequired)} is less than 1."));
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

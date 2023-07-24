@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Microsoft.Data.Sqlite;
-using TerrariaApi.Server;
-using System.Diagnostics;
+﻿using Microsoft.Data.Sqlite;
 using Newtonsoft.Json;
+using System;
 using System.Data;
+using System.Diagnostics;
+using TerrariaApi.Server;
 
 namespace CustomSkills.Database
 {
@@ -16,17 +13,17 @@ namespace CustomSkills.Database
 
         public SqliteSessionDatabase(string connectionString)
         {
-			const string CreateTableSql = "CREATE TABLE IF NOT EXISTS skill_sessions (" +
-											"player text PRIMARY KEY NOT NULL," +
-											"data text );";
+            const string CreateTableSql = "CREATE TABLE IF NOT EXISTS skill_sessions (" +
+                                            "player text PRIMARY KEY NOT NULL," +
+                                            "data text );";
 
-			try
+            try
             {
                 ConnectionString = connectionString;
 
-                using(var connection = new SqliteConnection(ConnectionString))
+                using (var connection = new SqliteConnection(ConnectionString))
                 {
-                    using(var cmd = connection.CreateCommand())
+                    using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = CreateTableSql;
 
@@ -35,31 +32,31 @@ namespace CustomSkills.Database
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 ServerApi.LogWriter.PluginWriteLine(CustomSkillsPlugin.Instance, "Failed to open skill_sessions database!", TraceLevel.Error);
                 Console.WriteLine(ex.Message);
                 Console.WriteLine(ex.StackTrace);
             }
         }
-			
+
         public Session Load(string userName)
         {
             Session result = null;
 
-            using(var connection = new SqliteConnection(ConnectionString))
+            using (var connection = new SqliteConnection(ConnectionString))
             {
-                using(var cmd = connection.CreateCommand())
+                using (var cmd = connection.CreateCommand())
                 {
-                   	cmd.CommandText = "SELECT data FROM skill_sessions " +
-										$"WHERE player=@player;";
+                    cmd.CommandText = "SELECT data FROM skill_sessions " +
+                                     $"WHERE player=@player;";
 
-					cmd.Parameters.AddWithValue("@player", userName);
+                    cmd.Parameters.AddWithValue("@player", userName);
 
-					connection.Open();
+                    connection.Open();
                     var reader = cmd.ExecuteReader(CommandBehavior.SingleRow);
 
-                    if(reader.HasRows)
+                    if (reader.HasRows)
                     {
                         try
                         {
@@ -67,7 +64,7 @@ namespace CustomSkills.Database
                             var json = reader.GetString(0);
                             result = JsonConvert.DeserializeObject<Session>(json);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
                             ServerApi.LogWriter.PluginWriteLine(CustomSkillsPlugin.Instance, $"Load error: ({ex.Message})", TraceLevel.Error);
                         }
@@ -81,13 +78,13 @@ namespace CustomSkills.Database
         public void Save(string userName, Session session)
         {
             //Debug.Print($"SqliteSessionRepository.Save({userName})");
-            using(var connection = new SqliteConnection(ConnectionString))
+            using (var connection = new SqliteConnection(ConnectionString))
             {
-				try
-				{
-					var json = JsonConvert.SerializeObject(session);//, Formatting.Indented);
+                try
+                {
+                    var json = JsonConvert.SerializeObject(session);//, Formatting.Indented);
 
-                    using(var cmd = connection.CreateCommand())
+                    using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "INSERT OR REPLACE INTO skill_sessions ( player, data ) " +
                                             "VALUES ( @player, @data );";
@@ -99,7 +96,7 @@ namespace CustomSkills.Database
                         cmd.ExecuteNonQuery();
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     ServerApi.LogWriter.PluginWriteLine(CustomSkillsPlugin.Instance, $"Error: {ex.Message}", TraceLevel.Error);
                     ServerApi.LogWriter.PluginWriteLine(CustomSkillsPlugin.Instance, $"Session data not saved.", TraceLevel.Error);

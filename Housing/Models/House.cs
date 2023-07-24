@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Xna.Framework;
 using TShockAPI;
 //using Wolfje.Plugins.SEconomy;
 
@@ -33,46 +33,46 @@ namespace Housing.Models
             Rectangle = new Rectangle(x, y, x2 - x + 1, y2 - y + 1);
         }
 
-		/// <summary>
-		///     Gets the name.
-		/// </summary>
-		public string Name { get; }
+        /// <summary>
+        ///     Gets the name.
+        /// </summary>
+        public string Name { get; }
 
-		/// <summary>
-		///     Gets the owner name.
-		/// </summary>
-		public string OwnerName { get; }
+        /// <summary>
+        ///     Gets the owner name.
+        /// </summary>
+        public string OwnerName { get; }
 
-		/// <summary>
-		///     Gets the set of allowed user names.
-		/// </summary>
-		public ISet<string> AllowedUsernames { get; } = new HashSet<string>();
+        /// <summary>
+        ///     Gets the set of allowed user names.
+        /// </summary>
+        public ISet<string> AllowedUsernames { get; } = new HashSet<string>();
 
         /// <summary>
         ///     Gets the area.
         /// </summary>
         public int Area => Rectangle.Width * Rectangle.Height;
-		
-		/// <summary>
+
+        /// <summary>
         ///     Gets or sets whether the house is for sale.
         /// </summary>
         public bool ForSale { get; set; }
 
-		/// <summary>
-		///     Gets or sets the price.
-		/// </summary>
-		public string SalePrice { get; set; }
+        /// <summary>
+        ///     Gets or sets the price.
+        /// </summary>
+        public string SalePrice { get; set; }
 
-		/// <summary>
-		///     Gets or sets the debt.
-		/// </summary>
-		public decimal Debt { get; set; }
+        /// <summary>
+        ///     Gets or sets the debt.
+        /// </summary>
+        public decimal Debt { get; set; }
 
-		/// <summary>
-		///     Gets or sets the last time the house was taxed.
-		/// </summary>
-		public DateTime LastTaxed { get; set; } = DateTime.UtcNow;
-		        
+        /// <summary>
+        ///     Gets or sets the last time the house was taxed.
+        /// </summary>
+        public DateTime LastTaxed { get; set; } = DateTime.UtcNow;
+
         /// <summary>
         ///     Gets or sets the rectangle.
         /// </summary>
@@ -80,33 +80,33 @@ namespace Housing.Models
 
         public override string ToString() => Name;
 
-		/// <summary>
-		/// Trys to get a group config for the owner of the House.
-		/// </summary>
-		/// <returns>GroupConfig</returns>
-		public GroupConfig GetGroupConfig()
-		{
-			var groupName = "";
+        /// <summary>
+        /// Trys to get a group config for the owner of the House.
+        /// </summary>
+        /// <returns>GroupConfig</returns>
+        public GroupConfig GetGroupConfig()
+        {
+            var groupName = "";
 
-			if( string.IsNullOrWhiteSpace(OwnerName) )
-			{
-				//send invalid string to force the default config
-				groupName = ">";
-			}
-			else
-			{
-				try
-				{
-					var user = TShock.UserAccounts.GetUserAccountByName(OwnerName);
-					groupName = user.Group;
-				}
-				catch(Exception ex)
-				{
-					Debug.Print($"House.GetGroupConfig() failed while trying to get owner group for house {OwnerName}.");
-				}
-			}
+            if (string.IsNullOrWhiteSpace(OwnerName))
+            {
+                //send invalid string to force the default config
+                groupName = ">";
+            }
+            else
+            {
+                try
+                {
+                    var user = TShock.UserAccounts.GetUserAccountByName(OwnerName);
+                    groupName = user.Group;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print($"House.GetGroupConfig() failed while trying to get owner group for house {OwnerName}.");
+                }
+            }
 
-			return Config.Instance.GetGroupConfig(groupName);
-		}
-	}
+            return Config.Instance.GetGroupConfig(groupName);
+        }
+    }
 }

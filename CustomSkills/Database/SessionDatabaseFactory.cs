@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CustomSkills.Database
+﻿namespace CustomSkills.Database
 {
     public class SessionDatabaseFactory
     {
@@ -12,17 +6,17 @@ namespace CustomSkills.Database
         {
             ISessionDatabase db = null;
 
-            switch(databaseType)
+            switch (databaseType)
             {
-				//case "redis":
-				//    db = new RedisSessionDatabase(connectionString);
-				//    break;
+                //case "redis":
+                //    db = new RedisSessionDatabase(connectionString);
+                //    break;
 
-				case "mysql":
-					db = new MySqlSessionDatabase(connectionString);
-					break;
+                case "mysql":
+                    db = new MySqlSessionDatabase(connectionString);
+                    break;
 
-				case "sqlite":
+                case "sqlite":
                 default:
                     db = new SqliteSessionDatabase(connectionString);
                     break;

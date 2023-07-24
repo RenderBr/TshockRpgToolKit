@@ -197,7 +197,7 @@ namespace Leveling.Classes
                     new ScriptArguments("class", this),
             };
 
-                Definition.Script?.ExecuteMethod("OnClassMastered",Args);
+                Definition.Script?.ExecuteMethod("OnClassMastered", Args);
             }
             catch (Exception ex)
             {

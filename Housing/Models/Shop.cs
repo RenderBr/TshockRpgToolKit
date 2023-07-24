@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Banking.Currency;
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Banking.Currency;
-using Microsoft.Xna.Framework;
 using TShockAPI;
 //using Wolfje.Plugins.SEconomy;
 
@@ -87,38 +87,38 @@ namespace Housing.Models
         ///     Gets the unit prices.
         /// </summary>
         //public IDictionary<int, decimal> UnitPrices { get; } = new Dictionary<int, decimal>();
-		public IDictionary<int, PriceInfo> UnitPrices { get; } = new Dictionary<int, PriceInfo>();
+        public IDictionary<int, PriceInfo> UnitPrices { get; } = new Dictionary<int, PriceInfo>();
 
 
-		public override string ToString() => Name;
+        public override string ToString() => Name;
 
-		/// <summary>
-		/// Trys to get a group config for the owner of the House.
-		/// </summary>
-		/// <returns>GroupConfig</returns>
-		public GroupConfig GetGroupConfig()
-		{
-			var groupName = "";
+        /// <summary>
+        /// Trys to get a group config for the owner of the House.
+        /// </summary>
+        /// <returns>GroupConfig</returns>
+        public GroupConfig GetGroupConfig()
+        {
+            var groupName = "";
 
-			if( string.IsNullOrWhiteSpace(OwnerName) )
-			{
-				//send invalid string to force the default config
-				groupName = ">";
-			}
-			else
-			{
-				try
-				{
-					var user = TShock.UserAccounts.GetUserAccountByName(OwnerName);
-					groupName = user.Group;
-				}
-				catch( Exception ex )
-				{
-					Debug.Print($"Shop.GetGroupConfig() failed while trying to get owner group for shop {OwnerName}.");
-				}
-			}
+            if (string.IsNullOrWhiteSpace(OwnerName))
+            {
+                //send invalid string to force the default config
+                groupName = ">";
+            }
+            else
+            {
+                try
+                {
+                    var user = TShock.UserAccounts.GetUserAccountByName(OwnerName);
+                    groupName = user.Group;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print($"Shop.GetGroupConfig() failed while trying to get owner group for shop {OwnerName}.");
+                }
+            }
 
-			return Config.Instance.GetGroupConfig(groupName);
-		}
-	}
+            return Config.Instance.GetGroupConfig(groupName);
+        }
+    }
 }

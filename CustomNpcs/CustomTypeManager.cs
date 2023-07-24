@@ -1,15 +1,11 @@
 ﻿using Corruption.PluginSupport;
-using Microsoft.Scripting.Runtime;
 using Newtonsoft.Json;
+using PythonTS;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using PythonTS;
-using TShockAPI.Modules;
-using CustomNpcs;
-using Org.BouncyCastle.Tls;
 
 namespace CustomNpcs
 {
@@ -18,25 +14,25 @@ namespace CustomNpcs
     /// </summary>
     /// <typeparam name="TCustomType"></typeparam>
     public abstract class CustomTypeManager<TCustomType> where TCustomType : Definition
-	{
-		public static string BasePath { get; protected set; }
-		public string ConfigPath { get; protected set; }
+    {
+        public static string BasePath { get; protected set; }
+        public string ConfigPath { get; protected set; }
 
         /// <summary>
         /// Gets the IList of custom definitions managed by this instance.
         /// </summary>
         public virtual List<IDefinition> Definitions { get; protected set; } = new List<IDefinition>();
 
-		//for fast access, instead of always doing a linear search through our definitions...
-		private Dictionary<string, TCustomType> definitionMap { get; set; } = new Dictionary<string, TCustomType>();
+        //for fast access, instead of always doing a linear search through our definitions...
+        private Dictionary<string, TCustomType> definitionMap { get; set; } = new Dictionary<string, TCustomType>();
 
-		/// <summary>
-		/// Gets or sets the Assembly name prefix to be applied during the next compile.
-		/// </summary>
-		/// <remarks> This is cached and applied to each ModuleManager right before compilation.</remarks>
-		public string AssemblyNamePrefix { get; protected set; } = "";
-		
-		/*/// <summary>
+        /// <summary>
+        /// Gets or sets the Assembly name prefix to be applied during the next compile.
+        /// </summary>
+        /// <remarks> This is cached and applied to each ModuleManager right before compilation.</remarks>
+        public string AssemblyNamePrefix { get; protected set; } = "";
+
+        /*/// <summary>
 		/// Loads in json definition files, and attempts to compile and link to any related scripts.
 		/// </summary>
 		protected virtual void LoadDefinitions()
@@ -164,11 +160,11 @@ namespace CustomNpcs
             }			
 		}*/
 
-		public void ClearDefinitions()
+        public void ClearDefinitions()
         {
-			Definitions?.Clear();
-			definitionMap.Clear();
-		}
+            Definitions?.Clear();
+            definitionMap.Clear();
+        }
 
         /// <summary>
 		/// Loads in json definition files, and attempts to compile and link to any related scripts.
@@ -179,7 +175,7 @@ namespace CustomNpcs
             {
                 CustomNpcsPlugin.Instance.LogPrint($"Unable to find definition file, creating default file at {ConfigPath}.", TraceLevel.Warning);
                 SaveDefaultFile(ConfigPath);
-                
+
             }
 
             var rootResult = new ValidationResult(ConfigPath);
@@ -188,11 +184,11 @@ namespace CustomNpcs
             CustomNpcsPlugin.Instance.LogPrint(rootResult);
 
             List<IScript> defs = Script.Modules.Where(x => x.FilePath.Contains(BasePath)).ToList();
-/*            foreach (var def in defs)
-                Definitions.Add(new CustomDefinition(def.FilePath));
+            /*            foreach (var def in defs)
+                            Definitions.Add(new CustomDefinition(def.FilePath));
 
-            foreach (var f in Definitions)
-                Script.AddModuleDefault(f.FilePath);*/
+                        foreach (var f in Definitions)
+                            Script.AddModuleDefault(f.FilePath);*/
 
         }
 
@@ -203,22 +199,22 @@ namespace CustomNpcs
         /// <returns>The definition, or <c>null</c> if it does not exist.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="name" /> is <c>null</c>.</exception>
         public virtual IDefinition FindDefinition(string name)
-		{
-			if (name == null)
-				throw new ArgumentNullException(nameof(name));
+        {
+            if (name == null)
+                throw new ArgumentNullException(nameof(name));
 
-			var lowerName = name.ToLowerInvariant();
+            var lowerName = name.ToLowerInvariant();
 
             return Definitions.FirstOrDefault(d => d.Identifier.ToLowerInvariant() == lowerName, null);
-		}
+        }
 
-		/// <summary>
-		/// Creates and writes default definition data to a file. Used when no file can be found.
-		/// </summary>
-		/// <param name="filePath"></param>
-		internal virtual void SaveDefaultFile(string filePath)
-		{
-			var array = new TCustomType[0];
+        /// <summary>
+        /// Creates and writes default definition data to a file. Used when no file can be found.
+        /// </summary>
+        /// <param name="filePath"></param>
+        internal virtual void SaveDefaultFile(string filePath)
+        {
+            var array = new TCustomType[0];
             var json = JsonConvert.SerializeObject(array);
             var defaultNpcs = @"
             [
@@ -349,6 +345,6 @@ namespace CustomNpcs
             }
 
             File.WriteAllText(filePath, json);
-		}
-	}
+        }
+    }
 }

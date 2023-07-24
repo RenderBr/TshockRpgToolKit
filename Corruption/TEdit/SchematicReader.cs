@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 
 namespace Corruption.TEdit
 {
-	public abstract class SchematicReader
-	{
-		public abstract Schematic Read(BinaryReader reader, string name, int version);
-	}
+    public abstract class SchematicReader
+    {
+        public abstract Schematic Read(BinaryReader reader, string name, int version);
+    }
 }

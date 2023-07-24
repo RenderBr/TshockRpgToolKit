@@ -1,111 +1,109 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using TShockAPI;
 
 namespace CustomSkills
 {
-	/// <summary>
-	/// Manages the lifetime of CustomSkills.
-	/// </summary>
-	internal class CustomSkillRunner
-	{
-		internal static Dictionary<string, CustomSkill> ActiveSkills = new Dictionary<string, CustomSkill>();
-                
+    /// <summary>
+    /// Manages the lifetime of CustomSkills.
+    /// </summary>
+    internal class CustomSkillRunner
+    {
+        internal static Dictionary<string, CustomSkill> ActiveSkills = new();
+
         /// <summary>
         /// For skills that notify the player on cooldown, we keep this separate list.  
         /// </summary>
-        internal static List<CustomSkill> CooldownNotificationList = new List<CustomSkill>();
-        
-		//each player can only have a single skill active!
-		internal static bool AddActiveSkill(TSPlayer player, CustomSkillDefinition skillDefinition, int level)
-		{
-			if(ActiveSkills.ContainsKey(player.Name))
-			{
-				//cant add skill, the player already has an active skill running
-				return false;
-			}
+        internal static List<CustomSkill> CooldownNotificationList = new();
 
-			var session = Session.GetOrCreateSession(player);
-			if(!session.CanAffordCastingSkill(skillDefinition.Name))
-			{
-				//cant afford it, abort
-				return false;
-			}
+        //each player can only have a single skill active!
+        internal static bool AddActiveSkill(TSPlayer player, CustomSkillDefinition skillDefinition, int level)
+        {
+            if (ActiveSkills.ContainsKey(player.Name))
+            {
+                //cant add skill, the player already has an active skill running
+                return false;
+            }
 
-			var skill = new CustomSkill(player, skillDefinition, level);
+            var session = Session.GetOrCreateSession(player);
+            if (!session.CanAffordCastingSkill(skillDefinition.Name))
+            {
+                //cant afford it, abort
+                return false;
+            }
 
-			if(session.TryDeductCost(player, skill.LevelDefinition.CastingCost))
-			{
-				//Debug.Print("Player was unable to afford casting cost, after casting started. Ignoring.");
-				skill.Phase = SkillPhase.Casting;
-				skill.CastStartTime = DateTime.Now;
+            var skill = new CustomSkill(player, skillDefinition, level);
 
-				ActiveSkills.Add(player.Name, skill);
+            if (session.TryDeductCost(player, skill.LevelDefinition.CastingCost))
+            {
+                //Debug.Print("Player was unable to afford casting cost, after casting started. Ignoring.");
+                skill.Phase = SkillPhase.Casting;
+                skill.CastStartTime = DateTime.Now;
 
-				return true;
-			}
-			else
-				return false;
-		}
+                ActiveSkills.Add(player.Name, skill);
 
-		internal static CustomSkillDefinition RemoveActiveSkill(string playerName)
-		{
-			if(ActiveSkills.TryGetValue(playerName, out var skill))
-			{
-				skill.Phase = SkillPhase.Cancelled;//let update handle all further termination. 
-				return skill.Definition;
-			}
+                return true;
+            }
+            else
+                return false;
+        }
 
-			return null;
-		}
+        internal static CustomSkillDefinition RemoveActiveSkill(string playerName)
+        {
+            if (ActiveSkills.TryGetValue(playerName, out var skill))
+            {
+                skill.Phase = SkillPhase.Cancelled;//let update handle all further termination. 
+                return skill.Definition;
+            }
 
-		internal static void Update()
-		{
-			var removalList = new List<CustomSkill>();
+            return null;
+        }
 
-			foreach(var skill in ActiveSkills.Values)
-			{
-				skill.Update();
+        internal static void Update()
+        {
+            var removalList = new List<CustomSkill>();
 
-				if(skill.Phase == SkillPhase.Completed || skill.Phase == SkillPhase.Failed)
-					removalList.Add(skill);
-			}
+            foreach (var skill in ActiveSkills.Values)
+            {
+                skill.Update();
 
-			//clean up active skills
-			foreach(var skill in removalList)
-			{
-				ActiveSkills.Remove(skill.PlayerName);
+                if (skill.Phase == SkillPhase.Completed || skill.Phase == SkillPhase.Failed)
+                    removalList.Add(skill);
+            }
 
-				if(skill.NotifyUserOnCooldown)
-					CooldownNotificationList.Add(skill);
-			}
+            //clean up active skills
+            foreach (var skill in removalList)
+            {
+                ActiveSkills.Remove(skill.PlayerName);
+
+                if (skill.NotifyUserOnCooldown)
+                    CooldownNotificationList.Add(skill);
+            }
 
             //check for cooldown notifications...
             removalList.Clear();
-            
-			foreach(var skill in CooldownNotificationList)
-			{
-				if(skill.HasCooldownCompleted())
-				{
-					if(skill.Player.Active)
-					{
-						var message = skill.Definition.CooldownNotification;
 
-						if(string.IsNullOrWhiteSpace(message))
-							message = $"{skill.Definition.Name} is ready.";
+            foreach (var skill in CooldownNotificationList)
+            {
+                if (skill.HasCooldownCompleted())
+                {
+                    if (skill.Player.Active)
+                    {
+                        var message = skill.Definition.CooldownNotification;
 
-						skill.Player.SendInfoMessage(message);
-					}
+                        if (string.IsNullOrWhiteSpace(message))
+                            message = $"{skill.Definition.Name} is ready.";
 
-					removalList.Add(skill);
-				}
-			}
+                        skill.Player.SendInfoMessage(message);
+                    }
 
-			//clean up notifications
-			foreach(var skill in removalList)
-				CooldownNotificationList.Remove(skill);
-		}
-	}
+                    removalList.Add(skill);
+                }
+            }
+
+            //clean up notifications
+            foreach (var skill in removalList)
+                CooldownNotificationList.Remove(skill);
+        }
+    }
 }

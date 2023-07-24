@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using Corruption.PluginSupport;
+﻿using Corruption.PluginSupport;
 using Newtonsoft.Json;
-using TerrariaApi.Server;
+using System.Collections.Generic;
 
 namespace Leveling
 {
@@ -14,12 +10,12 @@ namespace Leveling
     [JsonObject(MemberSerialization.OptIn)]
     public sealed class Config : JsonConfig
     {
-		/// <summary>
-		///     Gets the configuration instance.
-		/// </summary>
-		public static Config Instance { get; internal set; } = new Config();
+        /// <summary>
+        ///     Gets the configuration instance.
+        /// </summary>
+        public static Config Instance { get; internal set; } = new Config();
 
-		[JsonProperty(Order = 0)]
+        [JsonProperty(Order = 0)]
         public DatabaseConfig DatabaseConfig { get; set; } = new DatabaseConfig("sqlite", "Data Source=leveling/db.sqlite");
 
         public string ClassPath { get; set; } = "classes";
@@ -28,15 +24,15 @@ namespace Leveling
         ///     Gets the default class name.
         /// </summary>
         [JsonProperty("DefaultClass", Order = 2)]
-		public string DefaultClassName { get; private set; } = "ranger";
+        public string DefaultClassName { get; private set; } = "ranger";
 
-		//TODO should this use generic units or use currency strings? This needs an overhaul.
-		/// <summary>
-		///     Gets the mapping of NPC names to EXP rewards.
-		/// </summary>
-		[JsonProperty("NpcToExpReward", Order = 3)]
+        //TODO should this use generic units or use currency strings? This needs an overhaul.
+        /// <summary>
+        ///     Gets the mapping of NPC names to EXP rewards.
+        /// </summary>
+        [JsonProperty("NpcToExpReward", Order = 3)]
         public IDictionary<string, long> NpcNameToExpReward = new Dictionary<string, long>();
-		
+
         /// <summary>
         ///     Gets the global death penalty minimum.
         /// </summary>
@@ -54,27 +50,27 @@ namespace Leveling
         /// </summary>
         [JsonProperty("DeathPenaltyPvPMultiplier", Order = 6)]
         public double DeathPenaltyPvPMultiplier { get; set; } = 0.10;
-		        
+
         /// <summary>
         ///     Gets or sets the global EXP multiplier.
         /// </summary>
         [JsonProperty("ExpMultiplier", Order = 3)]
         public double ExpMultiplier { get; set; } = 1.0;
 
-		public override ValidationResult Validate()
-		{
-			var result = new ValidationResult();
+        public override ValidationResult Validate()
+        {
+            var result = new ValidationResult();
 
-			if (DatabaseConfig == null)
-				result.Errors.Add(new ValidationError($"{nameof(DatabaseConfig)} is null."));
+            if (DatabaseConfig == null)
+                result.Errors.Add(new ValidationError($"{nameof(DatabaseConfig)} is null."));
 
-			if(string.IsNullOrWhiteSpace(DefaultClassName))
-				result.Errors.Add(new ValidationError($"DefaultClassName is empty or null."));
+            if (string.IsNullOrWhiteSpace(DefaultClassName))
+                result.Errors.Add(new ValidationError($"DefaultClassName is empty or null."));
 
-			if (ExpMultiplier == 0f || ExpMultiplier < 0.0f)
-				result.Warnings.Add(new ValidationWarning($"{nameof(ExpMultiplier)} is {ExpMultiplier}. Experience may not be rewarded, or even deducted!"));
+            if (ExpMultiplier == 0f || ExpMultiplier < 0.0f)
+                result.Warnings.Add(new ValidationWarning($"{nameof(ExpMultiplier)} is {ExpMultiplier}. Experience may not be rewarded, or even deducted!"));
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

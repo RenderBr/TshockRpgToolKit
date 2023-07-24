@@ -1,25 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Banking;
+using Corruption.PluginSupport;
+using Housing.Database;
+using Housing.Extensions;
+using Housing.Models;
+using Microsoft.Xna.Framework;
+using System;
 using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using Housing.Database;
-using Housing.Models;
-using Housing.Extensions;
-using Microsoft.Xna.Framework;
-using Microsoft.Data.Sqlite;
-using Newtonsoft.Json;
 using Terraria;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.Hooks;
-using Banking;
-using Corruption.PluginSupport;
-using Banking.Currency;
 
 namespace Housing
 {
@@ -27,26 +22,26 @@ namespace Housing
     public sealed partial class HousingPlugin : TerrariaPlugin
     {
         private const string SessionKey = "Housing_Session";
-		private const int MessageRefreshDelay = 2000;//2 seconds( in ms ), used by calls that refresh the players display 
-		private static readonly string ConfigPath = Path.Combine("housing", "config.json");
+        private const int MessageRefreshDelay = 2000;//2 seconds( in ms ), used by calls that refresh the players display 
+        private static readonly string ConfigPath = Path.Combine("housing", "config.json");
         private static readonly string SqlitePath = Path.Combine("housing", "db.sqlite");
-		
-		public static HousingPlugin Instance { get; private set; }
+
+        public static HousingPlugin Instance { get; private set; }
         private DbConnection databaseConnection;
-		internal IDatabase database;
-		internal TaxService TaxService;
-		
+        internal IDatabase database;
+        internal TaxService TaxService;
+
         public override string Author => "MarioE, Timothy Barela";
         public override string Description => "Adds a housing and shop system.";
         public override string Name => "Housing";
         public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
-		public HousingPlugin(Main game) : base(game)
-		{
-			Instance = this;
-		}
+        public HousingPlugin(Main game) : base(game)
+        {
+            Instance = this;
+        }
 
-		public override void Initialize()
+        public override void Initialize()
         {
             GeneralHooks.ReloadEvent += OnReload;
             ServerApi.Hooks.NetGetData.Register(this, OnNetGetData, 10);
@@ -55,10 +50,10 @@ namespace Housing
             ServerApi.Hooks.ServerLeave.Register(this, OnServerLeave);
 
             Commands.ChatCommands.Add(new Command("housing.house", HouseCmd, "house"));
-			Commands.ChatCommands.Add(new Command("housing.house", GoHomeCommand, "gohome"));
-			Commands.ChatCommands.Add(new Command("housing.itemshop", ItemShop, "itemshop"));
-			Commands.ChatCommands.Add(new Command("housing.tax", TaxService.TaxCommand, "tax"));
-		}
+            Commands.ChatCommands.Add(new Command("housing.house", GoHomeCommand, "gohome"));
+            Commands.ChatCommands.Add(new Command("housing.itemshop", ItemShop, "itemshop"));
+            Commands.ChatCommands.Add(new Command("housing.tax", TaxService.TaxCommand, "tax"));
+        }
 
         protected override void Dispose(bool disposing)
         {
@@ -70,7 +65,7 @@ namespace Housing
                 ServerApi.Hooks.NetGetData.Deregister(this, OnNetGetData);
                 ServerApi.Hooks.GamePostInitialize.Deregister(this, OnGamePostInitialize);
                 ServerApi.Hooks.GameUpdate.Deregister(this, OnGameUpdate);
-				ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
+                ServerApi.Hooks.ServerLeave.Deregister(this, OnServerLeave);
             }
             base.Dispose(disposing);
         }
@@ -85,31 +80,31 @@ namespace Housing
             }
             return session;
         }
-		
-		private void onLoad()
-		{
-			Config.Instance = JsonConfig.LoadOrCreate<Config>(this, ConfigPath);
-			
-			TaxService = TaxService ?? new TaxService(this);
-			
-			TaxService.IsEnabled = Config.Instance.EnableTaxService;
-			database = DatabaseFactory.LoadOrCreateDatabase(Config.Instance);
-			
-			database.Load();
-		}
+
+        private void onLoad()
+        {
+            Config.Instance = JsonConfig.LoadOrCreate<Config>(this, ConfigPath);
+
+            TaxService = TaxService ?? new TaxService(this);
+
+            TaxService.IsEnabled = Config.Instance.EnableTaxService;
+            database = DatabaseFactory.LoadOrCreateDatabase(Config.Instance);
+
+            database.Load();
+        }
 
         private void OnGamePostInitialize(EventArgs args)
         {
-			onLoad();
+            onLoad();
         }
 
-		private void OnReload(ReloadEventArgs args)
-		{
-			onLoad();
-			args.Player.SendSuccessMessage("[Housing] Reloaded config!");
-		}
+        private void OnReload(ReloadEventArgs args)
+        {
+            onLoad();
+            args.Player.SendSuccessMessage("[Housing] Reloaded config!");
+        }
 
-		private void OnGameUpdate(EventArgs args)
+        private void OnGameUpdate(EventArgs args)
         {
             foreach (var player in TShock.Players.Where(p => p?.Active == true))
             {
@@ -149,53 +144,53 @@ namespace Housing
             var shops = database.GetShops();
             foreach (var house in database.GetHouses())
             {
-				var houseConfig = house.GetGroupConfig();
+                var houseConfig = house.GetGroupConfig();
 
-				if (DateTime.UtcNow - house.LastTaxed > houseConfig.TaxPeriod)
+                if (DateTime.UtcNow - house.LastTaxed > houseConfig.TaxPeriod)
                 {
-					var totalBalance = BankingPlugin.Instance.Bank.GetTotalBalance(house.OwnerName);
-					
-                    //var isStore = shops.Any(s => house.Rectangle.Contains(s.Rectangle));
-					var store = shops.FirstOrDefault(s => house.Rectangle.Contains(s.Rectangle));
-					var storeConfig = store != null ? store.GetGroupConfig() : houseConfig;
+                    var totalBalance = BankingPlugin.Instance.Bank.GetTotalBalance(house.OwnerName);
 
-					var taxRate = store!=null ? storeConfig.StoreTaxRate : houseConfig.TaxRate;
+                    //var isStore = shops.Any(s => house.Rectangle.Contains(s.Rectangle));
+                    var store = shops.FirstOrDefault(s => house.Rectangle.Contains(s.Rectangle));
+                    var storeConfig = store != null ? store.GetGroupConfig() : houseConfig;
+
+                    var taxRate = store != null ? storeConfig.StoreTaxRate : houseConfig.TaxRate;
                     var taxCost = (long)Math.Round(house.Area * taxRate) + house.Debt;
                     var payment = Math.Min(totalBalance, taxCost);
 
-					var player = TShock.Players.Where(p => p?.Active == true)
-						.FirstOrDefault(p => p.Account?.Name == house.OwnerName);
+                    var player = TShock.Players.Where(p => p?.Active == true)
+                        .FirstOrDefault(p => p.Account?.Name == house.OwnerName);
 
-					if(player!=null)
-					{
-						foreach(var payInfo in TaxService.PayTaxIterator(house.OwnerName, payment))
-						{
-							var curr = BankingPlugin.Instance.Bank.CurrencyManager.GetCurrencyByName(payInfo.Item2.Name);
-							var payText = curr.GetCurrencyConverter().ToString(payInfo.Item1);
-							
-							player?.SendInfoMessage($"You were taxed {Color.OrangeRed.ColorText(payText)} for your house " +
-												$"{Color.MediumPurple.ColorText(house)}.");
-						}
-					}
-					else
-					{
-						//since the player is not active, we can use the more more efficient version
-						TaxService.PayTax(house.OwnerName, payment);
-					}
-					
-					house.Debt = taxCost - payment;
+                    if (player != null)
+                    {
+                        foreach (var payInfo in TaxService.PayTaxIterator(house.OwnerName, payment))
+                        {
+                            var curr = BankingPlugin.Instance.Bank.CurrencyManager.GetCurrencyByName(payInfo.Item2.Name);
+                            var payText = curr.GetCurrencyConverter().ToString(payInfo.Item1);
+
+                            player?.SendInfoMessage($"You were taxed {Color.OrangeRed.ColorText(payText)} for your house " +
+                                                $"{Color.MediumPurple.ColorText(house)}.");
+                        }
+                    }
+                    else
+                    {
+                        //since the player is not active, we can use the more more efficient version
+                        TaxService.PayTax(house.OwnerName, payment);
+                    }
+
+                    house.Debt = taxCost - payment;
                     if (payment < taxCost)
                     {
                         if (house.Debt > houseConfig.MaxDebtAllowed)
                         {
-							database.Remove(house);
+                            database.Remove(house);
 
-							if (player != null)
-							{
-								player.SendInfoMessage($"Your house '{house.Name}' has been reclaimed due to excessive debt!");
-							}
+                            if (player != null)
+                            {
+                                player.SendInfoMessage($"Your house '{house.Name}' has been reclaimed due to excessive debt!");
+                            }
 
-							continue;
+                            continue;
                         }
                     }
 
@@ -233,7 +228,7 @@ namespace Housing
                     {
                         Debug.WriteLine($"DEBUG: {player.Name} changing shop at {x}, {y}");
                         shop.IsBeingChanged = true;
-                        var chest = new Chest {x = x, y = y};
+                        var chest = new Chest { x = x, y = y };
                         Main.chest[998] = chest;
                         for (var i = 0; i < 40; ++i)
                         {
@@ -249,8 +244,8 @@ namespace Housing
                     }
                     else if (shop.OwnerName != player.Account?.Name)
                     {
-						Debug.WriteLine($"DEBUG: {player.Name} tried to view shop at {shop.ChestX}, {shop.ChestY}");
-						shop.TryShowStock(player);
+                        Debug.WriteLine($"DEBUG: {player.Name} tried to view shop at {shop.ChestX}, {shop.ChestY}");
+                        shop.TryShowStock(player);
                     }
                 }
             }
@@ -311,7 +306,7 @@ namespace Housing
                     var action = reader.ReadByte();
                     var x = reader.ReadInt16();
                     var y = reader.ReadInt16();
-                    if(action == 0)
+                    if (action == 0)
                     {
                         if (player.AwaitingTempPoint == 1)
                         {
@@ -327,7 +322,7 @@ namespace Housing
                         args.Handled = true;
                         return;
                     }
-                        
+
                 }
 
             }
@@ -347,7 +342,7 @@ namespace Housing
                             --x;
                         }
                         --y;
-                        
+
                         var session = GetOrCreateSession(player);
                         if (session.NextShopHouse != null)
                         {
@@ -356,7 +351,7 @@ namespace Housing
                                 player.SendErrorMessage("Your house must contain your item shop chest.");
                                 return;
                             }
-                            
+
                             var shop = database.AddShop(player, session.NextShopName, session.NextShopX,
                                                          session.NextShopY, session.NextShopX2, session.NextShopY2, x,
                                                          y);
@@ -364,7 +359,7 @@ namespace Housing
                             player.SendInfoMessage(
                                 "Use /itemshop open and /itemshop close to open and close your shop.");
                             session.NextShopHouse = null;
-                            
+
                             var tileId = action == 0 ? TileID.Containers : action == 2 ? TileID.Dressers : TileID.Containers2;
                             var chestId = WorldGen.PlaceChest(x, y, tileId, false, style);
                             if (chestId >= 0)
@@ -402,7 +397,7 @@ namespace Housing
                 }
             }
         }
-		
+
         private void OnServerLeave(LeaveEventArgs args)
         {
             if (args.Who < 0 || args.Who >= Main.maxPlayers)
@@ -411,8 +406,8 @@ namespace Housing
             }
 
             var player = TShock.Players[args.Who];
-			var config = Config.Instance.GetGroupConfig(player!=null ? player.Group.Name : ">");//force default if no group.. we can never have a group named ">" ...right?
-			if (player != null && config?.AllowOfflineShops==false)//!Config.Instance.AllowOfflineShops)
+            var config = Config.Instance.GetGroupConfig(player != null ? player.Group.Name : ">");//force default if no group.. we can never have a group named ">" ...right?
+            if (player != null && config?.AllowOfflineShops == false)//!Config.Instance.AllowOfflineShops)
             {
                 foreach (var shop in database.GetShops().Where(s => s.OwnerName == player.Account?.Name))
                 {

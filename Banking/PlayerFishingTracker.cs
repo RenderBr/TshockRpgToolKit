@@ -1,119 +1,115 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Banking
 {
-	public class PlayerFishingTracker
-	{
-		const long waitForItemDuration = 250;//in MS
+    public class PlayerFishingTracker
+    {
+        const long waitForItemDuration = 250;//in MS
 
-		Stopwatch stopwatch;
-		ConcurrentDictionary<int, FishingInfo> playerToFishingInfos;		//tracks in progress fishing operations 
-		ConcurrentDictionary<int, FishingInfo> playerToPendingFishingInfos;	//fishing infos get moved here when done, waiting for possible item reward for n time.
+        Stopwatch stopwatch;
+        ConcurrentDictionary<int, FishingInfo> playerToFishingInfos;        //tracks in progress fishing operations 
+        ConcurrentDictionary<int, FishingInfo> playerToPendingFishingInfos; //fishing infos get moved here when done, waiting for possible item reward for n time.
 
-		/// <summary>
-		/// Checks if a projectile type is a fishing bobber.
-		/// </summary>
-		/// <param name="type">Projectile type</param>
-		/// <returns>True if a fishing bobber.</returns>
-		public bool IsFishingProjectile(int type) => type >= 360 && type <= 366;
-		
-		/// <summary>
-		/// Checks if there are any players waiting on a potential fishing item.
-		/// </summary>
-		/// <returns>True, if there are players waiting.</returns>
-		public bool IsWaitingOnFishingItem() => playerToPendingFishingInfos.Count > 0;
-		
-		public PlayerFishingTracker()
-		{
-			playerToFishingInfos = new ConcurrentDictionary<int, FishingInfo>();
-			playerToPendingFishingInfos = new ConcurrentDictionary<int, FishingInfo>();
-			stopwatch = Stopwatch.StartNew();
-		}
+        /// <summary>
+        /// Checks if a projectile type is a fishing bobber.
+        /// </summary>
+        /// <param name="type">Projectile type</param>
+        /// <returns>True if a fishing bobber.</returns>
+        public bool IsFishingProjectile(int type) => type >= 360 && type <= 366;
 
-		public void TryBeginFishing(int playerId, int projectileId, int projectileType)
-		{
-			if( !IsFishingProjectile(projectileType) )
-				return;
+        /// <summary>
+        /// Checks if there are any players waiting on a potential fishing item.
+        /// </summary>
+        /// <returns>True, if there are players waiting.</returns>
+        public bool IsWaitingOnFishingItem() => playerToPendingFishingInfos.Count > 0;
 
-			if(!playerToFishingInfos.TryGetValue(playerId, out var fishingInfo))
-			{
-				Debug.Print($"Player #{playerId} has started fishing.");
+        public PlayerFishingTracker()
+        {
+            playerToFishingInfos = new ConcurrentDictionary<int, FishingInfo>();
+            playerToPendingFishingInfos = new ConcurrentDictionary<int, FishingInfo>();
+            stopwatch = Stopwatch.StartNew();
+        }
 
-				fishingInfo = new FishingInfo()
-				{
-					ProjectileId = projectileId
-					//ProjectileType = projectileType
-				};
+        public void TryBeginFishing(int playerId, int projectileId, int projectileType)
+        {
+            if (!IsFishingProjectile(projectileType))
+                return;
 
-				playerToFishingInfos.TryAdd(playerId, fishingInfo);
-			}
-			//else this was just a projectile update, so ignore
-		}
+            if (!playerToFishingInfos.TryGetValue(playerId, out var fishingInfo))
+            {
+                Debug.Print($"Player #{playerId} has started fishing.");
 
-		public void TryEndFishing(int playerId, int projectileId)
-		{
-			if(playerToFishingInfos.TryGetValue(playerId, out var fishingInfo))
-			{
-				if(fishingInfo.ProjectileId == projectileId)
-				{
-					playerToFishingInfos.TryRemove(playerId, out var unused);
+                fishingInfo = new FishingInfo()
+                {
+                    ProjectileId = projectileId
+                    //ProjectileType = projectileType
+                };
 
-					fishingInfo.finishTime = stopwatch.ElapsedMilliseconds;
-					
-					playerToPendingFishingInfos.TryAdd(playerId, fishingInfo);
+                playerToFishingInfos.TryAdd(playerId, fishingInfo);
+            }
+            //else this was just a projectile update, so ignore
+        }
 
-					Debug.Print($"Player #{playerId} has stopped fishing.");
-				}
-			}
-		}
+        public void TryEndFishing(int playerId, int projectileId)
+        {
+            if (playerToFishingInfos.TryGetValue(playerId, out var fishingInfo))
+            {
+                if (fishingInfo.ProjectileId == projectileId)
+                {
+                    playerToFishingInfos.TryRemove(playerId, out var unused);
 
-		public bool IsItemFromFishing(int playerId)//, int stack, byte prefix, int itemId)
-		{
-			if( !IsWaitingOnFishingItem() )
-				return false;
+                    fishingInfo.finishTime = stopwatch.ElapsedMilliseconds;
 
-			if(playerToPendingFishingInfos.TryGetValue(playerId,out var fishingInfo))
-			{
-				//player probably(**hopefully**) got this item through fishing.
-				playerToPendingFishingInfos.TryRemove(playerId, out var unused);
-				Debug.Print($"Player #{playerId} has caught an item through fishing.");
+                    playerToPendingFishingInfos.TryAdd(playerId, fishingInfo);
 
-				return true;
-			}
+                    Debug.Print($"Player #{playerId} has stopped fishing.");
+                }
+            }
+        }
 
-			return false;
-		}
+        public bool IsItemFromFishing(int playerId)//, int stack, byte prefix, int itemId)
+        {
+            if (!IsWaitingOnFishingItem())
+                return false;
 
-		/// <summary>
-		/// This method clears out any old internal data, and should be called on each game update.
-		/// </summary>
-		public void OnGameUpdate()
-		{
-			var now = stopwatch.ElapsedMilliseconds;
-			
-			foreach(var k in playerToPendingFishingInfos.Keys.ToArray())
-			{
-				if(playerToPendingFishingInfos.TryGetValue(k, out var fishingInfo))
-				{
-					if(now - fishingInfo.finishTime >= waitForItemDuration)
-					{
-						playerToPendingFishingInfos.TryRemove(k, out var unused);
-					}
-				}
-			}
-		}
+            if (playerToPendingFishingInfos.TryGetValue(playerId, out var fishingInfo))
+            {
+                //player probably(**hopefully**) got this item through fishing.
+                playerToPendingFishingInfos.TryRemove(playerId, out var unused);
+                Debug.Print($"Player #{playerId} has caught an item through fishing.");
 
-		private class FishingInfo
-		{
-			internal int ProjectileId;
-			//internal int ProjectileType;
-			internal long finishTime;//time this fishing op completed, in MS. This allows us to check for an incoming item for a certain amount of time. 
-		}
-	}
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This method clears out any old internal data, and should be called on each game update.
+        /// </summary>
+        public void OnGameUpdate()
+        {
+            var now = stopwatch.ElapsedMilliseconds;
+
+            foreach (var k in playerToPendingFishingInfos.Keys.ToArray())
+            {
+                if (playerToPendingFishingInfos.TryGetValue(k, out var fishingInfo))
+                {
+                    if (now - fishingInfo.finishTime >= waitForItemDuration)
+                    {
+                        playerToPendingFishingInfos.TryRemove(k, out var unused);
+                    }
+                }
+            }
+        }
+
+        private class FishingInfo
+        {
+            internal int ProjectileId;
+            //internal int ProjectileType;
+            internal long finishTime;//time this fishing op completed, in MS. This allows us to check for an incoming item for a certain amount of time. 
+        }
+    }
 }

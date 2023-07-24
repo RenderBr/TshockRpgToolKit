@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace CustomSkills.Database
+﻿namespace CustomSkills.Database
 {
     public interface ISessionDatabase
     {

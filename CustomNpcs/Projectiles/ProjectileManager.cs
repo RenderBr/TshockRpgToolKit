@@ -1,6 +1,5 @@
 ﻿using Corruption;
 using Corruption.PluginSupport;
-using CustomNpcs.Npcs;
 using Microsoft.Xna.Framework;
 using Newtonsoft.Json;
 using OTAPI;
@@ -45,17 +44,19 @@ namespace CustomNpcs.Projectiles
             customProjectiles = new ConditionalWeakTable<Projectile, CustomProjectile>();
 
             LoadDefinitions();
-            
+
             GeneralHooks.ReloadEvent += OnReload;
             //ServerApi.Hooks.GameUpdate.Register(plugin, onGameUpdate);
             //ServerApi.Hooks.ProjectileSetDefaults.Register(plugin, onProjectileSetDefaults);
             //ServerApi.Hooks.ProjectileAIUpdate.Register(plugin, onProjectileAiUpdate);
 
-            //OTAPI.Hooks.Projectile.PreUpdate = OnProjectilePreUpdate;
-            // On.Terraria.Projectile.hook_AI onProjectilePreAi = OnProjectilePreAi;
-            // OTAPI.Hooks.Projectile.PreAI = onProjectilePreAi;
-            //OTAPI.Hooks.Projectile.PreKill = OnProjectilePreKill;
-            // On.Terraria.Projectile.AI += onProjectilePreAi;
+            On.Terraria.Projectile.Update += OnProjectilePreUpdate;
+            On.Terraria.Projectile.Kill += OnProjectilePreKill;
+            On.Terraria.Projectile.AI += OnProjectilePreAi;
+
+            /*            OTAPI.Hooks.PreUpdate = OnProjectilePreUpdate;
+                        OTAPI.Hooks.Projectile.PreAI = OnProjectilePreAi;
+                        OTAPI.Hooks.Projectile.PreKill = OnProjectilePreKill;*/
 
         }
 
@@ -206,13 +207,13 @@ namespace CustomNpcs.Projectiles
         //	}
         //}
 
-        private HookResult OnProjectilePreUpdate(Projectile projectile, ref int index)
+        private void OnProjectilePreUpdate(On.Terraria.Projectile.orig_Update orig, Projectile projectile, int index)
         {
             var result = HookResult.Continue;
             var customProjectile = GetCustomProjectile(projectile);
 
-            if (customProjectile == null)
-                return HookResult.Continue;
+            if (customProjectile == null || customProjectile.Definition.BaseType != projectile.type)
+                return;
 
             var definition = customProjectile.Definition;
             var lastTimeLeft = projectile.timeLeft; //we capture this to help determine whether we need to decrement timeLeft at the end of this method.
@@ -262,28 +263,28 @@ namespace CustomNpcs.Projectiles
                 {
                     if (player?.Active == true)
                     {
-                            var tplayer = player.TPlayer;
-                            var playerHitbox = tplayer.Hitbox;
+                        var tplayer = player.TPlayer;
+                        var playerHitbox = tplayer.Hitbox;
 
-                            if (!tplayer.immune && projectile.Hitbox.Intersects(playerHitbox))
+                        if (!tplayer.immune && projectile.Hitbox.Intersects(playerHitbox))
+                        {
+                            try
                             {
-                                try
-                                {
-                                    CustomIDFunctions.CurrentID = definition.Identifier;
-                                    ScriptArguments[] Args = new ScriptArguments[] {
+                                CustomIDFunctions.CurrentID = definition.Identifier;
+                                ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile),
                                         new ScriptArguments("player", player)
                                     };
-                                    definition.Script.ExecuteMethod("OnCollision", Args);
+                                definition.Script.ExecuteMethod("OnCollision", Args);
 
-                                    customProjectile.SendNetUpdate = true;
-                                }
-                                catch (Exception ex)
-                                {
-                                    Utils.LogScriptRuntimeError(ex);
-                                }
+                                customProjectile.SendNetUpdate = true;
                             }
-                        
+                            catch (Exception ex)
+                            {
+                                Utils.LogScriptRuntimeError(ex);
+                            }
+                        }
+
                     }
                 }
             }
@@ -353,67 +354,69 @@ namespace CustomNpcs.Projectiles
                 SendProjectileUpdate(customProjectile.Index);
             }
 
-            return result;
+            return;
         }
 
-        private HookResult OnProjectilePreAi(Projectile projectile)
+        private void OnProjectilePreAi(On.Terraria.Projectile.orig_AI orig, Projectile projectile)
         {
-            var result = HookResult.Continue;//we usually let terraria handle ai
             var customProjectile = GetCustomProjectile(projectile);
 
             if (customProjectile != null)
             {
-                    try
-                    {
-                        CustomIDFunctions.CurrentID = customProjectile.Definition.Identifier;
-                        ScriptArguments[] Args = new ScriptArguments[] {
+                if (DateTime.UtcNow.Subtract(customProjectile.LastAiUpdate).Seconds < 0.5)
+                    return;
+                try
+                {
+                    customProjectile.LastAiUpdate = DateTime.UtcNow;
+                    CustomIDFunctions.CurrentID = customProjectile.Definition.Identifier;
+                    ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile)
                                     };
-                            customProjectile.Definition.Script.ExecuteMethod("OnAiUpdate", Args);
+                    customProjectile.Definition.Script.ExecuteMethod("OnAiUpdate", Args);
 
 
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.LogScriptRuntimeError(ex);
-                    }
-                
+                }
+                catch (Exception ex)
+                {
+                    Utils.LogScriptRuntimeError(ex);
+                }
+
             }
 
-            return result;
+            return;
         }
 
-        private HookResult OnProjectilePreKill(Projectile projectile)
+        private void OnProjectilePreKill(On.Terraria.Projectile.orig_Kill orig, Projectile projectile)
         {
             var customProjectile = GetCustomProjectile(projectile);
             if (customProjectile != null)
             {
                 var definition = customProjectile.Definition;
 
-                    try
-                    {
-                        CustomIDFunctions.CurrentID = definition.Identifier;
-                        ScriptArguments[] Args = new ScriptArguments[] {
+                try
+                {
+                    CustomIDFunctions.CurrentID = definition.Identifier;
+                    ScriptArguments[] Args = new ScriptArguments[] {
                                         new ScriptArguments("customProjectile", customProjectile)
                                     };
-                        definition.Script.ExecuteMethod("OnKilled", Args);
+                    definition.Script.ExecuteMethod("OnKilled", Args);
 
-                    }
-                    catch (Exception ex)
-                    {
-                        Utils.LogScriptRuntimeError(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Utils.LogScriptRuntimeError(ex);
+                }
 
-                    customProjectiles.Remove(projectile);
-                    projectile.active = false;
-                    SendProjectileKill(customProjectile.Index, customProjectile.Owner);
+                customProjectiles.Remove(projectile);
+                projectile.active = false;
+                SendProjectileKill(customProjectile.Index, customProjectile.Owner);
 
-                    return HookResult.Cancel;
+                return;
 
             }
             else
             {
-                return HookResult.Continue;
+                return;
             }
         }
 
@@ -421,8 +424,8 @@ namespace CustomNpcs.Projectiles
         {
             ClearDefinitions();
 
-            			LoadDefinitions();
-            
+            LoadDefinitions();
+
             args.Player.SendSuccessMessage("[CustomNpcs] Reloaded Projectiles!");
         }
     }

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using CustomQuests.Quests;
+﻿using CustomQuests.Quests;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace CustomQuests.Sessions
 {
@@ -10,8 +10,8 @@ namespace CustomQuests.Sessions
     /// </summary>
     public sealed class SessionInfo
     {
-		//public int? Id { get; set; }
-		//public string PlayerName { get; set; }
+        //public int? Id { get; set; }
+        //public string PlayerName { get; set; }
 
         /// <summary>
         ///     Gets the unlocked quest names.
@@ -28,95 +28,95 @@ namespace CustomQuests.Sessions
         /// </summary>
         [JsonIgnore]
         public QuestInfo CurrentQuestInfo { get; set; }
-		
-		public string CurrentQuestName => CurrentQuestInfo?.Name ?? null;
 
-		//      /// <summary>
-		//      ///     Gets or sets the current quest state.
-		//      /// </summary>
-		//      [CanBeNull]
-		//public string CurrentQuestState { get; set; }
+        public string CurrentQuestName => CurrentQuestInfo?.Name ?? null;
 
-		//public Dictionary<string,SavePoint> QuestSavePoints { get; } = new Dictionary<string, SavePoint>();
-		//public Dictionary<string, SavePoint> PartyLeaderSavePoints { get; } = new Dictionary<string, SavePoint>();
-		//public Dictionary<string, QuestStatusManager> QuestSavePoints { get; } = new Dictionary<string, QuestStatusManager>();
+        //      /// <summary>
+        //      ///     Gets or sets the current quest state.
+        //      /// </summary>
+        //      [CanBeNull]
+        //public string CurrentQuestState { get; set; }
 
-		//[JsonIgnore]
-		//public QuestStatusCollection QuestStatusManager { get; set; } = new QuestStatusCollection();
-		
-		/// <summary>
-		///     Gets the number of attempts per quest.
-		/// </summary>
-		public Dictionary<string, int> QuestAttempts { get; } = new Dictionary<string, int>();
-		
-		/// <summary>
-		///		Gets or sets a Dictionary containing time stamps of the first attempt at Quest.
-		/// </summary>
-		/// <remarks>This is used to determine quest reset times.</remarks>
-		public Dictionary<string, DateTime> QuestFirstAttemptTimes { get; set; } = new Dictionary<string, DateTime>();
-		
-		[JsonIgnore]
-		public Dictionary<string, QuestStatusCollection> QuestProgress = new Dictionary<string, QuestStatusCollection>();
+        //public Dictionary<string,SavePoint> QuestSavePoints { get; } = new Dictionary<string, SavePoint>();
+        //public Dictionary<string, SavePoint> PartyLeaderSavePoints { get; } = new Dictionary<string, SavePoint>();
+        //public Dictionary<string, QuestStatusManager> QuestSavePoints { get; } = new Dictionary<string, QuestStatusManager>();
 
-		//proxy for QuestProgress
-		
+        //[JsonIgnore]
+        //public QuestStatusCollection QuestStatusManager { get; set; } = new QuestStatusCollection();
 
+        /// <summary>
+        ///     Gets the number of attempts per quest.
+        /// </summary>
+        public Dictionary<string, int> QuestAttempts { get; } = new Dictionary<string, int>();
+
+        /// <summary>
+        ///		Gets or sets a Dictionary containing time stamps of the first attempt at Quest.
+        /// </summary>
+        /// <remarks>This is used to determine quest reset times.</remarks>
+        public Dictionary<string, DateTime> QuestFirstAttemptTimes { get; set; } = new Dictionary<string, DateTime>();
+
+        [JsonIgnore]
+        public Dictionary<string, QuestStatusCollection> QuestProgress = new();
+
+        //proxy for QuestProgress
 
 
-		//public SavePoint GetOrCreateSavePoint(string questName, bool isPartyLeader)
-		//{
-		//	var selectedSavePoints = isPartyLeader ? PartyLeaderSavePoints : QuestSavePoints; 
 
-		//	if(!selectedSavePoints.TryGetValue(questName, out var savePoint))
-		//	{
-		//		savePoint = new SavePoint();
-		//		selectedSavePoints[questName] = savePoint;
-		//	}
 
-		//	return savePoint;
-		//}
+        //public SavePoint GetOrCreateSavePoint(string questName, bool isPartyLeader)
+        //{
+        //	var selectedSavePoints = isPartyLeader ? PartyLeaderSavePoints : QuestSavePoints; 
 
-		//public void RemoveSavePoint(string questName, bool isPartyLeader)
-		//{
-		//	var selectedSavePoints = isPartyLeader ? PartyLeaderSavePoints : QuestSavePoints;
+        //	if(!selectedSavePoints.TryGetValue(questName, out var savePoint))
+        //	{
+        //		savePoint = new SavePoint();
+        //		selectedSavePoints[questName] = savePoint;
+        //	}
 
-		//	selectedSavePoints.Remove(questName);
-		//}
+        //	return savePoint;
+        //}
 
-		//public QuestStatusManager GetOrCreateSavePointManager(string questName)
-		//{
-		//	if( !QuestSavePoints.TryGetValue(questName, out var savePointManager) )
-		//	{
-		//		savePointManager = new QuestStatusManager();
-		//		QuestSavePoints.Add(questName, savePointManager);
-		//	}
+        //public void RemoveSavePoint(string questName, bool isPartyLeader)
+        //{
+        //	var selectedSavePoints = isPartyLeader ? PartyLeaderSavePoints : QuestSavePoints;
 
-		//	return savePointManager;
-		//}
+        //	selectedSavePoints.Remove(questName);
+        //}
 
-		//public SavePoint GetOrCreateSavePoint(string questName, bool isPartyLeader)
-		//{
-		//	var manager = getOrCreateSavePointManager(questName);
+        //public QuestStatusManager GetOrCreateSavePointManager(string questName)
+        //{
+        //	if( !QuestSavePoints.TryGetValue(questName, out var savePointManager) )
+        //	{
+        //		savePointManager = new QuestStatusManager();
+        //		QuestSavePoints.Add(questName, savePointManager);
+        //	}
 
-		//	manager.SetSavePoint(0,)
+        //	return savePointManager;
+        //}
 
-		//	return savePoint;
-		//}
+        //public SavePoint GetOrCreateSavePoint(string questName, bool isPartyLeader)
+        //{
+        //	var manager = getOrCreateSavePointManager(questName);
 
-		//public void RemoveSavePoint(string questName, bool isPartyLeader)
-		//{
-		//	var manager = getOrCreateSavePointManager(questName);
+        //	manager.SetSavePoint(0,)
 
-		//	manager.Remove(questName);
-		//}
+        //	return savePoint;
+        //}
 
-		internal void AddDefaultQuestNames(IEnumerable<string> questNames)
-		{
-			foreach( var name in questNames )
-			{
-				if(!CompletedQuestNames.Contains(name) )
-					UnlockedQuestNames.Add(name);
-			}
-		}
-	}
+        //public void RemoveSavePoint(string questName, bool isPartyLeader)
+        //{
+        //	var manager = getOrCreateSavePointManager(questName);
+
+        //	manager.Remove(questName);
+        //}
+
+        internal void AddDefaultQuestNames(IEnumerable<string> questNames)
+        {
+            foreach (var name in questNames)
+            {
+                if (!CompletedQuestNames.Contains(name))
+                    UnlockedQuestNames.Add(name);
+            }
+        }
+    }
 }

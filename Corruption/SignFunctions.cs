@@ -1,229 +1,223 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Terraria;
 using TShockAPI;
 
 namespace Corruption
 {
-	public static class SignFunctions
-	{
-		/// <summary>
-		/// Creates a Sign into the specified slot and calls SendTileSquare(), but does not alter any tiles itself.
-		/// </summary>
-		/// <param name="slot"></param>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <param name="text"></param>
-		internal static void CreateSignDirect(int slot, int x, int y, string text )
-		{
-			//if( slot == -1 )
-			//	return false;
+    public static class SignFunctions
+    {
+        /// <summary>
+        /// Creates a Sign into the specified slot and calls SendTileSquare(), but does not alter any tiles itself.
+        /// </summary>
+        /// <param name="slot"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="text"></param>
+        internal static void CreateSignDirect(int slot, int x, int y, string text)
+        {
+            //if( slot == -1 )
+            //	return false;
 
-			var sign = new Sign();
-			sign.x = x;
-			sign.y = y;
-			sign.text = text;
+            var sign = new Sign();
+            sign.x = x;
+            sign.y = y;
+            sign.text = text;
 
-			Main.sign[slot] = sign;
-			TSPlayer.All.SendTileSquareCentered(x, y);
-			
-			//return true;
-		}
+            Main.sign[slot] = sign;
+            TSPlayer.All.SendTileSquareCentered(x, y);
 
-		/// <summary>
-		/// Trys to find an empty sign slot, and if so calls CreateSignDirect() on it.
-		/// </summary>
-		/// <param name="x"></param>
-		/// <param name="y"></param>
-		/// <param name="text"></param>
-		/// <returns>Bool result.</returns>
-		internal static bool TryCreateSignDirect(int x, int y, string text)
-		{
-			var newSignSlot = FindEmptySignSlot();
+            //return true;
+        }
 
-			if( newSignSlot > -1 )
-			{
-				CreateSignDirect(newSignSlot, x, y, text);
-				
-				return true;
-			}
+        /// <summary>
+        /// Trys to find an empty sign slot, and if so calls CreateSignDirect() on it.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="text"></param>
+        /// <returns>Bool result.</returns>
+        internal static bool TryCreateSignDirect(int x, int y, string text)
+        {
+            var newSignSlot = FindEmptySignSlot();
 
-			return false;
-		}
+            if (newSignSlot > -1)
+            {
+                CreateSignDirect(newSignSlot, x, y, text);
 
-		public static bool CreateSign(int x, int y, int type, string text)
-		{
-			var style = 0;
+                return true;
+            }
 
-			var newSignSlot = FindEmptySignSlot();
+            return false;
+        }
 
-			if( newSignSlot > -1 )
-			{
-				var result = WorldGen.PlaceSign(x, y + 1, (ushort)type, style);
+        public static bool CreateSign(int x, int y, int type, string text)
+        {
+            var style = 0;
 
-				if( result )
-				{
-					CreateSignDirect(newSignSlot, x, y, text);
-				}
+            var newSignSlot = FindEmptySignSlot();
 
-				return result;
-			}
+            if (newSignSlot > -1)
+            {
+                var result = WorldGen.PlaceSign(x, y + 1, (ushort)type, style);
 
-			return false;
-		}
+                if (result)
+                {
+                    CreateSignDirect(newSignSlot, x, y, text);
+                }
 
-		public static bool CreateSign(int x, int y, int type)
-		{
-			return CreateSign(x, y, type, "");
-		}
+                return result;
+            }
 
-		public static bool CreateSign(int x, int y, SignTypes type)
-		{
-			return CreateSign(x, y, (int)type);
-		}
+            return false;
+        }
 
-		public static bool CreateSign(int x, int y)
-		{
-			return CreateSign(x, y, (int)SignTypes.Sign);
-		}
+        public static bool CreateSign(int x, int y, int type)
+        {
+            return CreateSign(x, y, type, "");
+        }
 
-		public static bool KillSign(int x, int y)
-		{
-			return KillSign(x, y, effectOnly: false, noItem: false);
-		}
+        public static bool CreateSign(int x, int y, SignTypes type)
+        {
+            return CreateSign(x, y, (int)type);
+        }
 
-		public static bool KillSign(int x, int y, bool effectOnly, bool noItem)
-		{
-			//Terrarias built in kill sign func doesnt return status... lets roll our own version for debugging's sake.
-			//Sign.KillSign(x, y);
+        public static bool CreateSign(int x, int y)
+        {
+            return CreateSign(x, y, (int)SignTypes.Sign);
+        }
 
-			var result = false;
+        public static bool KillSign(int x, int y)
+        {
+            return KillSign(x, y, effectOnly: false, noItem: false);
+        }
 
-			for( int i = 0; i < Main.sign.Length; i++ )
-			{
-				var sign = Main.sign[i];
+        public static bool KillSign(int x, int y, bool effectOnly, bool noItem)
+        {
+            //Terrarias built in kill sign func doesnt return status... lets roll our own version for debugging's sake.
+            //Sign.KillSign(x, y);
 
-				if( sign != null && sign.x == x && sign.y == y )
-				{
-					Main.sign[i] = null;
-					result = true;
-					break;//terraria's version loops through ALL slots, for some unknown reason. We'll just break on first success.
-				}
-			}
+            var result = false;
 
-			if(result)
-			{
-				//TileFunctions.KillTile(x, y);
-				WorldGen.KillTile(x, y, false, effectOnly, noItem);//effectOnly = we don't want items to be produced from this. 
-				TSPlayer.All.SendTileSquareCentered(x, y, 3);
-			}
+            for (int i = 0; i < Main.sign.Length; i++)
+            {
+                var sign = Main.sign[i];
 
-			return result;
-		}
+                if (sign != null && sign.x == x && sign.y == y)
+                {
+                    Main.sign[i] = null;
+                    result = true;
+                    break;//terraria's version loops through ALL slots, for some unknown reason. We'll just break on first success.
+                }
+            }
 
-		public static void SetSignText(int x, int y, string txt)
-		{
-			var id = FindSignId(x, y);
+            if (result)
+            {
+                //TileFunctions.KillTile(x, y);
+                WorldGen.KillTile(x, y, false, effectOnly, noItem);//effectOnly = we don't want items to be produced from this. 
+                TSPlayer.All.SendTileSquareCentered(x, y, 3);
+            }
 
-			if( id > -1 )
-			{
-				Sign.TextSign(id, txt);
+            return result;
+        }
 
-				TSPlayer.All.SendTileSquareCentered(x, y);
-			}
-		}
+        public static void SetSignText(int x, int y, string txt)
+        {
+            var id = FindSignId(x, y);
 
-		//Terraria... lover of stupid linear searches!
+            if (id > -1)
+            {
+                Sign.TextSign(id, txt);
 
-		internal static int FindSignId(int x, int y)
-		{
-			for( int i = 0; i < Main.sign.Length; i++ )
-			{
-				if( Main.sign[i] != null && Main.sign[i].x == x && Main.sign[i].y == y )
-				{
-					return i;
-				}
-			}
+                TSPlayer.All.SendTileSquareCentered(x, y);
+            }
+        }
 
-			return -1;
-		}
+        //Terraria... lover of stupid linear searches!
 
-		internal static int FindEmptySignSlot()
-		{
-			for( int i = 0; i < Main.sign.Length; i++ )
-			{
-				if( Main.sign[i] == null )
-				{
-					return i;
-				}
-			}
+        internal static int FindSignId(int x, int y)
+        {
+            for (int i = 0; i < Main.sign.Length; i++)
+            {
+                if (Main.sign[i] != null && Main.sign[i].x == x && Main.sign[i].y == y)
+                {
+                    return i;
+                }
+            }
 
-			return -1;
-		}
+            return -1;
+        }
 
-		/// <summary>
-		/// Finds all signs within the specified tile bounds.
-		/// </summary>
-		/// <param name="xMin"></param>
-		/// <param name="yMin"></param>
-		/// <param name="xMax"></param>
-		/// <param name="yMax"></param>
-		/// <returns>List of chest id's.</returns>
-		internal static List<int> FindSigns(int xMin, int yMin, int xMax, int yMax)
-		{
-			var results = new List<int>();
+        internal static int FindEmptySignSlot()
+        {
+            for (int i = 0; i < Main.sign.Length; i++)
+            {
+                if (Main.sign[i] == null)
+                {
+                    return i;
+                }
+            }
 
-			for( var i = 0; i < Main.sign.Length; i++ )
-			{
-				var sign = Main.sign[i];
+            return -1;
+        }
 
-				if( sign != null )
-				{
-					if( sign.x >= xMin && sign.x <= xMax )
-					{
-						if( sign.y >= yMin && sign.y <= yMax )
-						{
-							results.Add(i);
-						}
-					}
-				}
-			}
+        /// <summary>
+        /// Finds all signs within the specified tile bounds.
+        /// </summary>
+        /// <param name="xMin"></param>
+        /// <param name="yMin"></param>
+        /// <param name="xMax"></param>
+        /// <param name="yMax"></param>
+        /// <returns>List of chest id's.</returns>
+        internal static List<int> FindSigns(int xMin, int yMin, int xMax, int yMax)
+        {
+            var results = new List<int>();
 
-			return results;
-		}
+            for (var i = 0; i < Main.sign.Length; i++)
+            {
+                var sign = Main.sign[i];
 
-		/// <summary>
-		/// Attempts to kill all signs within the specified tile bounds.
-		/// </summary>
-		/// <param name="xMin"></param>
-		/// <param name="yMin"></param>
-		/// <param name="xMax"></param>
-		/// <param name="yMax"></param>
-		/// <param name="effectOnly"></param>
-		/// <returns>List of results, where all values > -1 are id's that were destroyed.</returns>
-		internal static List<int> ClearSigns(int xMin, int yMin, int xMax, int yMax, bool effectOnly = true)
-		{
-			var results = FindSigns(xMin, yMin, xMax, yMax);
+                if (sign != null)
+                {
+                    if (sign.x >= xMin && sign.x <= xMax)
+                    {
+                        if (sign.y >= yMin && sign.y <= yMax)
+                        {
+                            results.Add(i);
+                        }
+                    }
+                }
+            }
 
-			for( var i = 0; i < results.Count; i++ )
-			{
-				var signId = results[i];
-				var sign = Main.sign[signId];
+            return results;
+        }
 
-				if( sign != null )
-					results[i] = KillSign(sign.x, sign.y, effectOnly, noItem: true) ? results[i] : -1;
-				else
-					results[i] = -1;//we couldn't remove this sign, mark its id as failure/invalid.
+        /// <summary>
+        /// Attempts to kill all signs within the specified tile bounds.
+        /// </summary>
+        /// <param name="xMin"></param>
+        /// <param name="yMin"></param>
+        /// <param name="xMax"></param>
+        /// <param name="yMax"></param>
+        /// <param name="effectOnly"></param>
+        /// <returns>List of results, where all values > -1 are id's that were destroyed.</returns>
+        internal static List<int> ClearSigns(int xMin, int yMin, int xMax, int yMax, bool effectOnly = true)
+        {
+            var results = FindSigns(xMin, yMin, xMax, yMax);
 
-				//Debug.Print($"ClearSigns: result[{i}] = {results[i]}");
-			}
-			
-			return results;
-		}
-	}
+            for (var i = 0; i < results.Count; i++)
+            {
+                var signId = results[i];
+                var sign = Main.sign[signId];
+
+                if (sign != null)
+                    results[i] = KillSign(sign.x, sign.y, effectOnly, noItem: true) ? results[i] : -1;
+                else
+                    results[i] = -1;//we couldn't remove this sign, mark its id as failure/invalid.
+
+                //Debug.Print($"ClearSigns: result[{i}] = {results[i]}");
+            }
+
+            return results;
+        }
+    }
 }

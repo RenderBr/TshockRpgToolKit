@@ -1,24 +1,20 @@
-﻿using System;
+﻿using Banking;
+using Corruption;
+using Corruption.PluginSupport;
+using Newtonsoft.Json;
+using PythonTS.Models;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Newtonsoft.Json;
 using Terraria;
+using Terraria.DataStructures;
 using Terraria.ID;
 using TerrariaApi.Server;
 using TShockAPI;
 using TShockAPI.Hooks;
-using System.Diagnostics;
-using System.Reflection;
-using Microsoft.Xna.Framework;
-using Corruption;
-using Corruption.PluginSupport;
-using Banking;
-using Terraria.DataStructures;
-using PythonTS.Models;
-using PythonTS;
-using CustomNpcs.Invasions;
 
 namespace CustomNpcs.Npcs
 {
@@ -44,10 +40,10 @@ namespace CustomNpcs.Npcs
             // Allow dropping nebula armor items.
             ItemID.NebulaPickup1, ItemID.NebulaPickup2, ItemID.NebulaPickup3);
 
-		private readonly bool[] _checkNpcForReplacement = new bool[Main.maxNPCs + 1];
-        private readonly ConditionalWeakTable<NPC, CustomNpc> _customNpcs = new ConditionalWeakTable<NPC, CustomNpc>();
+        private readonly bool[] _checkNpcForReplacement = new bool[Main.maxNPCs + 1];
+        private readonly ConditionalWeakTable<NPC, CustomNpc> _customNpcs = new();
         private readonly CustomNpcsPlugin _plugin;
-        private readonly Random _random = new Random();
+        private readonly Random _random = new();
 
         public static new List<NpcDefinition> Definitions { get; set; }
 
@@ -55,8 +51,8 @@ namespace CustomNpcs.Npcs
         {
             _plugin = plugin;
 
-			BasePath = "npcs";
-			ConfigPath = Path.Combine(BasePath, "npcs.json");
+            BasePath = "npcs";
+            ConfigPath = Path.Combine(BasePath, "npcs.json");
 
             if (!File.Exists(ConfigPath))
             {
@@ -68,10 +64,10 @@ namespace CustomNpcs.Npcs
                 File.WriteAllText(ConfigPath, text);
             }
             AssemblyNamePrefix = "Npc_";
-						
-			LoadDefinitions();
 
-			GeneralHooks.ReloadEvent += OnReload;
+            LoadDefinitions();
+
+            GeneralHooks.ReloadEvent += OnReload;
             ServerApi.Hooks.GameUpdate.Register(_plugin, OnGameUpdate);
             ServerApi.Hooks.NpcAIUpdate.Register(_plugin, OnNpcAiUpdate);
             ServerApi.Hooks.NpcKilled.Register(_plugin, OnNpcKilled);
@@ -79,9 +75,9 @@ namespace CustomNpcs.Npcs
             ServerApi.Hooks.NpcSetDefaultsInt.Register(_plugin, OnNpcSetDefaults);
             ServerApi.Hooks.NpcSpawn.Register(_plugin, OnNpcSpawn);
             ServerApi.Hooks.NpcStrike.Register(_plugin, OnNpcStrike);
-			//ServerApi.Hooks.NpcTransform.Register(_plugin, OnNpcTransform);
-			//OTAPI.Hooks.NPC.InvokeTransforming(_plugin, OnNpcTransform);
-		}
+            //ServerApi.Hooks.NpcTransform.Register(_plugin, OnNpcTransform);
+            //OTAPI.Hooks.NPC.InvokeTransforming(_plugin, OnNpcTransform);
+        }
 
         /// <summary>
         ///     Gets the NPC manager instance.
@@ -93,7 +89,7 @@ namespace CustomNpcs.Npcs
         /// </summary>
         public void Dispose()
         {
-			ClearDefinitions();
+            ClearDefinitions();
 
             GeneralHooks.ReloadEvent -= OnReload;
             ServerApi.Hooks.GameUpdate.Deregister(_plugin, OnGameUpdate);
@@ -103,19 +99,19 @@ namespace CustomNpcs.Npcs
             ServerApi.Hooks.NpcSetDefaultsInt.Deregister(_plugin, OnNpcSetDefaults);
             ServerApi.Hooks.NpcSpawn.Deregister(_plugin, OnNpcSpawn);
             ServerApi.Hooks.NpcStrike.Deregister(_plugin, OnNpcStrike);
-			//ServerApi.Hooks.NpcTransform.Deregister(_plugin, OnNpcTransform);
-			//OTAPI.Hooks.NPC.Transforming
-		}
+            //ServerApi.Hooks.NpcTransform.Deregister(_plugin, OnNpcTransform);
+            //OTAPI.Hooks.NPC.Transforming
+        }
 
-		
+
         public override void LoadDefinitions()
         {
             CustomNpcsPlugin.Instance.LogPrint($"Loading CustomNpcs...", TraceLevel.Info);
-			Definitions = NpcDefinition.LoadAll(ConfigPath);
-			foreach(var def in Definitions)
-			{
-				def.CreateModules();
-			}
+            Definitions = NpcDefinition.LoadAll(ConfigPath);
+            foreach (var def in Definitions)
+            {
+                def.CreateModules();
+            }
         }
 
         /// <summary>
@@ -127,8 +123,8 @@ namespace CustomNpcs.Npcs
         public CustomNpc GetCustomNpc(NPC npc)
         {
             if (npc == null)
-				throw new ArgumentNullException(nameof(npc));
-            
+                throw new ArgumentNullException(nameof(npc));
+
             return _customNpcs.TryGetValue(npc, out var customNpc) ? customNpc : null;
         }
 
@@ -140,11 +136,11 @@ namespace CustomNpcs.Npcs
         /// <param name="y">The Y coordinate.</param>
         /// <exception cref="ArgumentNullException"><paramref name="definition" /> is <c>null</c>.</exception>
         /// <returns>The custom NPC, or <c>null</c> if spawning failed.</returns>
-        public CustomNpc SpawnCustomNpc( NpcDefinition definition, int x, int y)
+        public CustomNpc SpawnCustomNpc(NpcDefinition definition, int x, int y)
         {
             if (definition == null)
-				throw new ArgumentNullException(nameof(definition));
-            
+                throw new ArgumentNullException(nameof(definition));
+
             // The following code needs to be synchronized since SpawnCustomNpc may run on a different thread than the
             // main thread. Otherwise, there is a possible race condition where the newly-spawned custom NPC may be
             // erroneously checked for replacement.
@@ -163,26 +159,26 @@ namespace CustomNpcs.Npcs
             _customNpcs.Remove(npc);
             _customNpcs.Add(npc, customNpc);
 
-			//HACK! Banking plugin tracks Npc Life, but will never see the custom set hp at spawn event(happens too early).
-			//So we have to set it ourselves here...
-			if(BankingPlugin.Instance!=null)
-			{
-				//Debug.Print("** Custom set life.");
-				BankingPlugin.Instance.NpcSpawnHP[npc.whoAmI] = customNpc.Hp;//dont use max hp, see the definition.Apply() for notes on life and clients.
-				//Debug.Print($"** newHp: {BankingPlugin.Instance.NpcSpawnHP[npc.whoAmI]}");
-			}
+            //HACK! Banking plugin tracks Npc Life, but will never see the custom set hp at spawn event(happens too early).
+            //So we have to set it ourselves here...
+            if (BankingPlugin.Instance != null)
+            {
+                //Debug.Print("** Custom set life.");
+                BankingPlugin.Instance.NpcSpawnHP[npc.whoAmI] = customNpc.Hp;//dont use max hp, see the definition.Apply() for notes on life and clients.
+                                                                             //Debug.Print($"** newHp: {BankingPlugin.Instance.NpcSpawnHP[npc.whoAmI]}");
+            }
 
-			try
-			{
-				CustomIDFunctions.CurrentID = definition.Identifier;
-				ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
-				definition.Script.ExecuteMethod("OnSpawn", Arg);
-			}
-			catch(Exception ex)
-			{
-				Utils.LogScriptRuntimeError(ex);
-			}
-			
+            try
+            {
+                CustomIDFunctions.CurrentID = definition.Identifier;
+                ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+                definition.Script.ExecuteMethod("OnSpawn", Arg);
+            }
+            catch (Exception ex)
+            {
+                Utils.LogScriptRuntimeError(ex);
+            }
+
             // Ensure that all players see the changes.
             var npcId = npc.whoAmI;
             _checkNpcForReplacement[npcId] = false;
@@ -191,92 +187,92 @@ namespace CustomNpcs.Npcs
             return customNpc;
         }
 
-/*		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
-		{
-			var sigs = new List<EnsuredMethodSignature>()
-			{
-				new EnsuredMethodSignature("OnCheckReplace",typeof(double))
-					.AddParameter("npc",typeof(NPC)),
+        /*		protected override IEnumerable<EnsuredMethodSignature> GetEnsuredMethodSignatures()
+                {
+                    var sigs = new List<EnsuredMethodSignature>()
+                    {
+                        new EnsuredMethodSignature("OnCheckReplace",typeof(double))
+                            .AddParameter("npc",typeof(NPC)),
 
-				new EnsuredMethodSignature("OnCheckSpawn", typeof(int))
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("x",typeof(int))
-					.AddParameter("y",typeof(int)),
+                        new EnsuredMethodSignature("OnCheckSpawn", typeof(int))
+                            .AddParameter("player",typeof(TSPlayer))
+                            .AddParameter("x",typeof(int))
+                            .AddParameter("y",typeof(int)),
 
-				new EnsuredMethodSignature("OnSpawn")
-					.AddParameter("npc",typeof(CustomNpc)),
+                        new EnsuredMethodSignature("OnSpawn")
+                            .AddParameter("npc",typeof(CustomNpc)),
 
-				new EnsuredMethodSignature("OnCollision")
-					.AddParameter("npc",typeof(CustomNpc))
-					.AddParameter("player",typeof(TSPlayer)),
-				
-				new EnsuredMethodSignature("OnTileCollision")
-					.AddParameter("npc",typeof(CustomNpc))
-					.AddParameter("tileHits",typeof(List<Point>)),
+                        new EnsuredMethodSignature("OnCollision")
+                            .AddParameter("npc",typeof(CustomNpc))
+                            .AddParameter("player",typeof(TSPlayer)),
 
-				new EnsuredMethodSignature("OnKilled")
-					.AddParameter("npc",typeof(CustomNpc)),
+                        new EnsuredMethodSignature("OnTileCollision")
+                            .AddParameter("npc",typeof(CustomNpc))
+                            .AddParameter("tileHits",typeof(List<Point>)),
 
-				new EnsuredMethodSignature("OnTransformed")
-					.AddParameter("npc",typeof(CustomNpc)),
+                        new EnsuredMethodSignature("OnKilled")
+                            .AddParameter("npc",typeof(CustomNpc)),
 
-				new EnsuredMethodSignature("OnStrike",typeof(bool))
-					.AddParameter("npc",typeof(CustomNpc))
-					.AddParameter("player",typeof(TSPlayer))
-					.AddParameter("damage",typeof(int))
-					.AddParameter("knockback",typeof(float))
-					.AddParameter("critical",typeof(bool)),
+                        new EnsuredMethodSignature("OnTransformed")
+                            .AddParameter("npc",typeof(CustomNpc)),
 
-				new EnsuredMethodSignature("OnAiUpdate",typeof(bool))
-					.AddParameter("npc",typeof(CustomNpc))
-			};
-			
-			return sigs;
-		}*/
-		
-/*		protected override void LoadDefinitions()
-		{
-			CustomNpcsPlugin.Instance.LogPrint($"Loading CustomNpcs...", TraceLevel.Info);
-			base.LoadDefinitions();		
-		}*/
+                        new EnsuredMethodSignature("OnStrike",typeof(bool))
+                            .AddParameter("npc",typeof(CustomNpc))
+                            .AddParameter("player",typeof(TSPlayer))
+                            .AddParameter("damage",typeof(int))
+                            .AddParameter("knockback",typeof(float))
+                            .AddParameter("critical",typeof(bool)),
 
-		private void OnGameUpdate(EventArgs args)
+                        new EnsuredMethodSignature("OnAiUpdate",typeof(bool))
+                            .AddParameter("npc",typeof(CustomNpc))
+                    };
+
+                    return sigs;
+                }*/
+
+        /*		protected override void LoadDefinitions()
+                {
+                    CustomNpcsPlugin.Instance.LogPrint($"Loading CustomNpcs...", TraceLevel.Info);
+                    base.LoadDefinitions();		
+                }*/
+
+        private void OnGameUpdate(EventArgs args)
         {
             Utils.TrySpawnForEachPlayer(TrySpawnCustomNpc);
-			
-			foreach (var npc in Main.npc.Where(n => n?.active == true))
+
+            foreach (var npc in Main.npc.Where(n => n?.active == true))
             {
-				var customNpc = GetCustomNpc(npc);
+                var customNpc = GetCustomNpc(npc);
                 if (customNpc?.Definition.ShouldAggressivelyUpdate == true)
-					npc.netUpdate = true;
-                
-				if(customNpc?.HasChildren==true)
-					customNpc?.UpdateChildren();
-				
-				if(customNpc?.HasTransformed == true)
-				{
-					var id = customNpc.Npc.whoAmI;
-					customNpc.HasTransformed = false;
+                    npc.netUpdate = true;
 
-					var definition = customNpc.Definition;
+                if (customNpc?.HasChildren == true)
+                    customNpc?.UpdateChildren();
 
-						try
-						{
-							CustomIDFunctions.CurrentID = definition.Identifier;
-                            ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
-                            definition.Script.ExecuteMethod("OnTransformed", Arg);
-                        }
-                        catch (Exception ex)
-						{
-							Utils.LogScriptRuntimeError(ex);
-						}
-						
-						TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", id);
-						TSPlayer.All.SendData(PacketTypes.UpdateNPCName, "", id);
-					
-				}
+                if (customNpc?.HasTransformed == true)
+                {
+                    var id = customNpc.Npc.whoAmI;
+                    customNpc.HasTransformed = false;
 
-				var npcId = npc.whoAmI;
+                    var definition = customNpc.Definition;
+
+                    try
+                    {
+                        CustomIDFunctions.CurrentID = definition.Identifier;
+                        ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
+                        definition.Script.ExecuteMethod("OnTransformed", Arg);
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.LogScriptRuntimeError(ex);
+                    }
+
+                    TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", id);
+                    TSPlayer.All.SendData(PacketTypes.UpdateNPCName, "", id);
+
+                }
+
+                var npcId = npc.whoAmI;
                 if (_checkNpcForReplacement[npcId])
                 {
                     TryReplaceNpc(npc);
@@ -284,107 +280,111 @@ namespace CustomNpcs.Npcs
                 }
             }
 
-			//player - npc collisions
-			foreach( var player in TShock.Players.Where(p => p?.Active == true) )
-			{
-				var tplayer = player.TPlayer;
-				var playerHitbox = tplayer.Hitbox;
-				if( !tplayer.immune )
-					player.SetData(IgnoreCollisionKey, false);
-				
-				foreach( var npc in Main.npc.Where(n => n?.active == true) )
-				{
-					var customNpc = GetCustomNpc(npc);
-					if( customNpc != null )
-					{
-						var definition = customNpc.Definition;
+            //player - npc collisions
+            foreach (var player in TShock.Players.Where(p => p?.Active == true))
+            {
+                var tplayer = player.TPlayer;
+                var playerHitbox = tplayer.Hitbox;
+                if (!tplayer.immune)
+                    player.SetData(IgnoreCollisionKey, false);
 
-							if( npc.Hitbox.Intersects(playerHitbox) && !player.GetData<bool>(IgnoreCollisionKey) )
-							{
-								try
-								{
-									CustomIDFunctions.CurrentID = definition.Identifier;
-                                    ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), 
-										new("player", player) };
+                foreach (var npc in Main.npc.Where(n => n?.active == true))
+                {
+                    var customNpc = GetCustomNpc(npc);
+                    if (customNpc != null)
+                    {
+                        var definition = customNpc.Definition;
 
-                                    definition.Script.ExecuteMethod("OnCollision", Args);
+                        if (npc.Hitbox.Intersects(playerHitbox) && !player.GetData<bool>(IgnoreCollisionKey))
+                        {
+                            try
+                            {
+                                CustomIDFunctions.CurrentID = definition.Identifier;
+                                ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc),
+                                        new("player", player) };
 
-								}
-								catch(Exception ex)
-								{
-									Utils.LogScriptRuntimeError(ex);
-								}
-																
-								//player.SetData(IgnoreCollisionKey, true);
-								//break;//should this be a continue instead??
-							}
-						
-					}
-				}
+                                definition.Script.ExecuteMethod("OnCollision", Args);
 
-				if( !tplayer.immune )
-				{
-					player.SetData(IgnoreCollisionKey, true);
-				}
-			}
+                            }
+                            catch (Exception ex)
+                            {
+                                Utils.LogScriptRuntimeError(ex);
+                            }
 
-			//npc - tile collisions
-			foreach( var npc in Main.npc.Where(n => n?.active == true) )
-			{
-				var customNpc = GetCustomNpc(npc);
-				if( customNpc != null )
-				{
-					var definition = customNpc.Definition;
+                            //player.SetData(IgnoreCollisionKey, true);
+                            //break;//should this be a continue instead??
+                        }
+
+                    }
+                }
+
+                if (!tplayer.immune)
+                {
+                    player.SetData(IgnoreCollisionKey, true);
+                }
+            }
+
+            //npc - tile collisions
+            foreach (var npc in Main.npc.Where(n => n?.active == true))
+            {
+                var customNpc = GetCustomNpc(npc);
+                if (customNpc != null)
+                {
+                    var definition = customNpc.Definition;
 
 
-						var tileCollisions = TileFunctions.GetOverlappedTiles(npc.Hitbox);
-						if( tileCollisions.Count > 0 )
-						{
-							try
-							{
-								CustomIDFunctions.CurrentID = definition.Identifier;
-                                ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), new("tileCollisions", tileCollisions) };
+                    var tileCollisions = TileFunctions.GetOverlappedTiles(npc.Hitbox);
+                    if (tileCollisions.Count > 0)
+                    {
+                        try
+                        {
+                            CustomIDFunctions.CurrentID = definition.Identifier;
+                            ScriptArguments[] Args = new ScriptArguments[] { new("customNpc", customNpc), new("tileCollisions", tileCollisions) };
 
-                                definition.Script.ExecuteMethod("OnTileCollision", Args);
-							}
-							catch(Exception ex)
-							{
-								Utils.LogScriptRuntimeError(ex);
-							}
-						}
-					
-				}
-			}
-	    }
+                            if (definition.Script == null)
+                                return;
+                            definition.Script.ExecuteMethod("OnTileCollision", Args);
+                        }
+                        catch (Exception ex)
+                        {
+                            Utils.LogScriptRuntimeError(ex);
+                        }
+                    }
+
+                }
+            }
+        }
 
         private void OnNpcAiUpdate(NpcAiUpdateEventArgs args)
         {
             if (args.Handled)
-				return;
-            
+                return;
+
             var customNpc = GetCustomNpc(args.Npc);
             if (customNpc == null)
-				return;
-            
-			var definition = customNpc.Definition;
+                return;
 
-			try
-			{
-				CustomIDFunctions.CurrentID = definition.Identifier;
+            var definition = customNpc.Definition;
+
+            try
+            {
+                CustomIDFunctions.CurrentID = definition.Identifier;
                 ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
 
+                if (definition.Script == null)
+                    return;
                 definition.Script.ExecuteMethod("OnAiUpdate", Arg);
 
-                
- 
 
-			}
-			catch(Exception ex)
-			{
-				Utils.LogScriptRuntimeError(ex);
-			}
-			
-			TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.Npc.whoAmI);
+
+
+            }
+            catch (Exception ex)
+            {
+                Utils.LogScriptRuntimeError(ex);
+            }
+
+            TSPlayer.All.SendData(PacketTypes.NpcUpdate, "", args.Npc.whoAmI);
         }
 
         private void OnNpcKilled(NpcKilledEventArgs args)
@@ -392,14 +392,14 @@ namespace CustomNpcs.Npcs
             var npc = args.npc;
             var customNpc = GetCustomNpc(npc);
             if (customNpc == null)
-				return;
-            
+                return;
+
             var definition = customNpc.Definition;
             foreach (var lootEntry in definition.LootEntries)
             {
                 if (_random.NextDouble() >= lootEntry.Chance)
-					continue;
-                
+                    continue;
+
                 var stackSize = _random.Next(lootEntry.MinStackSize, lootEntry.MaxStackSize);
                 var items = TShock.Utils.GetItemByIdOrName(lootEntry.Name);
                 if (items.Count == 1)
@@ -408,26 +408,26 @@ namespace CustomNpcs.Npcs
                 }
             }
 
-			try
-			{
-				CustomIDFunctions.CurrentID = definition.Identifier;
+            try
+            {
+                CustomIDFunctions.CurrentID = definition.Identifier;
                 ScriptArguments[] Arg = new ScriptArguments[] { new("customNpc", customNpc) };
 
-				definition.Script.ExecuteMethod("OnKilled", Arg);
-			}
-			catch(Exception ex)
-			{
-				Utils.LogScriptRuntimeError(ex);
-			}
+                definition.Script.ExecuteMethod("OnKilled", Arg);
+            }
+            catch (Exception ex)
+            {
+                Utils.LogScriptRuntimeError(ex);
+            }
 
-			customNpc.IsNpcValid = false;
-		}
+            customNpc.IsNpcValid = false;
+        }
 
         private void OnNpcLootDrop(NpcLootDropEventArgs args)
         {
             if (args.Handled)
-				return;
-            
+                return;
+
             var customNpc = GetCustomNpc(Main.npc[args.NpcArrayIndex]);
             if (customNpc != null)
             {
@@ -438,8 +438,8 @@ namespace CustomNpcs.Npcs
         private void OnNpcSetDefaults(SetDefaultsEventArgs<NPC, int> args)
         {
             if (args.Handled)
-				return;
-            
+                return;
+
             // If an NPC has its defaults set while in the world (e.g., NPC.Transform, slimes, and the Eater of
             // Worlds), we need to check for replacement since the NPC since the NPC may turn into a replaceable NPC.
             var npc = args.Object;
@@ -451,12 +451,12 @@ namespace CustomNpcs.Npcs
 
         private void OnNpcSpawn(NpcSpawnEventArgs args)
         {
-			if (args.Handled)
-				return;
-            
-			//Debug.Print($"OnNpcSpawn!! NpcId: {args.NpcId}");
+            if (args.Handled)
+                return;
 
-			var npcId = args.NpcId;
+            //Debug.Print($"OnNpcSpawn!! NpcId: {args.NpcId}");
+
+            var npcId = args.NpcId;
             // Set npc.whoAmI. This is normally set only when the NPC is first updated; in this case, this needs to be
             // done now as we make several assumptions regarding it.
             Main.npc[npcId].whoAmI = npcId;
@@ -466,13 +466,13 @@ namespace CustomNpcs.Npcs
         private void OnNpcStrike(NpcStrikeEventArgs args)
         {
             if (args.Handled)
-				return;
-            
+                return;
+
             var npc = args.Npc;
             var customNpc = GetCustomNpc(npc);
             if (customNpc == null)
-				return;
-            
+                return;
+
             var definition = customNpc.Definition;
             var player = TShock.Players[args.Player.whoAmI];
             if (!definition.ShouldTallyKills)
@@ -485,44 +485,44 @@ namespace CustomNpcs.Npcs
                 customNpc.SendNetUpdate = true;
             }
 
-			try
-			{
-				CustomIDFunctions.CurrentID = definition.Identifier;
-				ScriptArguments[] Args = new ScriptArguments[]
-				{
-					new ScriptArguments("customNpc", customNpc),
-					new ScriptArguments("player", player),
-					new ScriptArguments("damage", args.Damage),
-					new ScriptArguments("knockback", args.KnockBack),
-					new ScriptArguments("critical", args.Critical)
-				};
+            try
+            {
+                CustomIDFunctions.CurrentID = definition.Identifier;
+                ScriptArguments[] Args = new ScriptArguments[]
+                {
+                    new ScriptArguments("customNpc", customNpc),
+                    new ScriptArguments("player", player),
+                    new ScriptArguments("damage", args.Damage),
+                    new ScriptArguments("knockback", args.KnockBack),
+                    new ScriptArguments("critical", args.Critical)
+                };
 
                 definition.Script.ExecuteMethod("OnStrike", Args);
 
 
 
-			}
-			catch(Exception ex)
-			{
-				Utils.LogScriptRuntimeError(ex);
-			}
-		}
-		
-		private void OnNpcTransform(NPC npc)
-		{
-			var customNpc = GetCustomNpc(npc);
-			if( customNpc == null )
-				return;
-			
-			customNpc.HasTransformed = true;
-		}
+            }
+            catch (Exception ex)
+            {
+                Utils.LogScriptRuntimeError(ex);
+            }
+        }
 
-		private void OnReload(ReloadEventArgs args)
+        private void OnNpcTransform(NPC npc)
         {
-			ClearDefinitions();
+            var customNpc = GetCustomNpc(npc);
+            if (customNpc == null)
+                return;
 
-			LoadDefinitions();
-			args.Player.SendSuccessMessage("[CustomNpcs] Reloaded NPCs!");
+            customNpc.HasTransformed = true;
+        }
+
+        private void OnReload(ReloadEventArgs args)
+        {
+            ClearDefinitions();
+
+            LoadDefinitions();
+            args.Player.SendSuccessMessage("[CustomNpcs] Reloaded NPCs!");
         }
 
         private void TryReplaceNpc(NPC npc)
@@ -532,85 +532,87 @@ namespace CustomNpcs.Npcs
             foreach (var definition in Definitions.Where(d => d.NpcDefinition.ShouldReplace).Select(d => d.NpcDefinition))
 
             {
-				var chance = 0.0;
+                var chance = 0.0;
 
 
-					try
-					{
-						CustomIDFunctions.CurrentID = definition.Identifier;
-                        ScriptArguments[] Args = new ScriptArguments[] { new("npc", npc) };
+                try
+                {
+                    CustomIDFunctions.CurrentID = definition.Identifier;
+                    ScriptArguments[] Args = new ScriptArguments[] { new("npc", npc) };
 
-                        definition.Script.ExecuteMethod("OnCheckReplace", Args);
+                    definition.Script.ExecuteMethod("OnCheckReplace", Args);
 
-                    }
-                    catch (Exception ex)
-					{
-						Utils.LogScriptRuntimeError(ex);
-					}
-				
-								
-				chances[definition] = chance;
-			}
+                }
+                catch (Exception ex)
+                {
+                    Utils.LogScriptRuntimeError(ex);
+                }
 
-			var randomDefinition = Utils.TryPickRandomKey(chances);
+
+                chances[definition] = chance;
+            }
+
+            var randomDefinition = Utils.TryPickRandomKey(chances);
             if (randomDefinition != null)
             {
                 AttachCustomNpc(npc, randomDefinition);
             }
         }
 
-		private void TrySpawnCustomNpc(TSPlayer player, int tileX, int tileY)
-		{
-			Utils.GetSpawnData(player, out var maxSpawns, out var spawnRate);
-			if( player.TPlayer.nearbyActiveNPCs >= maxSpawns )
-				return;
-			
-			var spawnViaGlobalRate = _random.Next((int)spawnRate) == 0;
-			var weights = new Dictionary<NpcDefinition, int>(Definitions.Count);
+        private void TrySpawnCustomNpc(TSPlayer player, int tileX, int tileY)
+        {
+            Utils.GetSpawnData(player, out var maxSpawns, out var spawnRate);
+            if (player.TPlayer.nearbyActiveNPCs >= maxSpawns)
+                return;
+
+            var spawnViaGlobalRate = _random.Next((int)spawnRate) == 0;
+            var weights = new Dictionary<NpcDefinition, int>(Definitions.Count);
 
             foreach (var definition in Definitions.Select(d => d.NpcDefinition))
 
             {
-				if( !definition.ShouldSpawn )
-					continue;
+                if (!definition.ShouldSpawn)
+                    continue;
 
-				var candidateForSpawning = spawnViaGlobalRate;
+                var candidateForSpawning = spawnViaGlobalRate;
 
-				if(definition.SpawnRateOverride!=null)
-				{
-					candidateForSpawning = _random.Next((int)definition.SpawnRateOverride) == 0;
-				}
+                if (definition.SpawnRateOverride != null)
+                {
+                    candidateForSpawning = _random.Next((int)definition.SpawnRateOverride) == 0;
+                }
 
-				if(candidateForSpawning)
-				{
-					var weight = 0;
+                if (candidateForSpawning)
+                {
+                    var weight = 0;
 
-						try
-						{
-							CustomIDFunctions.CurrentID = definition.Identifier;
-                            ScriptArguments[] Args = new ScriptArguments[] { new("player", player), new("tileX", tileX), new("tileY", tileY) };
+                    try
+                    {
+                        CustomIDFunctions.CurrentID = definition.Identifier;
+                        ScriptArguments[] Args = new ScriptArguments[] { new("player", player), new("tileX", tileX), new("tileY", tileY) };
 
-                            definition.Script.ExecuteMethod("OnCheckSpawn", Args);
+                        if (definition.Script == null)
+                            return;
+                        definition.Script.ExecuteMethod("OnCheckSpawn", Args);
 
-                        }
-                        catch (Exception ex)
-						{
-							Utils.LogScriptRuntimeError(ex);
-						}
-					
-											
-					weights[definition] = weight;
-				}
-			}
-			
-			if(weights.Count>0)
-			{
-				var randomDefinition = Utils.PickRandomWeightedKey(weights);
-				if( randomDefinition != null )
-				{
-					SpawnCustomNpc(randomDefinition, 16 * tileX + 8, 16 * tileY);
-				}
-			}
-		}
-	}
+                    }
+                    catch (Exception ex)
+                    {
+                        Utils.LogScriptRuntimeError(ex);
+                    }
+
+
+                    weights[definition] = weight;
+                }
+            }
+
+            if (weights.Count > 0)
+            {
+                var randomDefinition = Utils.PickRandomWeightedKey(weights);
+                if (randomDefinition != null)
+                {
+                    SpawnCustomNpc(randomDefinition, (16 * tileX) + 8, 16 * tileY);
+                }
+            }
+        }
+    }
 }

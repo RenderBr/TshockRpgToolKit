@@ -1,295 +1,290 @@
 ﻿using Corruption;
 using Corruption.PluginSupport;
-using Microsoft.Xna.Framework;
 using PythonTS.Models;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TerrariaApi.Server;
 using TShockAPI;
 
 namespace CustomSkills
 {
-	public sealed partial class CustomSkillsPlugin : TerrariaPlugin
-	{
-		internal const string SyntaxSkillSub		= "skill <name>";
-		internal const string SyntaxSkillLearnSub	= "skill learn <name>";
-		internal const string SyntaxSkillListSub	= "skill list [category]";
-		internal const string SyntaxSkillInfoSub	= "skill info <name>";
-		internal const string SyntaxSkillCancelSub	= "skill cancel";
+    public sealed partial class CustomSkillsPlugin : TerrariaPlugin
+    {
+        internal const string SyntaxSkillSub = "skill <name>";
+        internal const string SyntaxSkillLearnSub = "skill learn <name>";
+        internal const string SyntaxSkillListSub = "skill list [category]";
+        internal const string SyntaxSkillInfoSub = "skill info <name>";
+        internal const string SyntaxSkillCancelSub = "skill cancel";
 
-		private void SkillCommand(CommandArgs args)
-		{
-			var parameters = args.Parameters;
-			var subCommand = args.GetSafeParam(0);
-			var player = args.Player;
-			string skillName = null;
-			string categoryName = null;
+        private void SkillCommand(CommandArgs args)
+        {
+            var parameters = args.Parameters;
+            var subCommand = args.GetSafeParam(0);
+            var player = args.Player;
+            string skillName = null;
+            string categoryName = null;
 
-			if (parameters.Count >= 1)
-			{
-				switch(subCommand)
-				{
-					case "learn":
-						ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
-						SkillLearnSubCommand(player,skillName,categoryName);
-						return;
+            if (parameters.Count >= 1)
+            {
+                switch (subCommand)
+                {
+                    case "learn":
+                        ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
+                        SkillLearnSubCommand(player, skillName, categoryName);
+                        return;
 
-					case "list":
-						SkillListSubCommand(player, args.GetSafeParam(1));
-						return;
+                    case "list":
+                        SkillListSubCommand(player, args.GetSafeParam(1));
+                        return;
 
-					case "info":
-						ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
-						SkillInfoSubCommand(player,skillName,categoryName);
-						return;
+                    case "info":
+                        ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
+                        SkillInfoSubCommand(player, skillName, categoryName);
+                        return;
 
-					case "cancel":
-						//ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
-						SkillCancelSubCommand(player);
-						return;
+                    case "cancel":
+                        //ParseCategoryAndSkill(args, 1, out skillName, out categoryName);
+                        SkillCancelSubCommand(player);
+                        return;
 
-					default:
-						ParseCategoryAndSkill(args, 0, out skillName, out categoryName);
-						SkillSubCommand(player, skillName, categoryName);
-						return;
-				}
-			}
-			
-			SendSkillSyntax(player);
-		}
-		
-		private void ParseCategoryAndSkill(CommandArgs args, int parameterStartIndex, out string skillName, out string categoryName)
-		{
-			skillName = null;
-			categoryName = null;
+                    default:
+                        ParseCategoryAndSkill(args, 0, out skillName, out categoryName);
+                        SkillSubCommand(player, skillName, categoryName);
+                        return;
+                }
+            }
 
-			if((args.Parameters.Count - parameterStartIndex ) == 2)
-			{
-				categoryName = args.GetSafeParam(parameterStartIndex+0);
-				skillName = args.GetSafeParam(parameterStartIndex+1);
-			}
-			else
-			{
-				skillName = args.GetSafeParam(parameterStartIndex+0);
-			}
-		}
+            SendSkillSyntax(player);
+        }
 
-		private bool GetCategoryAndSkill(TSPlayer player, string skillName, string categoryName, out CustomSkillCategory category, out CustomSkillDefinition skillDef)
-		{
-			category = null;
-			skillDef = null;
+        private void ParseCategoryAndSkill(CommandArgs args, int parameterStartIndex, out string skillName, out string categoryName)
+        {
+            skillName = null;
+            categoryName = null;
 
-			if(string.IsNullOrWhiteSpace(skillName))
-			{
-				player.SendErrorMessage("Expected skill name.");
-				player.SendSyntaxMessage(SyntaxSkillSub);
-				return false;
-			}
+            if ((args.Parameters.Count - parameterStartIndex) == 2)
+            {
+                categoryName = args.GetSafeParam(parameterStartIndex + 0);
+                skillName = args.GetSafeParam(parameterStartIndex + 1);
+            }
+            else
+            {
+                skillName = args.GetSafeParam(parameterStartIndex + 0);
+            }
+        }
 
-			if(!string.IsNullOrWhiteSpace(categoryName))
-				category = CustomSkillDefinitionLoader.TryGetCategory(categoryName);
-			else
-				category = CustomSkillDefinitionLoader.TryGetCategory();//get default "uncategorized" category...
+        private bool GetCategoryAndSkill(TSPlayer player, string skillName, string categoryName, out CustomSkillCategory category, out CustomSkillDefinition skillDef)
+        {
+            category = null;
+            skillDef = null;
 
-			if(category == null)
-			{
-				player.SendErrorMessage($"No such category '{categoryName}'.");
-				return false;
-			}
+            if (string.IsNullOrWhiteSpace(skillName))
+            {
+                player.SendErrorMessage("Expected skill name.");
+                player.SendSyntaxMessage(SyntaxSkillSub);
+                return false;
+            }
 
-			category.TryGetValue(skillName, out skillDef);
+            if (!string.IsNullOrWhiteSpace(categoryName))
+                category = CustomSkillDefinitionLoader.TryGetCategory(categoryName);
+            else
+                category = CustomSkillDefinitionLoader.TryGetCategory();//get default "uncategorized" category...
 
-			if(skillDef == null)
-			{
-				player.SendErrorMessage($"No such skill as '{skillName}'.");
-				return false;
-			}
+            if (category == null)
+            {
+                player.SendErrorMessage($"No such category '{categoryName}'.");
+                return false;
+            }
 
-			return true;
-		}
-		
-		private void SkillSubCommand(TSPlayer player, string skillName, string categoryName = null)
-		{
-			if(!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
-				return;
+            category.TryGetValue(skillName, out skillDef);
 
-			var session = Session.GetOrCreateSession(player);
+            if (skillDef == null)
+            {
+                player.SendErrorMessage($"No such skill as '{skillName}'.");
+                return false;
+            }
 
-			if(!session.HasLearned(skillName))
-			{
-				player.SendErrorMessage($"You have not learned {skillName}.");
-				return;
-			}
+            return true;
+        }
 
-			//are we allowed to use this skill?
-			if(definition.PermissionsToUse != null && !PlayerFunctions.PlayerHasPermission(player, definition.PermissionsToUse))
-			{
-				player.SendInfoMessage($"You are not allowed to use {skillName}.");
-				return;
-			}
+        private void SkillSubCommand(TSPlayer player, string skillName, string categoryName = null)
+        {
+            if (!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
+                return;
 
-			//do we have enough "funds" to use this skill?
-			if(!session.CanAffordCastingSkill(skillName))
-			{
-				player.SendInfoMessage($"You cannot afford to use {skillName}.");
-				return;
-			}
+            var session = Session.GetOrCreateSession(player);
 
-			if(!session.IsSkillReady(definition.Name))
-			{
-				player.SendInfoMessage($"{skillName} is not ready yet.");
-				return;
-			}
+            if (!session.HasLearned(skillName))
+            {
+                player.SendErrorMessage($"You have not learned {skillName}.");
+                return;
+            }
 
-			session.PlayerSkillInfos.TryGetValue(skillName, out var playerSkillInfo);
+            //are we allowed to use this skill?
+            if (definition.PermissionsToUse != null && !PlayerFunctions.PlayerHasPermission(player, definition.PermissionsToUse))
+            {
+                player.SendInfoMessage($"You are not allowed to use {skillName}.");
+                return;
+            }
 
-			var skillAdded = CustomSkillRunner.AddActiveSkill(player, definition, playerSkillInfo.CurrentLevel);
-			if(!skillAdded)
-			{
-				player.SendInfoMessage($"You cannot use {skillName} right now.");
-				return;
-			}
-		}
+            //do we have enough "funds" to use this skill?
+            if (!session.CanAffordCastingSkill(skillName))
+            {
+                player.SendInfoMessage($"You cannot afford to use {skillName}.");
+                return;
+            }
 
-		private void SkillLearnSubCommand(TSPlayer player, string skillName, string categoryName = null)
-		{
-			if (!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
-				return;
+            if (!session.IsSkillReady(definition.Name))
+            {
+                player.SendInfoMessage($"{skillName} is not ready yet.");
+                return;
+            }
 
-			var session = Session.GetOrCreateSession(player);
+            session.PlayerSkillInfos.TryGetValue(skillName, out var playerSkillInfo);
 
-			if(session.HasLearned(skillName))
-			{
-				player.SendInfoMessage($"You have already learned {skillName}.");
-				return;
-			}
-			
-			//can we learn this skill?
-			if(definition.PermissionsToLearn!=null && !PlayerFunctions.PlayerHasPermission(player, definition.PermissionsToLearn))
-			{
-				player.SendInfoMessage($"You try, but are unable to learn {skillName}.");
-				return;
-			}
+            var skillAdded = CustomSkillRunner.AddActiveSkill(player, definition, playerSkillInfo.CurrentLevel);
+            if (!skillAdded)
+            {
+                player.SendInfoMessage($"You cannot use {skillName} right now.");
+                return;
+            }
+        }
 
-			if(session.LearnSkill(skillName))
-			{
-				player.SendInfoMessage($"You have learned {skillName}.");
+        private void SkillLearnSubCommand(TSPlayer player, string skillName, string categoryName = null)
+        {
+            if (!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
+                return;
 
-				//try to run the first OnLevelUp
-				try
-				{
+            var session = Session.GetOrCreateSession(player);
+
+            if (session.HasLearned(skillName))
+            {
+                player.SendInfoMessage($"You have already learned {skillName}.");
+                return;
+            }
+
+            //can we learn this skill?
+            if (definition.PermissionsToLearn != null && !PlayerFunctions.PlayerHasPermission(player, definition.PermissionsToLearn))
+            {
+                player.SendInfoMessage($"You try, but are unable to learn {skillName}.");
+                return;
+            }
+
+            if (session.LearnSkill(skillName))
+            {
+                player.SendInfoMessage($"You have learned {skillName}.");
+
+                //try to run the first OnLevelUp
+                try
+                {
                     ScriptArguments[] plr = new ScriptArguments[]
-					{
+                    {
                         new ScriptArguments("Player", player),
-					};
+                    };
                     definition.Levels?[0]?.Script?.ExecuteMethod("OnLevelUp", plr);
-				}
-				catch(Exception ex)
-				{
-					CustomSkillsPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
-				}
-			}
-			else
-			{
-				player.SendErrorMessage($"You try to learn {skillName}, but nothing happens. ( This is a bug. )");
-			}
-		}
+                }
+                catch (Exception ex)
+                {
+                    CustomSkillsPlugin.Instance.LogPrint(ex.ToString(), TraceLevel.Error);
+                }
+            }
+            else
+            {
+                player.SendErrorMessage($"You try to learn {skillName}, but nothing happens. ( This is a bug. )");
+            }
+        }
 
-		private void SkillListSubCommand(TSPlayer player, string categoryName = null)
-		{
-			CustomSkillCategory category = null;
-			
-			if(!string.IsNullOrWhiteSpace(categoryName))
-			{
-				category = CustomSkillDefinitionLoader.TryGetCategory(categoryName);
+        private void SkillListSubCommand(TSPlayer player, string categoryName = null)
+        {
+            CustomSkillCategory category = null;
 
-				if(category!=null)
-				{
-					//const int itemsPerPage = 4;
+            if (!string.IsNullOrWhiteSpace(categoryName))
+            {
+                category = CustomSkillDefinitionLoader.TryGetCategory(categoryName);
 
-					//var lines = category.Select(d => d.Value.Name).ToList(); 
-					//var pageCount = lines.PageCount(itemsPerPage);
+                if (category != null)
+                {
+                    //const int itemsPerPage = 4;
 
-					//if (pageNumber < 1 || pageNumber > pageCount)
-					//	pageNumber = 1;
+                    //var lines = category.Select(d => d.Value.Name).ToList(); 
+                    //var pageCount = lines.PageCount(itemsPerPage);
 
-					//var page = lines.GetPage(pageNumber - 1, itemsPerPage);//we display based off of 1
+                    //if (pageNumber < 1 || pageNumber > pageCount)
+                    //	pageNumber = 1;
 
-					//player.SendInfoMessage($"Page #{pageNumber} of {pageCount}.");
+                    //var page = lines.GetPage(pageNumber - 1, itemsPerPage);//we display based off of 1
 
-					//foreach (var l in page)
-					//{
-					//	player.SendInfoMessage(l);
-					//}
+                    //player.SendInfoMessage($"Page #{pageNumber} of {pageCount}.");
 
-					//player.SendMessage("Use /bank bal <page> or /bank bal <currency> to see more.", Color.Green);
-					//player.SendInfoMessage("Use /bank bal <page> or /bank bal <currency> to see more.");
+                    //foreach (var l in page)
+                    //{
+                    //	player.SendInfoMessage(l);
+                    //}
 
-					foreach (var kvp in category)
-						player.SendInfoMessage(kvp.Value.Name);
-				}
-				else
-				{
-					player.SendErrorMessage($"No such category as '{categoryName}'.");
-					return;
-				}
-			}
-			else
-			{
-				category = CustomSkillDefinitionLoader.TryGetCategory(null);
+                    //player.SendMessage("Use /bank bal <page> or /bank bal <currency> to see more.", Color.Green);
+                    //player.SendInfoMessage("Use /bank bal <page> or /bank bal <currency> to see more.");
 
-				foreach (var def in category.Values)
-					player.SendInfoMessage(def.Name);
-			}
-		}
+                    foreach (var kvp in category)
+                        player.SendInfoMessage(kvp.Value.Name);
+                }
+                else
+                {
+                    player.SendErrorMessage($"No such category as '{categoryName}'.");
+                    return;
+                }
+            }
+            else
+            {
+                category = CustomSkillDefinitionLoader.TryGetCategory(null);
 
-		private void SkillInfoSubCommand(TSPlayer player, string skillName, string categoryName = null)
-		{
-			if(!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
-				return;
+                foreach (var def in category.Values)
+                    player.SendInfoMessage(def.Name);
+            }
+        }
 
-			var session = Session.GetOrCreateSession(player);
+        private void SkillInfoSubCommand(TSPlayer player, string skillName, string categoryName = null)
+        {
+            if (!GetCategoryAndSkill(player, skillName, categoryName, out var category, out var definition))
+                return;
 
-			if(!session.HasLearned(skillName))
-			{
-				player.SendErrorMessage($"You have not learned {skillName}.");
-				return;
-			}
-			
-			if(!session.PlayerSkillInfos.TryGetValue(skillName, out var levelInfo))
-			{
-				player.SendErrorMessage($"Failed to retrieve skill info for '{skillName}'. Please notify the server admin.");
-				return;
-			}
+            var session = Session.GetOrCreateSession(player);
 
-			var level = definition.Levels[levelInfo.CurrentLevel];
-			var damageRange = level.DamageRangeEstimate ?? "??";
-			var castingCost = level.CastingCost?.ToString() ?? "None";
-			var chargingCost = level.ChargingCost?.ToString() ?? "None";
+            if (!session.HasLearned(skillName))
+            {
+                player.SendErrorMessage($"You have not learned {skillName}.");
+                return;
+            }
 
-			player.SendInfoMessage($"{skillName}, level {levelInfo.CurrentLevel} - {definition.Description ?? ""}");
-			player.SendInfoMessage($"Damage Range: {damageRange}, Casting Cost: {castingCost}");
-			player.SendInfoMessage($"Charge Time: {level.ChargingDuration}, Charging Cost: {chargingCost}");
-		}
+            if (!session.PlayerSkillInfos.TryGetValue(skillName, out var levelInfo))
+            {
+                player.SendErrorMessage($"Failed to retrieve skill info for '{skillName}'. Please notify the server admin.");
+                return;
+            }
 
-		private void SkillCancelSubCommand(TSPlayer player)
-		{
-			var canceledSkill = CustomSkillRunner.RemoveActiveSkill(player.Name);
-			if(canceledSkill == null)
-				player.SendErrorMessage("There is nothing to cancel!");
-		}
+            var level = definition.Levels[levelInfo.CurrentLevel];
+            var damageRange = level.DamageRangeEstimate ?? "??";
+            var castingCost = level.CastingCost?.ToString() ?? "None";
+            var chargingCost = level.ChargingCost?.ToString() ?? "None";
 
-		private void SendSkillSyntax(TSPlayer player)
-		{
-			player.SendSyntaxMessage(SyntaxSkillSub);
-			player.SendSyntaxMessage(SyntaxSkillLearnSub);
-			player.SendSyntaxMessage(SyntaxSkillListSub);
-			player.SendSyntaxMessage(SyntaxSkillInfoSub);
-			player.SendSyntaxMessage(SyntaxSkillCancelSub);
-		}
-	}
+            player.SendInfoMessage($"{skillName}, level {levelInfo.CurrentLevel} - {definition.Description ?? ""}");
+            player.SendInfoMessage($"Damage Range: {damageRange}, Casting Cost: {castingCost}");
+            player.SendInfoMessage($"Charge Time: {level.ChargingDuration}, Charging Cost: {chargingCost}");
+        }
+
+        private void SkillCancelSubCommand(TSPlayer player)
+        {
+            var canceledSkill = CustomSkillRunner.RemoveActiveSkill(player.Name);
+            if (canceledSkill == null)
+                player.SendErrorMessage("There is nothing to cancel!");
+        }
+
+        private void SendSkillSyntax(TSPlayer player)
+        {
+            player.SendSyntaxMessage(SyntaxSkillSub);
+            player.SendSyntaxMessage(SyntaxSkillLearnSub);
+            player.SendSyntaxMessage(SyntaxSkillListSub);
+            player.SendSyntaxMessage(SyntaxSkillInfoSub);
+            player.SendSyntaxMessage(SyntaxSkillCancelSub);
+        }
+    }
 }

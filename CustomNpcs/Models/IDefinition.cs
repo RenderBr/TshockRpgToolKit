@@ -3,8 +3,6 @@ using CustomNpcs.Invasions;
 using CustomNpcs.Npcs;
 using CustomNpcs.Projectiles;
 using Newtonsoft.Json;
-using PythonTS;
-using System.Reflection;
 
 
 namespace CustomNpcs

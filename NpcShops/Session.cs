@@ -1,9 +1,8 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using CustomNpcs.Npcs;
+﻿using CustomNpcs.Npcs;
 using Microsoft.Xna.Framework;
 using NpcShops.Shops;
+using System.Diagnostics;
+using System.Linq;
 using Terraria;
 using TShockAPI;
 
@@ -14,8 +13,8 @@ namespace NpcShops
     /// </summary>
     public sealed class Session
     {
-		public const int InvalidNpcIndex = -1;
-		//public const int MaxNpcTileRange = 32;
+        public const int InvalidNpcIndex = -1;
+        //public const int MaxNpcTileRange = 32;
 
         private readonly TSPlayer player;
 
@@ -35,176 +34,176 @@ namespace NpcShops
         /// </summary>
         public NpcShop CurrentShop { get; set; }
 
-		/// <summary>
-		///		Gets or sets the index of the npc running the shop, if any.
-		/// </summary>
-		public int CurrentShopkeeperNpcIndex { get; set; } = InvalidNpcIndex;
+        /// <summary>
+        ///		Gets or sets the index of the npc running the shop, if any.
+        /// </summary>
+        public int CurrentShopkeeperNpcIndex { get; set; } = InvalidNpcIndex;
 
-		public bool HasShopkeeper => CurrentShopkeeperNpcIndex != InvalidNpcIndex;
+        public bool HasShopkeeper => CurrentShopkeeperNpcIndex != InvalidNpcIndex;
 
-		/// <summary>
-		///		Attemps to get the shopkeeper NPC.
-		/// </summary>
-		/// <returns>The shopkeeper NPC, if one exists.</returns>
-		public NPC GetShopkeeper()
-		{
-			if( CurrentShopkeeperNpcIndex != InvalidNpcIndex )
-			{
-				var npc = Main.npc[CurrentShopkeeperNpcIndex];
+        /// <summary>
+        ///		Attemps to get the shopkeeper NPC.
+        /// </summary>
+        /// <returns>The shopkeeper NPC, if one exists.</returns>
+        public NPC GetShopkeeper()
+        {
+            if (CurrentShopkeeperNpcIndex != InvalidNpcIndex)
+            {
+                var npc = Main.npc[CurrentShopkeeperNpcIndex];
 
-				return npc?.active == true ? npc : null;
-			}
+                return npc?.active == true ? npc : null;
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		/// <summary>
-		///		Returns if the distance between the player and the shopkeeper npc are within the allowable range.
-		/// </summary>
-		/// <returns>True if the shopkeeper is in range.</returns>
-		public bool IsShopkeeperInRange()
-		{
-			var maxTileRange = Config.Instance.ShopNpcMaxTalkRange;
-			var npc = GetShopkeeper();
+        /// <summary>
+        ///		Returns if the distance between the player and the shopkeeper npc are within the allowable range.
+        /// </summary>
+        /// <returns>True if the shopkeeper is in range.</returns>
+        public bool IsShopkeeperInRange()
+        {
+            var maxTileRange = Config.Instance.ShopNpcMaxTalkRange;
+            var npc = GetShopkeeper();
 
-			if( npc!=null)
-			{
-				var dist = Vector2.DistanceSquared(player.TPlayer.Center, npc.Center);
-				return dist <= ( maxTileRange * 16 ) * ( maxTileRange * 16 );
-			}
+            if (npc != null)
+            {
+                var dist = Vector2.DistanceSquared(player.TPlayer.Center, npc.Center);
+                return dist <= maxTileRange * 16 * (maxTileRange * 16);
+            }
 
-			return false;
-		}
+            return false;
+        }
 
-		//public bool InShop()
-		//{
-		//	var result = false;
+        //public bool InShop()
+        //{
+        //	var result = false;
 
-		//	if(CurrentShop!=null)
-		//	{
-		//		if(HasShopkeeper)
-		//			result = IsShopkeeperInRange();
-		//		else
-		//			result = CurrentShop?.Rectangle.Contains(player.TileX, player.TileY) == true;
-		//	}
+        //	if(CurrentShop!=null)
+        //	{
+        //		if(HasShopkeeper)
+        //			result = IsShopkeeperInRange();
+        //		else
+        //			result = CurrentShop?.Rectangle.Contains(player.TileX, player.TileY) == true;
+        //	}
 
-		//	return result;
-		//}
-		
-		bool? lastShopState = null;
-		internal bool shopKeeperClickedHack = false;
-				
-		private void sendOpenMessage(NpcShop shop)
-		{
-			if( shop.Message != null )
-				player.SendInfoMessage(shop.Message);
-		}
+        //	return result;
+        //}
 
-		internal void SendClosedMessage(NpcShop shop)
-		{
-			var msg = !string.IsNullOrWhiteSpace(shop.ClosedMessage) ? shop.ClosedMessage :
-																		$"This shop is closed. Come back at {shop.OpeningTime}.";
-			player.SendErrorMessage(msg);
-		}
+        bool? lastShopState = null;
+        internal bool shopKeeperClickedHack = false;
 
-		private NpcShop getCurrentShop()
-		{
-			NpcShop newShop = null;
+        private void sendOpenMessage(NpcShop shop)
+        {
+            if (shop.Message != null)
+                player.SendInfoMessage(shop.Message);
+        }
 
-			if( HasShopkeeper && IsShopkeeperInRange() )
-			{
-				//npc shop
-				var shopKeeper = GetShopkeeper();
-				string npcType = null;
-				
-				//Determine if this is a custom npc, and if so try to get its id/internal name.
-				if(shopKeeper!=null)
-				{
-					var customNpc = NpcManager.Instance?.GetCustomNpc(shopKeeper);
-					if( customNpc != null )
-					{
-						npcType = customNpc.Definition.Identifier;
-					}
-				}
+        internal void SendClosedMessage(NpcShop shop)
+        {
+            var msg = !string.IsNullOrWhiteSpace(shop.ClosedMessage) ? shop.ClosedMessage :
+                                                                        $"This shop is closed. Come back at {shop.OpeningTime}.";
+            player.SendErrorMessage(msg);
+        }
 
-				if(npcType==null)
-				{
-					npcType = shopKeeper.type.ToString();
-				}
-				
-				NpcShop.NpcToShopMap.TryGetValue(npcType, out newShop);
-			}
+        private NpcShop getCurrentShop()
+        {
+            NpcShop newShop = null;
 
-			if(newShop==null)
-			{ 
-				//region shop
-				newShop = NpcShopsPlugin.Instance.NpcShops.FirstOrDefault(ns => ns.Rectangle.Contains(player.TileX, player.TileY));
-			}
+            if (HasShopkeeper && IsShopkeeperInRange())
+            {
+                //npc shop
+                var shopKeeper = GetShopkeeper();
+                string npcType = null;
 
-			return newShop;
-		}
+                //Determine if this is a custom npc, and if so try to get its id/internal name.
+                if (shopKeeper != null)
+                {
+                    var customNpc = NpcManager.Instance?.GetCustomNpc(shopKeeper);
+                    if (customNpc != null)
+                    {
+                        npcType = customNpc.Definition.Identifier;
+                    }
+                }
 
-		public void Update()
-		{
-			NpcShop newShop = getCurrentShop();
-			
-			if( newShop != CurrentShop )
-			{
-				//we've changed shops somehow, someway
-				CurrentShop = newShop;
-				
-				lastShopState = null;// CurrentShop?.IsOpen;
+                if (npcType == null)
+                {
+                    npcType = shopKeeper.type.ToString();
+                }
 
-				Debug.Print("Changed shop.");
-			}
-			else
-			{
-				//HACK - to ensure shopkeeper tells you hes closed on each click/talk/interaction
-				if( HasShopkeeper && shopKeeperClickedHack )
-				{
-					if( CurrentShop?.IsOpen == false )
-					{
-						SendClosedMessage(CurrentShop);
-					}
-					else
-					{
-						CurrentShop?.ShowTo(player);
-					}
-					
-					shopKeeperClickedHack = false;
-					lastShopState =  CurrentShop?.IsOpen;
+                NpcShop.NpcToShopMap.TryGetValue(npcType, out newShop);
+            }
 
-					return;
-				}
-				
-				if( CurrentShop == null )
-				{
-					//reset the npc shop if we're out of range
-					if( HasShopkeeper )// && CurrentShop == null )
-					{
-						CurrentShopkeeperNpcIndex = InvalidNpcIndex;
-					}
+            if (newShop == null)
+            {
+                //region shop
+                newShop = NpcShopsPlugin.Instance.NpcShops.FirstOrDefault(ns => ns.Rectangle.Contains(player.TileX, player.TileY));
+            }
 
-					lastShopState = null;
-					return;
-				}
+            return newShop;
+        }
 
-				//still in same old shop
-				if( CurrentShop.IsOpen != lastShopState )
-				{
-					if( CurrentShop.IsOpen )
-					{
-						sendOpenMessage(CurrentShop);
-						CurrentShop.ShowTo(player);
-					}
-					else
-					{
-						SendClosedMessage(CurrentShop);
-					}
-					
-					lastShopState = CurrentShop.IsOpen;
-				}
-			}
-		}
+        public void Update()
+        {
+            NpcShop newShop = getCurrentShop();
+
+            if (newShop != CurrentShop)
+            {
+                //we've changed shops somehow, someway
+                CurrentShop = newShop;
+
+                lastShopState = null;// CurrentShop?.IsOpen;
+
+                Debug.Print("Changed shop.");
+            }
+            else
+            {
+                //HACK - to ensure shopkeeper tells you hes closed on each click/talk/interaction
+                if (HasShopkeeper && shopKeeperClickedHack)
+                {
+                    if (CurrentShop?.IsOpen == false)
+                    {
+                        SendClosedMessage(CurrentShop);
+                    }
+                    else
+                    {
+                        CurrentShop?.ShowTo(player);
+                    }
+
+                    shopKeeperClickedHack = false;
+                    lastShopState = CurrentShop?.IsOpen;
+
+                    return;
+                }
+
+                if (CurrentShop == null)
+                {
+                    //reset the npc shop if we're out of range
+                    if (HasShopkeeper)// && CurrentShop == null )
+                    {
+                        CurrentShopkeeperNpcIndex = InvalidNpcIndex;
+                    }
+
+                    lastShopState = null;
+                    return;
+                }
+
+                //still in same old shop
+                if (CurrentShop.IsOpen != lastShopState)
+                {
+                    if (CurrentShop.IsOpen)
+                    {
+                        sendOpenMessage(CurrentShop);
+                        CurrentShop.ShowTo(player);
+                    }
+                    else
+                    {
+                        SendClosedMessage(CurrentShop);
+                    }
+
+                    lastShopState = CurrentShop.IsOpen;
+                }
+            }
+        }
     }
 }

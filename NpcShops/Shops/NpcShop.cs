@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Corruption.PluginSupport;
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Corruption.PluginSupport;
-using Microsoft.Xna.Framework;
 using Terraria;
 using TShockAPI;
 
@@ -18,7 +18,7 @@ namespace NpcShops.Shops
     public class NpcShop
     {
         private static readonly Dictionary<string, double> TimeToNumber =
-            new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
+            new(StringComparer.OrdinalIgnoreCase)
             {
                 ["day"] = 4.5,
                 ["noon"] = 12.0,
@@ -26,7 +26,7 @@ namespace NpcShops.Shops
                 ["midnight"] = 0.0
             };
 
-		public static ConcurrentDictionary<string, NpcShop> NpcToShopMap { get; private set; } = new ConcurrentDictionary<string, NpcShop>();
+        public static ConcurrentDictionary<string, NpcShop> NpcToShopMap { get; private set; } = new ConcurrentDictionary<string, NpcShop>();
 
         private readonly NpcShopDefinition _definition;
 
@@ -38,62 +38,62 @@ namespace NpcShops.Shops
         /// <param name="definition">The definition, which must not be <c>null</c>.</param>
         public NpcShop(NpcShopDefinition definition)
         {
-			_definition = definition ?? throw new ArgumentNullException("NpcShopDefinition cannot be null.");
+            _definition = definition ?? throw new ArgumentNullException("NpcShopDefinition cannot be null.");
 
-			if(!string.IsNullOrWhiteSpace(definition.RegionName))
-			{
-				var region = TShock.Regions.GetRegionByName(definition.RegionName);
+            if (!string.IsNullOrWhiteSpace(definition.RegionName))
+            {
+                var region = TShock.Regions.GetRegionByName(definition.RegionName);
 
-				if( region == null )
-					throw new Exception($"Could not find region named {definition.RegionName}.");
+                if (region == null)
+                    throw new Exception($"Could not find region named {definition.RegionName}.");
 
-				Rectangle = region.Area;
-			}
-			else
-			{
-				//ensure against nre's... create a dummy rectangle that will never be hit
-				Rectangle = new Rectangle(-1, -1, 0, 0);
-			}
+                Rectangle = region.Area;
+            }
+            else
+            {
+                //ensure against nre's... create a dummy rectangle that will never be hit
+                Rectangle = new Rectangle(-1, -1, 0, 0);
+            }
 
-			ParseNpcTypeOverrides(definition);
+            ParseNpcTypeOverrides(definition);
 
-			//we have to create our products, and make sure they are in a valid state before we add them to the shop.
-			ShopCommands = definition.ShopCommands.Select(sc => new ShopCommand(sc))
-													.Where( sc=> sc.IsValid )
-													.ToList();
+            //we have to create our products, and make sure they are in a valid state before we add them to the shop.
+            ShopCommands = definition.ShopCommands.Select(sc => new ShopCommand(sc))
+                                                    .Where(sc => sc.IsValid)
+                                                    .ToList();
 
-			ShopItems = definition.ShopItems.Select(si => new ShopItem(si))
-											.Where( si => si.IsValid)
-											.ToList();
+            ShopItems = definition.ShopItems.Select(si => new ShopItem(si))
+                                            .Where(si => si.IsValid)
+                                            .ToList();
         }
 
-		/// <summary>
-		/// Parses int and string ids for normal and custom npcs, and adds them to the NpcToShopMap.
-		/// </summary>
-		private void ParseNpcTypeOverrides(NpcShopDefinition definition )
-		{
-			if(definition.OverrideNpcTypes != null )
-			{
-				foreach( var npcType in definition.OverrideNpcTypes )
-				{
-					string key = null;
+        /// <summary>
+        /// Parses int and string ids for normal and custom npcs, and adds them to the NpcToShopMap.
+        /// </summary>
+        private void ParseNpcTypeOverrides(NpcShopDefinition definition)
+        {
+            if (definition.OverrideNpcTypes != null)
+            {
+                foreach (var npcType in definition.OverrideNpcTypes)
+                {
+                    string key = null;
 
-                    if(npcType is string || npcType is long || npcType is int ) //json.net will generate longs, but we add an int branch in case this changes for some reason...
+                    if (npcType is string || npcType is long || npcType is int) //json.net will generate longs, but we add an int branch in case this changes for some reason...
                     {
                         key = npcType.ToString();
                     }
-					else
-					{
-						NpcShopsPlugin.Instance.LogPrint($"OverrideNpcType '{npcType.ToString()}' is not a string or int. Ignoring.", TraceLevel.Warning);
-					}
+                    else
+                    {
+                        NpcShopsPlugin.Instance.LogPrint($"OverrideNpcType '{npcType.ToString()}' is not a string or int. Ignoring.", TraceLevel.Warning);
+                    }
 
-					if(!string.IsNullOrWhiteSpace(key))
-					{
-						NpcToShopMap[key] = this;
-					}
-				}
-			}
-		}
+                    if (!string.IsNullOrWhiteSpace(key))
+                    {
+                        NpcToShopMap[key] = this;
+                    }
+                }
+            }
+        }
 
         /// <summary>
         ///     Gets the closing time.
@@ -107,9 +107,9 @@ namespace NpcShops.Shops
         {
             get
             {
-                if(string.IsNullOrWhiteSpace(OpeningTime) || string.IsNullOrWhiteSpace(ClosingTime))
-					return true;//if no values set for times, shop will be default always be open.
-                
+                if (string.IsNullOrWhiteSpace(OpeningTime) || string.IsNullOrWhiteSpace(ClosingTime))
+                    return true;//if no values set for times, shop will be default always be open.
+
                 var time = Main.time / 3600.0;
                 time += 4.5;
                 if (!Main.dayTime)
@@ -131,15 +131,15 @@ namespace NpcShops.Shops
         /// </summary>
         public string Message => _definition.Message;
 
-		/// <summary>
-		///     Gets the closed message.
-		/// </summary>
-		public string ClosedMessage => _definition.ClosedMessage;
+        /// <summary>
+        ///     Gets the closed message.
+        /// </summary>
+        public string ClosedMessage => _definition.ClosedMessage;
 
-		/// <summary>
-		///     Gets the opening time.
-		/// </summary>
-		public string OpeningTime => _definition.OpeningTime;
+        /// <summary>
+        ///     Gets the opening time.
+        /// </summary>
+        public string OpeningTime => _definition.OpeningTime;
 
         /// <summary>
         ///     Gets the rectangle.
@@ -179,11 +179,11 @@ namespace NpcShops.Shops
             for (var i = 0; i < ShopItems.Count; ++i)
             {
                 var shopItem = ShopItems[i];
-				if (shopItem.StackSize != 0 &&
-					(shopItem.PermissionRequired == null || player.HasPermission(shopItem.PermissionRequired)))
+                if (shopItem.StackSize != 0 &&
+                    (shopItem.PermissionRequired == null || player.HasPermission(shopItem.PermissionRequired)))
                 {
-					sb.Append($"[{i + 1}:{GetItemRenderString(shopItem.ItemId,shopItem.PrefixId, shopItem.StackSize)}] ");
-				}
+                    sb.Append($"[{i + 1}:{GetItemRenderString(shopItem.ItemId, shopItem.PrefixId, shopItem.StackSize)}] ");
+                }
                 if (((i + 1) % 10 == 0 || i == ShopItems.Count - 1) && sb.Length > 0)
                 {
                     player.SendInfoMessage(sb.ToString());
@@ -195,10 +195,10 @@ namespace NpcShops.Shops
             for (var i = 0; i < ShopCommands.Count; ++i)
             {
                 var shopCommand = ShopCommands[i];
-                if (shopCommand.StackSize != 0 )// &&
-                    //(shopCommand.PermissionRequired == null || player.HasPermission(shopCommand.PermissionRequired)))
+                if (shopCommand.StackSize != 0)// &&
+                                               //(shopCommand.PermissionRequired == null || player.HasPermission(shopCommand.PermissionRequired)))
                 {
-					sb.Append($"[{i + 1 + ShopItems.Count}: {shopCommand.Name} x{GetQuantityRenderString(shopCommand.StackSize)}] ");
+                    sb.Append($"[{i + 1 + ShopItems.Count}: {shopCommand.Name} x{GetQuantityRenderString(shopCommand.StackSize)}] ");
                 }
                 if (((i + 1) % 5 == 0 || i == ShopCommands.Count - 1) && sb.Length > 0)
                 {
@@ -210,26 +210,26 @@ namespace NpcShops.Shops
                 $"Use {Commands.Specifier}npcbuy <index> [amount] to buy items or commands.");
         }
 
-		/// <summary>
-		/// Shows the shop to the specified player, after a specified amount of time.
-		/// </summary>
-		/// <param name="player">TSPlayer instance.</param>
-		/// <param name="delay">Delay in milliseconds.</param>
-		public void ShowTo(TSPlayer player, int delay)
-		{
-			if( delay == -1 )
-				delay = 1;//never wait indefinitely
+        /// <summary>
+        /// Shows the shop to the specified player, after a specified amount of time.
+        /// </summary>
+        /// <param name="player">TSPlayer instance.</param>
+        /// <param name="delay">Delay in milliseconds.</param>
+        public void ShowTo(TSPlayer player, int delay)
+        {
+            if (delay == -1)
+                delay = 1;//never wait indefinitely
 
-			Task.Delay(delay).ContinueWith(t =>
-			{
-				ShowTo(player);
-			});
-		}
+            Task.Delay(delay).ContinueWith(t =>
+            {
+                ShowTo(player);
+            });
+        }
 
-		/// <summary>
-		///     Tries restocking the shop.
-		/// </summary>
-		public void TryRestock()
+        /// <summary>
+        ///     Tries restocking the shop.
+        /// </summary>
+        public void TryRestock()
         {
             if (DateTime.UtcNow - _lastRestock < RestockTime)
             {
@@ -248,36 +248,36 @@ namespace NpcShops.Shops
             }
         }
 
-		public static string GetQuantityRenderString(int quantity)
-		{
-			string stock;
+        public static string GetQuantityRenderString(int quantity)
+        {
+            string stock;
 
-			if( quantity == -1 || quantity > 99 )
-				stock = "99+";
-			else
-				stock = quantity.ToString();
+            if (quantity == -1 || quantity > 99)
+                stock = "99+";
+            else
+                stock = quantity.ToString();
 
-			return $"[c/{Color.OrangeRed.Hex3()}:{stock}]";
-		}
+            return $"[c/{Color.OrangeRed.Hex3()}:{stock}]";
+        }
 
-		public static string GetItemRenderString(int itemId, int itemPrefixId, int quantity)
-		{
-			return $"[i/p{itemPrefixId}:{itemId}]x{GetQuantityRenderString(quantity)}";
-		}
+        public static string GetItemRenderString(int itemId, int itemPrefixId, int quantity)
+        {
+            return $"[i/p{itemPrefixId}:{itemId}]x{GetQuantityRenderString(quantity)}";
+        }
 
-		public static string GetMaterialsCostRenderString(ShopProduct product, int quantity)
-		{
-			var result = "";
+        public static string GetMaterialsCostRenderString(ShopProduct product, int quantity)
+        {
+            var result = "";
 
-			foreach(var reqItem in product.RequiredItems)
-			{
-				if(reqItem.StackSize>0)
-				{
-					result += GetItemRenderString(reqItem.ItemId, reqItem.PrefixId, reqItem.StackSize * quantity) + " ";
-				}
-			}
+            foreach (var reqItem in product.RequiredItems)
+            {
+                if (reqItem.StackSize > 0)
+                {
+                    result += GetItemRenderString(reqItem.ItemId, reqItem.PrefixId, reqItem.StackSize * quantity) + " ";
+                }
+            }
 
-			return result;
-		}
+            return result;
+        }
     }
 }
