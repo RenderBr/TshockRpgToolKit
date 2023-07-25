@@ -363,8 +363,6 @@ namespace CustomNpcs.Projectiles
 
             if (customProjectile != null)
             {
-                if (DateTime.UtcNow.Subtract(customProjectile.LastAiUpdate).Seconds < 0.5)
-                    return;
                 try
                 {
                     customProjectile.LastAiUpdate = DateTime.UtcNow;
